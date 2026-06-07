@@ -55,6 +55,25 @@ characterQuery.start(1); // origin loads automatically when the character resolv
 - **`enabled`** — `Store<boolean>` gate.
 - **`mapData` / `mapError`** — normalize result / error before they hit the stores.
 
+### Operators
+
+`concurrency` / `retry` / `cache` are standalone, composable operators — the inline
+options above are just sugar that applies them. Use them directly to compose or to
+configure a query built elsewhere:
+
+```ts
+import { createQuery, concurrency, retry, cache } from 'effector-query';
+
+const search = createQuery({ effect: searchFx });
+concurrency(search, { strategy: 'TAKE_LATEST' });
+retry(search, { times: 3, delay: exponentialDelay(200) });
+cache(search, { staleAfter: 30_000, purge: loggedOut });
+```
+
+All three may be applied after creation; the engine carries the machinery and the
+operators configure it. `createQuery({ retry, cache, concurrency })` === calling the
+operators yourself.
+
 ### `connectQuery`
 
 ```ts

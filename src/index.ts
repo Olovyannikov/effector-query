@@ -1,6 +1,7 @@
 export { createQuery } from './create-query';
 export { createMutation } from './create-mutation';
 export { connectQuery } from './connect-query';
+export { concurrency, retry, cache } from './operators';
 export { invalidate, type InvalidateConfig } from './invalidate';
 export {
   update,

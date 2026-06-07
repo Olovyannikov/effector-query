@@ -83,6 +83,29 @@ export interface CreateQueryHandlerConfig<Params, Result, Error, Mapped = Result
   handler: (params: Params) => Promise<Result> | Result;
 }
 
+/** Resolved retry config the engine reads at runtime (operators produce it). */
+export interface ResolvedRetry<Error = unknown> {
+  times: number;
+  delay: DelayFn;
+  filter: (ctx: { error: Error; attempt: number }) => boolean;
+  suppress: boolean;
+}
+
+/** Resolved cache config the engine reads at runtime (operators produce it). */
+export interface ResolvedCache<Params = unknown> {
+  adapter: CacheAdapter;
+  staleAfter: number;
+  key: (params: Params) => string;
+}
+
+/** Internal engine seams that standalone operators (retry/cache/concurrency) configure. */
+export interface QueryEngine<Params, Error> {
+  setStrategy: (strategy: ConcurrencyStrategy) => void;
+  setRetry: (cfg: ResolvedRetry<Error> | null) => void;
+  setCache: (cfg: ResolvedCache<Params> | null) => void;
+  purgeFx: Effect<void, void, any>;
+}
+
 export interface QueryFinished<Params, Result, Error> {
   done: Event<{ params: Params; result: Result }>;
   fail: Event<{ params: Params; error: Error }>;
@@ -133,11 +156,11 @@ export interface Query<Params, Result, Error, Mapped = Result> {
   finished: QueryFinished<Params, Mapped, Error>;
   aborted: Event<{ params: Params }>;
 
-  /** Escape hatch — "based on real effects". */
+  /** Escape hatch — "based on real effects" — plus engine seams used by operators. */
   __: {
     effect: QueryEffect<Params, Result, Error>;
     runFx: Effect<{ runId: number; params: Params }, any, Error>;
-  };
+  } & QueryEngine<Params, Error>;
 
   /**
    * effector `useUnit` protocol: `useUnit(query)` returns
