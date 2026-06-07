@@ -23,8 +23,9 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] Test suite via `fork` / `allSettled` (+ happy-dom for React/Vue)
 
 ### 0.2 — Mutations & invalidation
-- [ ] `createMutation({ effect })` with the same status/lifecycle surface
-- [ ] `invalidate` / `update` wiring: a mutation success refreshes/patches related queries
+- [x] `createMutation({ effect })` with the same status/lifecycle surface (+ `mutate` alias, `useUnit` support)
+- [x] `invalidate({ on, refetch, filter })`: a mutation/event success refetches related queries with their last params
+- [ ] `update` wiring: patch query `$data` directly from a mutation result (no refetch)
 - [ ] Optimistic updates with rollback on failure
 
 ### 0.3 — Operators & power-user surface

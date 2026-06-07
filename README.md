@@ -64,6 +64,30 @@ connectQuery({ source: { a, b }, fn, target, filter? }); // multi (waits for all
 
 `fn` receives `{ result, params }` per source and returns `{ params }` for the target.
 
+## Mutations & invalidation
+
+A mutation is a write-flavored query: the same effect-first engine (status, retry,
+concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias.
+Concurrency defaults to `TAKE_EVERY` so independent writes don't cancel each other.
+
+```ts
+import { createMutation, invalidate } from 'effector-query';
+
+const addTodo = createMutation({ effect: addTodoFx, retry: 2 });
+
+// when the mutation succeeds, refetch the list (with its last params, bypassing cache)
+invalidate({ on: addTodo, refetch: todosQuery });
+
+addTodo.mutate({ text: 'Buy milk' }); // -> todosQuery refetches automatically
+```
+
+`invalidate({ on, refetch, filter? })`:
+- **`on`** — a Mutation/Query (fires on success), an `Event`, or an `Effect`; or an array of them.
+- **`refetch`** — a query or array of queries; each re-runs with its last params, only if it has run before (`status !== 'initial'`).
+- **`filter`** — optional gate on the trigger payload (e.g. mutation `{ params, result }`).
+
+A `Mutation` exposes `{ start, mutate, reset, cancel, $data, $error, $status, $pending, $params, finished, aborted }` and works with `useUnit(mutation)` too (`{ data, pending, mutate, ... }`).
+
 ## Framework bindings
 
 A query implements effector's `@@unitShape` protocol, so you can pass it straight

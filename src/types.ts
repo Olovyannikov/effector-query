@@ -131,8 +131,75 @@ export interface Query<Params, Result, Error, Mapped = Result> {
   '@@unitShape': () => QueryUnitShape<Params, Mapped, Error>;
 }
 
+// ---- mutations ----
+
+export interface CreateMutationConfig<Params, Result, Error, Mapped = Result> {
+  /** Primary input: a real effector Effect. */
+  effect: Effect<Params, Result, Error>;
+  enabled?: Store<boolean>;
+  mapData?: (ctx: { result: Result; params: Params }) => Mapped;
+  mapError?: (ctx: { error: Error; params: Params }) => Error;
+  retry?: number | RetryConfig<Error>;
+  /** Default: 'TAKE_EVERY' — independent mutations should not cancel each other. */
+  concurrency?: ConcurrencyStrategy;
+  name?: string;
+}
+
+export interface CreateMutationHandlerConfig<Params, Result, Error, Mapped = Result>
+  extends Omit<CreateMutationConfig<Params, Result, Error, Mapped>, 'effect'> {
+  handler: (params: Params) => Promise<Result> | Result;
+}
+
+export type MutationUnitShape<Params, Mapped, Error> = {
+  data: Store<Mapped | null>;
+  error: Store<Error | null>;
+  status: Store<QueryStatus>;
+  pending: Store<boolean>;
+  params: Store<Params | null>;
+  start: EventCallable<Params>;
+  mutate: EventCallable<Params>;
+  reset: EventCallable<void>;
+  cancel: EventCallable<void>;
+};
+
+export interface Mutation<Params, Result, Error, Mapped = Result> {
+  start: EventCallable<Params>;
+  /** Alias of `start`, reads better for writes: `userMutation.mutate(payload)`. */
+  mutate: EventCallable<Params>;
+  reset: EventCallable<void>;
+  cancel: EventCallable<void>;
+
+  $data: Store<Mapped | null>;
+  $error: Store<Error | null>;
+  $status: Store<QueryStatus>;
+  $pending: Store<boolean>;
+  $params: Store<Params | null>;
+
+  finished: QueryFinished<Params, Mapped, Error>;
+  aborted: Event<{ params: Params }>;
+
+  __: {
+    effect: Effect<Params, Result, Error>;
+    runFx: Effect<{ runId: number; params: Params }, any, Error>;
+  };
+
+  '@@unitShape': () => MutationUnitShape<Params, Mapped, Error>;
+}
+
 // ---- type-level helpers ----
 
-export type ParamsOf<Q> = Q extends Query<infer P, any, any, any> ? P : never;
-export type ResultOf<Q> = Q extends Query<any, any, any, infer M> ? M : never;
-export type ErrorOf<Q> = Q extends Query<any, any, infer E, any> ? E : never;
+export type ParamsOf<Q> = Q extends Query<infer P, any, any, any>
+  ? P
+  : Q extends Mutation<infer P, any, any, any>
+    ? P
+    : never;
+export type ResultOf<Q> = Q extends Query<any, any, any, infer M>
+  ? M
+  : Q extends Mutation<any, any, any, infer M>
+    ? M
+    : never;
+export type ErrorOf<Q> = Q extends Query<any, any, infer E, any>
+  ? E
+  : Q extends Mutation<any, any, infer E, any>
+    ? E
+    : never;
