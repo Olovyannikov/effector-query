@@ -30,9 +30,9 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] `createRequestFx<Params, Response>` request factory (ofetch / axios) with normalized `RequestError`
 
 ### 0.3 — Operators & power-user surface
-- [ ] Standalone `retry(query, …)` / `cache(query, …)` / `concurrency(query, …)` operators (inline options become sugar over them)
-- [ ] Sourced configuration (retry `times`/`delay`, `enabled`, cache `key` driven by stores)
-- [ ] Real cancellation: `AbortSignal` threaded into effects that opt in
+- [x] Real cancellation: `createRequestFx` effects are abort-aware; query aborts on cancel/reset and on TAKE_LATEST supersede
+- [~] Sourced configuration — partial: `enabled` and `retry.times` already accept stores; `delay`/`staleAfter`/cache `key` still static
+- [ ] Standalone `retry(query, …)` / `cache(query, …)` / `concurrency(query, …)` operators — needs an engine refactor (build a minimal base query, let operators wire in); inline options then become sugar. Dedicated pass.
 
 ### 0.4 — Validation & declarative fetching
 - [ ] Contract/validation hook with adapters (`zod`, `valibot`, `runtypes`)

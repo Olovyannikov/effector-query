@@ -1,11 +1,11 @@
-import { createEffect, type Effect } from 'effector';
+import { createEffect } from 'effector';
+import type { AbortableEffect } from './types';
 
 export interface RequestContext {
   /**
    * AbortSignal for the request. Pass it to your HTTP client (ofetch/axios).
-   * NOTE: effector effects are not auto-cancelled yet, so this signal does not
-   * fire on `query.cancel` today — it's here for adapter compatibility and for
-   * the real-cancellation work on the roadmap (0.3).
+   * The query owns the controller and aborts it on `cancel` / `reset` and when
+   * a TAKE_LATEST request is superseded — so this signal fires for real.
    */
   signal: AbortSignal;
 }
@@ -61,17 +61,18 @@ export interface CreateRequestFxOptions {
 export function createRequestFx<Params = void, Response = unknown>(
   handler: (params: Params, ctx: RequestContext) => Promise<Response> | Response,
   options: CreateRequestFxOptions = {},
-): Effect<Params, Response, RequestError> {
+): AbortableEffect<Params, Response, RequestError> {
   const { normalizeErrors = true, name } = options;
-  return createEffect<Params, Response, RequestError>({
+  // The query supplies the AbortSignal per run, so cancellation is real.
+  const fx = createEffect<{ params: Params; signal: AbortSignal }, Response, RequestError>({
     name,
-    handler: async (params) => {
-      const controller = new AbortController();
+    handler: async ({ params, signal }) => {
       try {
-        return await handler(params, { signal: controller.signal });
+        return await handler(params, { signal });
       } catch (err) {
         throw normalizeErrors ? normalizeRequestError(err) : (err as RequestError);
       }
     },
   });
+  return Object.assign(fx, { __abortable: true as const });
 }

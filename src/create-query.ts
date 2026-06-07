@@ -44,10 +44,18 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
     | CreateQueryHandlerConfig<Params, Result, Error, Mapped>,
 ): Query<Params, Result, Error, Mapped> {
   // ---- resolve config ----
-  const effect: Effect<Params, Result, Error> =
+  const effect =
     'effect' in config
       ? config.effect
       : (createEffect(config.handler) as Effect<Params, Result, Error>);
+
+  // abort-aware effects (from createRequestFx) accept { params, signal } so the
+  // query can really cancel the in-flight request.
+  const isAbortable = (effect as { __abortable?: boolean }).__abortable === true;
+  const callEffect = (params: Params, signal: AbortSignal): Promise<Result> =>
+    isAbortable
+      ? (effect as (a: { params: Params; signal: AbortSignal }) => Promise<Result>)({ params, signal })
+      : (effect as (p: Params) => Promise<Result>)(params);
 
   const strategy: ConcurrencyStrategy = config.concurrency ?? 'TAKE_LATEST';
 
@@ -118,11 +126,29 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
     ({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)),
   );
 
+  // in-flight AbortControllers (for abort-aware effects). Plain Set per query
+  // instance — see the SSR note in the README.
+  const controllers = new Set<AbortController>();
+  const abortInFlightFx = createEffect(() => {
+    controllers.forEach((c) => c.abort());
+    controllers.clear();
+  });
+
   // execFx wraps the *real* effect, carrying runId so we can detect stale results.
   const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>(
     async ({ runId, params }) => {
-      const result = await effect(params); // runs the user effect within the current scope
-      return { runId, params, result };
+      if (!isAbortable) {
+        const result = await callEffect(params, new AbortController().signal);
+        return { runId, params, result };
+      }
+      const controller = new AbortController();
+      controllers.add(controller);
+      try {
+        const result = await callEffect(params, controller.signal);
+        return { runId, params, result };
+      } finally {
+        controllers.delete(controller);
+      }
     },
   );
 
@@ -211,6 +237,11 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
   });
   $runId.on(tagged, (_id, t) => t.runId);
   $attempts.on(tagged, () => 0);
+  // TAKE_LATEST: abort the superseded in-flight request *before* starting the new
+  // one (registration order guarantees this fires before runFx adds its controller).
+  if (strategy === 'TAKE_LATEST') {
+    sample({ clock: tagged, target: abortInFlightFx });
+  }
   sample({ clock: tagged, target: runFx });
 
   // record params on each accepted run / cache hit
@@ -294,6 +325,8 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
   const invalidate = merge([reset, cancel]);
   $runId.on(invalidate, (id) => id + 1);
   $retrying.reset(invalidate);
+  // cancel/reset abort any in-flight request (real cancellation for abort-aware effects)
+  sample({ clock: invalidate, target: abortInFlightFx });
 
   // ---- state stores ----
   $status

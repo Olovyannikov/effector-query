@@ -4,6 +4,22 @@ export type QueryStatus = 'initial' | 'pending' | 'done' | 'fail';
 
 export type ConcurrencyStrategy = 'TAKE_LATEST' | 'TAKE_FIRST' | 'TAKE_EVERY';
 
+/**
+ * An abort-aware effect: receives `{ params, signal }` so the query can really
+ * cancel the in-flight request (via AbortController) on cancel/reset/supersede.
+ * Produced by `createRequestFx`.
+ */
+export type AbortableEffect<Params, Result, Fail = unknown> = Effect<
+  { params: Params; signal: AbortSignal },
+  Result,
+  Fail
+> & { readonly __abortable: true };
+
+/** Either a plain effect or an abort-aware one. */
+export type QueryEffect<Params, Result, Fail> =
+  | Effect<Params, Result, Fail>
+  | AbortableEffect<Params, Result, Fail>;
+
 /** Function computing the pause (ms) before retry attempt N (1-based). */
 export type DelayFn = (attempt: number) => number;
 
@@ -42,8 +58,8 @@ export interface CacheConfig<Params = unknown> {
 }
 
 export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
-  /** Primary input: a real effector Effect. */
-  effect: Effect<Params, Result, Error>;
+  /** Primary input: a real effector Effect (plain or abort-aware). */
+  effect: QueryEffect<Params, Result, Error>;
   /** Initial $data value before the first success. */
   initialData?: Mapped;
   /** Gate: while false, start/refresh are skipped. */
@@ -119,7 +135,7 @@ export interface Query<Params, Result, Error, Mapped = Result> {
 
   /** Escape hatch — "based on real effects". */
   __: {
-    effect: Effect<Params, Result, Error>;
+    effect: QueryEffect<Params, Result, Error>;
     runFx: Effect<{ runId: number; params: Params }, any, Error>;
   };
 
@@ -134,8 +150,8 @@ export interface Query<Params, Result, Error, Mapped = Result> {
 // ---- mutations ----
 
 export interface CreateMutationConfig<Params, Result, Error, Mapped = Result> {
-  /** Primary input: a real effector Effect. */
-  effect: Effect<Params, Result, Error>;
+  /** Primary input: a real effector Effect (plain or abort-aware). */
+  effect: QueryEffect<Params, Result, Error>;
   enabled?: Store<boolean>;
   mapData?: (ctx: { result: Result; params: Params }) => Mapped;
   mapError?: (ctx: { error: Error; params: Params }) => Error;
@@ -179,7 +195,7 @@ export interface Mutation<Params, Result, Error, Mapped = Result> {
   aborted: Event<{ params: Params }>;
 
   __: {
-    effect: Effect<Params, Result, Error>;
+    effect: QueryEffect<Params, Result, Error>;
     runFx: Effect<{ runId: number; params: Params }, any, Error>;
   };
 

@@ -136,9 +136,26 @@ const postsQuery = createQuery({ effect: getPostsFx, cache: true, retry: 2 });
 const addPost = createMutation({ effect: createPostFx });
 ```
 
-The handler receives an `AbortSignal` for client compatibility (real effect
-cancellation is on the roadmap). See [`examples/http-clients.ts`](./examples/http-clients.ts)
-for a full query + mutation + invalidate + optimistic flow.
+See [`examples/http-clients.ts`](./examples/http-clients.ts) for a full query +
+mutation + invalidate + optimistic flow.
+
+### Real cancellation
+
+Effects built with `createRequestFx` are **abort-aware**: the query owns an
+`AbortController` per run and fires the handler's `signal` when the request is
+cancelled — so ofetch/axios actually stop:
+
+- `query.cancel()` / `query.reset()` abort all in-flight requests;
+- under `TAKE_LATEST`, starting a new request aborts the superseded one;
+- `TAKE_EVERY` never aborts earlier requests.
+
+Plain effects (without `createRequestFx`) keep the previous behavior — their
+stale results are simply ignored.
+
+> SSR note: in-flight controllers are tracked per query *instance* (a closure
+> `Set`), not per scope. For isolated SSR you already build per-request units, so
+> this is a non-issue; just avoid sharing one query instance across concurrent
+> requests if you also call `cancel`.
 
 ## Framework bindings
 
