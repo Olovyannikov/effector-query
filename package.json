@@ -18,7 +18,12 @@
       "require": "./dist/react.cjs"
     }
   },
-  "files": ["dist", "README.md", "ROADMAP.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "ROADMAP.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "vite build",
@@ -33,19 +38,26 @@
     "react": ">=18"
   },
   "peerDependenciesMeta": {
-    "effector-react": { "optional": true },
-    "react": { "optional": true }
+    "effector-react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/test-utils": "^2.4.11",
+    "axios": "^1.17.0",
     "effector": "^23.2.2",
     "effector-react": "^23.3.0",
     "effector-vue": "^23.1.1",
     "happy-dom": "^20.10.2",
+    "ofetch": "^1.5.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "typescript": "^5.5.4",

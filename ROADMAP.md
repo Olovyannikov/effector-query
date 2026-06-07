@@ -25,8 +25,9 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 0.2 — Mutations & invalidation
 - [x] `createMutation({ effect })` with the same status/lifecycle surface (+ `mutate` alias, `useUnit` support)
 - [x] `invalidate({ on, refetch, filter })`: a mutation/event success refetches related queries with their last params
-- [ ] `update` wiring: patch query `$data` directly from a mutation result (no refetch)
-- [ ] Optimistic updates with rollback on failure
+- [x] `update({ query, on, fn })`: patch query `$data` directly from a mutation result (no refetch)
+- [x] `optimisticUpdate`: apply on start, roll back on failure, optional `commit` reconcile on success
+- [x] `createRequestFx<Params, Response>` request factory (ofetch / axios) with normalized `RequestError`
 
 ### 0.3 — Operators & power-user surface
 - [ ] Standalone `retry(query, …)` / `cache(query, …)` / `concurrency(query, …)` operators (inline options become sugar over them)

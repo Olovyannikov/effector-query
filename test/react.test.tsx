@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, afterEach } from 'vitest';
-import { createElement } from 'react';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { allSettled, createEffect, fork } from 'effector';
 import { Provider, useUnit } from 'effector-react';
@@ -16,16 +15,20 @@ describe('useQuery (React binding)', () => {
 
     function View() {
       const { data, status, isPending } = useQuery(query);
-      return createElement(
-        'div',
-        null,
-        createElement('span', { 'data-testid': 'status' }, isPending ? 'pending' : status),
-        createElement('span', { 'data-testid': 'data' }, data ?? 'null'),
+      return (
+        <div>
+          <span data-testid="status">{isPending ? 'pending' : status}</span>
+          <span data-testid="data">{data ?? 'null'}</span>
+        </div>
       );
     }
 
     const scope = fork();
-    render(createElement(Provider, { value: scope }, createElement(View)));
+    render(
+      <Provider value={scope}>
+        <View />
+      </Provider>,
+    );
 
     expect(screen.getByTestId('status').textContent).toBe('initial');
     expect(screen.getByTestId('data').textContent).toBe('null');
@@ -46,11 +49,15 @@ describe('useQuery (React binding)', () => {
     function View() {
       const { data, start } = useQuery(query);
       startFn = start;
-      return createElement('span', { 'data-testid': 'data' }, String(data ?? 'null'));
+      return <span data-testid="data">{String(data ?? 'null')}</span>;
     }
 
     const scope = fork();
-    render(createElement(Provider, { value: scope }, createElement(View)));
+    render(
+      <Provider value={scope}>
+        <View />
+      </Provider>,
+    );
 
     await act(async () => {
       startFn(4);
@@ -73,15 +80,15 @@ describe('useQuery (React binding)', () => {
       // exactly the shape the user asked for
       const { pending, refetch, data } = useUnit(query);
       refetchFn = refetch;
-      return createElement(
-        'span',
-        { 'data-testid': 'cell' },
-        `${pending ? 'pending' : 'idle'}:${data ?? 'null'}`,
-      );
+      return <span data-testid="cell">{`${pending ? 'pending' : 'idle'}:${data ?? 'null'}`}</span>;
     }
 
     const scope = fork();
-    render(createElement(Provider, { value: scope }, createElement(View)));
+    render(
+      <Provider value={scope}>
+        <View />
+      </Provider>,
+    );
 
     expect(screen.getByTestId('cell').textContent).toBe('idle:null');
 

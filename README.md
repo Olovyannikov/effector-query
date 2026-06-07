@@ -88,6 +88,58 @@ addTodo.mutate({ text: 'Buy milk' }); // -> todosQuery refetches automatically
 
 A `Mutation` exposes `{ start, mutate, reset, cancel, $data, $error, $status, $pending, $params, finished, aborted }` and works with `useUnit(mutation)` too (`{ data, pending, mutate, ... }`).
 
+### `update` & optimistic updates
+
+Patch a query's `$data` directly from a mutation result — no refetch:
+
+```ts
+import { update, optimisticUpdate } from 'effector-query';
+
+update({ query: todosQuery, on: addTodo, fn: ({ data, result }) => [...(data ?? []), result] });
+```
+
+Optimistic update: apply immediately on `start`, roll back on failure, optionally reconcile on success:
+
+```ts
+optimisticUpdate({
+  query: todosQuery,
+  on: addTodo,
+  update: ({ data, params }) => [{ id: -1, ...params }, ...(data ?? [])], // shown instantly
+  commit: ({ data, result }) => (data ?? []).map((t) => (t.id === -1 ? result : t)), // server id
+});
+```
+
+Combine optimistic feedback with `invalidate` to reconcile against server truth (the TanStack-style pattern).
+
+## Request factory (ofetch / axios)
+
+`createRequestFx<Params, Response>(handler)` wraps any HTTP client into a typed,
+devtools-visible effector effect, with shared error normalization (`RequestError`
+with `status` / `data`):
+
+```ts
+import { ofetch } from 'ofetch';
+import axios from 'axios';
+import { createRequestFx, createQuery, createMutation } from 'effector-query';
+
+// ofetch
+const getPostsFx = createRequestFx<{ userId: number }, Post[]>(
+  ({ userId }, { signal }) => ofetch('/api/posts', { query: { userId }, signal }),
+);
+
+// axios
+const createPostFx = createRequestFx<NewPost, Post>(
+  (body, { signal }) => axios.post('/api/posts', body, { signal }).then((r) => r.data),
+);
+
+const postsQuery = createQuery({ effect: getPostsFx, cache: true, retry: 2 });
+const addPost = createMutation({ effect: createPostFx });
+```
+
+The handler receives an `AbortSignal` for client compatibility (real effect
+cancellation is on the roadmap). See [`examples/http-clients.ts`](./examples/http-clients.ts)
+for a full query + mutation + invalidate + optimistic flow.
+
 ## Framework bindings
 
 A query implements effector's `@@unitShape` protocol, so you can pass it straight
