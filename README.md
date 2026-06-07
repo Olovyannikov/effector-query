@@ -100,22 +100,21 @@ expect(scope.getState(originQuery.$data)).toBeTruthy();
 
 ## vs. farfetched
 
-[farfetched](https://ff.effector.dev) is the mature, full-featured data-fetching tool for effector. This library is a smaller, opinionated take.
+[farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is still **pre-1.0**, the original "1.0 by end of 2024" target has slipped well past, the last release was **0.15.0 (Jan 2026)**, and the issue backlog keeps growing. effector-query exists to be the **maintained, effect-first** option with a smaller, friendlier surface and a committed road to 1.0 — not to claim farfetched is dead.
 
 | | farfetched | effector-query |
 | --- | --- | --- |
 | unit of work | internal event-based Executor; query is a self-contained abstraction | your real `Effect` is first-class; query wraps it |
 | primary input | `handler` (wrapped internally); `effect` is one path | `effect` is the main input; `handler` is sugar |
-| retry | operator `retry(query, …)` | inline `retry` option (same graph-level semantics) |
-| cache | operator `cache(query, …)` | inline `cache` option |
-| concurrency | operator `concurrency(query, …)` | inline `concurrency` option (default `TAKE_LATEST`) |
+| retry / cache / concurrency | separate operators `retry()/cache()/concurrency()` | inline options on `createQuery` (default concurrency `TAKE_LATEST`) |
 | connectQuery | yes | yes (compatible shape) |
-| validation | `contract`, `validate`, sourced params | `mapData` / `mapError` only |
-| ready-made | `createJsonQuery`, storage adapters w/ maxAge, dedupe | bring your own effect |
-| SSR/tests | fork-friendly | fork-friendly |
+| validation | `contract`, `validate`, sourced params | `mapData` / `mapError` (contracts on the roadmap) |
+| ready-made | `createJsonQuery`, storage adapters w/ GC, dedupe, mutations | bring your own effect (factories on the roadmap) |
+| SSR / tests | fork-friendly | fork-friendly |
+| status | pre-1.0, slowed cadence | pre-1.0, actively building toward 1.0 |
 
-**Trade-offs.** farfetched is richer (contracts, sourced params, JSON factories, dedupe) and its operator style composes and tree-shakes better. This library is simpler to start with and closer to bare effector — great for "I already have an effect, wrap it" — but reimplements a slice of farfetched. If you need contracts, sourced configuration, or declarative HTTP, prefer farfetched.
+**Honest trade-off.** *Today* farfetched ships more batteries — contracts, `createJsonQuery`, sourced configuration, request dedupe, cache adapters with GC, mutations. effector-query is currently simpler and closer to bare effector ("I already have an effect, wrap it"). We treat farfetched's extra surface as our [roadmap](./ROADMAP.md), not as a reason to depend on a stalling library. If you need those batteries *right now*, farfetched still has them; if you want an effect-first API on a project that intends to be maintained, use this.
 
 ## Status
 
-Reference implementation / design exploration. Not published. Run `npm test` and `npm run typecheck`.
+Pre-1.0, actively developed. Core (`createQuery`, `connectQuery`, retry/cache/concurrency, React binding) is implemented and tested (24 tests via `fork`/`allSettled` + jsdom). See the [roadmap](./ROADMAP.md). Run `npm test` and `npm run typecheck`.
