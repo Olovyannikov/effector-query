@@ -17,6 +17,7 @@ export interface UseQueryResult<Params, Mapped, Error> {
   // bound triggers (scope-aware via effector-react's Provider)
   start: (params: Params) => void;
   refresh: (params: Params) => void;
+  refetch: (params: Params) => void;
   reset: () => void;
   cancel: () => void;
 }
@@ -44,6 +45,7 @@ export function useQuery<Params, Result, Error, Mapped>(
   const triggers = useUnit({
     start: query.start,
     refresh: query.refresh,
+    refetch: query.refetch,
     reset: query.reset,
     cancel: query.cancel,
   });

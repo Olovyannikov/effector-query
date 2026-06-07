@@ -73,10 +73,33 @@ export interface QueryFinished<Params, Result, Error> {
   finally: Event<{ params: Params; status: 'done' | 'fail' }>;
 }
 
+/**
+ * What `useUnit(query)` resolves to: store values + scope-bound triggers.
+ * Declared as a type alias (not an interface) so it stays assignable to the
+ * `Record<string, Unit>` shape that effector's `useUnit` overloads expect.
+ */
+export type QueryUnitShape<Params, Mapped, Error> = {
+  data: Store<Mapped | null>;
+  error: Store<Error | null>;
+  status: Store<QueryStatus>;
+  pending: Store<boolean>;
+  stale: Store<boolean>;
+  enabled: Store<boolean>;
+  params: Store<Params | null>;
+  start: EventCallable<Params>;
+  refetch: EventCallable<Params>;
+  refresh: EventCallable<Params>;
+  reset: EventCallable<void>;
+  cancel: EventCallable<void>;
+};
+
 export interface Query<Params, Result, Error, Mapped = Result> {
   // triggers
   start: EventCallable<Params>;
+  /** Re-run, bypassing cache freshness. */
   refresh: EventCallable<Params>;
+  /** Alias of `refresh`, for the familiar `refetch` name. */
+  refetch: EventCallable<Params>;
   reset: EventCallable<void>;
   cancel: EventCallable<void>;
 
@@ -99,6 +122,13 @@ export interface Query<Params, Result, Error, Mapped = Result> {
     effect: Effect<Params, Result, Error>;
     runFx: Effect<{ runId: number; params: Params }, any, Error>;
   };
+
+  /**
+   * effector `useUnit` protocol: `useUnit(query)` returns
+   * `{ data, error, status, pending, stale, enabled, params, start, refetch, refresh, reset, cancel }`.
+   * Works with both effector-react and effector-vue.
+   */
+  '@@unitShape': () => QueryUnitShape<Params, Mapped, Error>;
 }
 
 // ---- type-level helpers ----

@@ -64,27 +64,54 @@ connectQuery({ source: { a, b }, fn, target, filter? }); // multi (waits for all
 
 `fn` receives `{ result, params }` per source and returns `{ params }` for the target.
 
-## React
+## Framework bindings
+
+A query implements effector's `@@unitShape` protocol, so you can pass it straight
+to `useUnit` from **effector-react** or **effector-vue** — no wrapper needed:
+
+```tsx
+// React
+import { useUnit } from 'effector-react';
+
+function UserCard({ id }: { id: number }) {
+  const { data, pending, error, refetch } = useUnit(userQuery);
+  // useUnit(query) -> { data, error, status, pending, stale, enabled, params,
+  //                     start, refetch, refresh, reset, cancel }
+  return pending ? <Spinner /> : <div onClick={() => refetch(id)}>{data?.name}</div>;
+}
+```
+
+```vue
+<!-- Vue -->
+<script setup lang="ts">
+import { useUnit } from 'effector-vue/composition';
+const { data, pending, refetch } = useUnit(userQuery);
+</script>
+```
+
+For React there's also a thin `useQuery` helper that adds derived booleans:
 
 ```tsx
 import { useQuery } from 'effector-query/react';
 
-function UserCard({ id }: { id: number }) {
-  const { data, isPending, isFail, error, start } = useQuery(userQuery);
-
-  useEffect(() => start(id), [id]);
-
-  if (isPending) return <Spinner />;
-  if (isFail) return <Error message={String(error)} />;
-  return <div>{data?.name}</div>;
-}
+const { data, isPending, isFail, error, start, refetch } = useQuery(userQuery);
+useEffect(() => start(id), [id]); // queries never auto-start
 ```
 
-`useQuery` binds the query's stores and triggers to the current effector scope via
-effector-react's `useUnit` (works with `<Provider value={scope}>` for SSR). It does
-not auto-start — call `start`/`refresh` yourself. Returns `{ data, error, status,
-pending, stale, enabled, params, isInitial, isPending, isDone, isFail, start,
-refresh, reset, cancel }`. Requires the optional `react` + `effector-react` peers.
+`useQuery` returns the unit shape plus `isInitial / isPending / isDone / isFail`.
+Works with `<Provider value={scope}>` for SSR. React binding requires the optional
+`react` + `effector-react` peers.
+
+## Development
+
+Uses **pnpm** and **vite**.
+
+```bash
+pnpm install
+pnpm typecheck   # tsc --noEmit
+pnpm test        # vitest (node + happy-dom for React/Vue)
+pnpm build       # vite library build -> dist/{index,react}.{mjs,cjs} + d.ts
+```
 
 ## SSR / tests
 

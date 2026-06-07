@@ -3,16 +3,29 @@
   "version": "0.1.0",
   "description": "Friendly query layer for effector, built on real effects",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./react": "./src/react.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    }
   },
+  "files": ["dist", "README.md", "ROADMAP.md", "LICENSE"],
+  "sideEffects": false,
   "scripts": {
+    "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
     "effector": ">=23",
@@ -27,13 +40,20 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.11",
     "effector": "^23.2.2",
     "effector-react": "^23.3.0",
-    "jsdom": "^29.1.1",
+    "effector-vue": "^23.1.1",
+    "happy-dom": "^20.10.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.0.5",
+    "vue": "^3.5.35"
   },
+  "packageManager": "pnpm@11.5.1",
   "license": "MIT"
 }

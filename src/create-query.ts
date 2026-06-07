@@ -347,9 +347,12 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
     target: finishedFinally,
   });
 
+  const refetch = refresh; // alias
+
   return {
     start: start as EventCallable<Params>,
     refresh: refresh as EventCallable<Params>,
+    refetch: refetch as EventCallable<Params>,
     reset,
     cancel,
 
@@ -365,5 +368,21 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
     aborted,
 
     __: { effect, runFx },
+
+    // effector useUnit() protocol — `useUnit(query)` yields the shape below.
+    '@@unitShape': () => ({
+      data: $data,
+      error: $error,
+      status: $status,
+      pending: $pending,
+      stale: $stale,
+      enabled: $enabled,
+      params: $params,
+      start: start as EventCallable<Params>,
+      refetch: refetch as EventCallable<Params>,
+      refresh: refresh as EventCallable<Params>,
+      reset,
+      cancel,
+    }),
   };
 }

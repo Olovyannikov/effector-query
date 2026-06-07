@@ -18,7 +18,9 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] Cache adapters: in-memory / local / session / void
 - [x] Retry delay helpers (linear / exponential + jitter)
 - [x] React binding `useQuery` via `useUnit`
-- [x] Test suite via `fork` / `allSettled` (+ jsdom for React)
+- [x] `@@unitShape` protocol — `useUnit(query)` works directly in **effector-react** and **effector-vue**
+- [x] Tooling: pnpm + vite library build (ESM/CJS + d.ts), standalone vitest config
+- [x] Test suite via `fork` / `allSettled` (+ happy-dom for React/Vue)
 
 ### 0.2 — Mutations & invalidation
 - [ ] `createMutation({ effect })` with the same status/lifecycle surface
@@ -45,8 +47,8 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [ ] Normalized list updates from mutations
 
 ### 0.7 — Framework bindings & DX
-- [ ] Vue binding (`effector-vue`), Solid binding (`effector-solid`)
-- [ ] `@@unitShape` support for direct `useUnit(query)`
+- [x] `@@unitShape` support for direct `useUnit(query)` (React + Vue)
+- [ ] Dedicated Vue `useQuery` helper + Solid binding (`effector-solid`)
 - [ ] effector devtools / inspector integration and labelling
 
 ### 1.0 — Stabilize
