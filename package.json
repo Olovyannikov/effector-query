@@ -35,7 +35,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "peerDependencies": {
     "effector": ">=23",
@@ -45,10 +48,18 @@
     "vue": ">=3"
   },
   "peerDependenciesMeta": {
-    "effector-react": { "optional": true },
-    "react": { "optional": true },
-    "effector-vue": { "optional": true },
-    "vue": { "optional": true }
+    "effector-react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "effector-vue": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
@@ -68,6 +79,7 @@
     "typescript": "^5.5.4",
     "vite": "^5.4.11",
     "vite-plugin-dts": "^4.5.4",
+    "vitepress": "^1.6.4",
     "vitest": "^2.0.5",
     "vue": "^3.5.35"
   },

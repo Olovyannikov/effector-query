@@ -1,0 +1,58 @@
+# Mutations & invalidation
+
+## createMutation
+
+A mutation is a write-flavored query: the same effect-first engine (status, retry,
+concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias.
+Concurrency defaults to `TAKE_EVERY` so independent writes don't cancel each other.
+
+```ts
+import { createMutation } from 'effector-query';
+
+const addTodo = createMutation({ effect: addTodoFx, retry: 2 });
+addTodo.mutate({ text: 'Buy milk' });
+```
+
+Exposes `{ start, mutate, reset, cancel, $data, $error, $status, $pending, $params,
+finished, aborted }` and works with `useUnit(mutation)`.
+
+## invalidate
+
+Refetch queries when something succeeds:
+
+```ts
+import { invalidate } from 'effector-query';
+
+invalidate({ on: addTodo, refetch: todosQuery });
+```
+
+- **`on`** — a Mutation/Query (fires on success), an `Event`, or an `Effect`; or an array.
+- **`refetch`** — a query or array; each re-runs with its last params, only if it ran before (`status !== 'initial'`), bypassing cache freshness.
+- **`filter`** — optional gate on the trigger payload (e.g. `{ params, result }`).
+
+## update
+
+Patch a query's `$data` directly from a result — no refetch:
+
+```ts
+import { update } from 'effector-query';
+
+update({ query: todosQuery, on: addTodo, fn: ({ data, result }) => [...(data ?? []), result] });
+```
+
+## optimisticUpdate
+
+Apply immediately on `start`, roll back on failure, optionally reconcile on success:
+
+```ts
+import { optimisticUpdate } from 'effector-query';
+
+optimisticUpdate({
+  query: todosQuery,
+  on: addTodo,
+  update: ({ data, params }) => [{ id: -1, ...params }, ...(data ?? [])],
+  commit: ({ data, result }) => (data ?? []).map((t) => (t.id === -1 ? result : t)),
+});
+```
+
+Combine optimistic feedback with `invalidate` to reconcile against server truth.

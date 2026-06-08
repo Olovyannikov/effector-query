@@ -1,5 +1,7 @@
 # effector-query
 
+📖 **Docs:** https://olovyannikov.github.io/effector-query/ · 🗺️ [Roadmap](./ROADMAP.md)
+
 A small, friendly query layer for [effector](https://effector.dev), built on **real effects**.
 
 The unit of work is your own `Effect<Params, Result, Error>` (including `attach`-built factory effects) — the query is just a thin reactive shell around it. `retry`, `cache` and `concurrency` are inline options on `createQuery`, not separate operators.

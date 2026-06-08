@@ -64,10 +64,11 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [ ] Redux-devtools-style run timeline view (params, attempt, cache outcome, duration)
 
 ### 0.9 — Documentation site (VitePress)
-- [ ] `docs/` VitePress site: Guide (concepts, effect-first model, why-not-farfetched), API reference, Recipes (SSR/testing, mutations+invalidate, optimistic, pagination, sourced config, validation, shared factory), Migration (from farfetched)
-- [ ] Runnable examples embedded (Stackblitz/Twoslash type-checked snippets)
-- [ ] Deploy to GitHub Pages via CI; versioned docs from 0.x → 1.0
-- [ ] API docs generated/checked from the `.d.ts` so they can't drift
+- [x] `docs/` VitePress site: Guide (getting-started, concepts, vs-farfetched), API reference (queries, mutations, http+validation, pagination, bindings, introspection), Recipes (SSR/testing, optimistic, shared factory)
+- [x] `docs:dev` / `docs:build` / `docs:preview` scripts; local search; build verified
+- [x] GitHub Pages deploy workflow (`.github/workflows/docs.yml`) + CI gate (`ci.yml`: typecheck/test/build)
+- [ ] Type-checked snippets (Twoslash) and embedded runnable examples
+- [ ] Versioned docs from 0.x → 1.0; API docs generated/checked from `.d.ts`
 
 ### 1.0 — Stabilize
 - [ ] API freeze + migration guide from 0.x and from farfetched
