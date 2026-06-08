@@ -58,6 +58,8 @@ export interface CacheConfig<Params = unknown> {
   purge?: Event<unknown>;
   /** Stale-while-revalidate: serve a stale entry immediately, then refetch in the background. */
   swr?: boolean;
+  /** Coalesce identical in-flight requests (by key) into one effect run. */
+  dedupe?: boolean;
 }
 
 export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
@@ -112,6 +114,7 @@ export interface ResolvedCache<Params = unknown> {
   staleAfter: number;
   key: (params: Params) => string;
   swr: boolean;
+  dedupe: boolean;
 }
 
 /** Internal engine seams that standalone operators (retry/cache/concurrency) configure. */

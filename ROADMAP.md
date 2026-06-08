@@ -41,9 +41,9 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 0.5 — Caching that scales
 - [x] Cache GC: `inMemoryCache({ maxAge, maxEntries })` with LRU eviction
 - [x] SWR mode (`cache: { swr: true }`) — serve stale, revalidate in background
-- [ ] Request dedupe (in-flight coalescing by key)
-- [ ] Observable cache events (`hit/miss/expired/evicted`)
-- [ ] Persistence adapters with versioning/migration
+- [x] Request dedupe (`cache: { dedupe: true }`) — in-flight coalescing by key
+- [x] Observable cache events (`onHit/onMiss/onExpired/onEvicted` on `inMemoryCache`)
+- [x] Persistence with versioning/migration (`localStorageCache`/`sessionStorageCache` `{ version, maxAge }`)
 
 ### 0.6 — Lists & pagination
 - [ ] Pagination / infinite-query helpers (cursor + offset)

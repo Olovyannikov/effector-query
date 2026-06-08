@@ -1,6 +1,14 @@
 import type { CacheAdapter, CacheEntry } from './types';
 
-export interface InMemoryCacheOptions {
+/** Optional observers for cache activity. */
+export interface CacheEvents {
+  onHit?: (key: string) => void;
+  onMiss?: (key: string) => void;
+  onExpired?: (key: string) => void;
+  onEvicted?: (key: string) => void;
+}
+
+export interface InMemoryCacheOptions extends CacheEvents {
   /** Drop entries older than this (ms) on access. */
   maxAge?: number;
   /** Keep at most this many entries (LRU eviction). */
@@ -9,9 +17,9 @@ export interface InMemoryCacheOptions {
   now?: () => number;
 }
 
-/** In-memory cache with optional GC (maxAge / maxEntries, LRU). */
+/** In-memory cache with optional GC (maxAge / maxEntries, LRU) and events. */
 export function inMemoryCache(options: InMemoryCacheOptions = {}): CacheAdapter {
-  const { maxAge, maxEntries, now = () => Date.now() } = options;
+  const { maxAge, maxEntries, now = () => Date.now(), onHit, onMiss, onExpired, onEvicted } = options;
   const store = new Map<string, CacheEntry>();
 
   const expired = (entry: CacheEntry) => maxAge != null && now() - entry.storedAt >= maxAge;
@@ -19,14 +27,20 @@ export function inMemoryCache(options: InMemoryCacheOptions = {}): CacheAdapter 
   return {
     get: (key) => {
       const entry = store.get(key);
-      if (!entry) return null;
+      if (!entry) {
+        onMiss?.(key);
+        return null;
+      }
       if (expired(entry)) {
         store.delete(key);
+        onExpired?.(key);
+        onMiss?.(key);
         return null;
       }
       // LRU touch: move to most-recently-used
       store.delete(key);
       store.set(key, entry);
+      onHit?.(key);
       return entry;
     },
     set: (key, value, storedAt) => {
@@ -37,6 +51,7 @@ export function inMemoryCache(options: InMemoryCacheOptions = {}): CacheAdapter 
           const oldest = store.keys().next().value;
           if (oldest === undefined) break;
           store.delete(oldest);
+          onEvicted?.(oldest);
         }
       }
     },
@@ -49,20 +64,46 @@ export function inMemoryCache(options: InMemoryCacheOptions = {}): CacheAdapter 
   };
 }
 
-function webStorageCache(getStorage: () => Storage, prefix: string): CacheAdapter {
+interface StoredRecord extends CacheEntry {
+  /** Schema/data version — a mismatch invalidates the entry (migration). */
+  v?: string | number;
+}
+
+export interface WebStorageCacheOptions {
+  prefix?: string;
+  /** Bump to invalidate all previously stored entries (migration). */
+  version?: string | number;
+  /** Drop entries older than this (ms) on access. */
+  maxAge?: number;
+  now?: () => number;
+}
+
+function webStorageCache(getStorage: () => Storage, options: WebStorageCacheOptions): CacheAdapter {
+  const { prefix = 'eq:', version, maxAge, now = () => Date.now() } = options;
   const k = (key: string) => `${prefix}${key}`;
   return {
     get: (key) => {
       try {
         const raw = getStorage().getItem(k(key));
-        return raw ? (JSON.parse(raw) as CacheEntry) : null;
+        if (!raw) return null;
+        const rec = JSON.parse(raw) as StoredRecord;
+        if (version !== undefined && rec.v !== version) {
+          getStorage().removeItem(k(key));
+          return null;
+        }
+        if (maxAge != null && now() - rec.storedAt >= maxAge) {
+          getStorage().removeItem(k(key));
+          return null;
+        }
+        return { value: rec.value, storedAt: rec.storedAt };
       } catch {
         return null;
       }
     },
     set: (key, value, storedAt) => {
       try {
-        getStorage().setItem(k(key), JSON.stringify({ value, storedAt }));
+        const rec: StoredRecord = { value, storedAt, v: version };
+        getStorage().setItem(k(key), JSON.stringify(rec));
       } catch {
         /* quota / serialization — ignore */
       }
@@ -90,12 +131,12 @@ function webStorageCache(getStorage: () => Storage, prefix: string): CacheAdapte
   };
 }
 
-export function localStorageCache(prefix = 'eq:'): CacheAdapter {
-  return webStorageCache(() => localStorage, prefix);
+export function localStorageCache(options: WebStorageCacheOptions = {}): CacheAdapter {
+  return webStorageCache(() => localStorage, options);
 }
 
-export function sessionStorageCache(prefix = 'eq:'): CacheAdapter {
-  return webStorageCache(() => sessionStorage, prefix);
+export function sessionStorageCache(options: WebStorageCacheOptions = {}): CacheAdapter {
+  return webStorageCache(() => sessionStorage, options);
 }
 
 /** Never stores, never restores. Useful for tests. */

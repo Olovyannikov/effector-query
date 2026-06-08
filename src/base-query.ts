@@ -74,7 +74,13 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   let staleAfterConst = Infinity;
   let retryRef: { delay: ResolvedRetry<Error>['delay']; filter: ResolvedRetry<Error>['filter']; suppress: boolean } | null =
     null;
-  let cacheRef: { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string; swr: boolean } | null = null;
+  let cacheRef:
+    | { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string; swr: boolean; dedupe: boolean }
+    | null = null;
+  // keys with a request currently in flight (for dedupe coalescing)
+  const inflightKeys = new Set<string>();
+  const dedupeKey = (params: Params): string | null =>
+    cacheRef && cacheRef.dedupe ? cacheRef.key(params) : null;
   let validateRef: ((result: unknown, params: Params) => string[] | null) | null = null;
 
   const swrOf = () => !!cacheRef && cacheRef.swr;
@@ -118,17 +124,16 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
 
   const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>(async ({ runId, params }) => {
-    if (!isAbortable) {
-      const result = await callEffect(params, new AbortController().signal);
-      return { runId, params, result };
-    }
-    const controller = new AbortController();
-    controllers.add(controller);
+    const key = dedupeKey(params);
+    if (key) inflightKeys.add(key);
+    const controller = isAbortable ? new AbortController() : null;
+    if (controller) controllers.add(controller);
     try {
-      const result = await callEffect(params, controller.signal);
+      const result = await callEffect(params, controller?.signal ?? new AbortController().signal);
       return { runId, params, result };
     } finally {
-      controllers.delete(controller);
+      if (key) inflightKeys.delete(key);
+      if (controller) controllers.delete(controller);
     }
   });
 
@@ -235,9 +240,20 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     cacheRef?.adapter.purge();
   });
 
+  // dedupe gate: drop a run whose key is already in flight (coalesce)
+  const toRun = createEvent<{ params: Params }>();
+  sample({
+    clock: toExec,
+    filter: (r) => {
+      const key = dedupeKey(r.params);
+      return !key || !inflightKeys.has(key);
+    },
+    target: toRun,
+  });
+
   // tag with a fresh runId, reset attempts, then execute the real effect
   const tagged = sample({
-    clock: toExec,
+    clock: toRun,
     source: $runId,
     fn: (id, r): Run<Params> => ({ runId: id + 1, params: r.params }),
   });
@@ -458,7 +474,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
           cacheRef = null;
           return;
         }
-        cacheRef = { adapter: cfg.adapter, key: cfg.key, swr: cfg.swr };
+        cacheRef = { adapter: cfg.adapter, key: cfg.key, swr: cfg.swr, dedupe: cfg.dedupe };
         staleAfterConst = cfg.staleAfter;
       },
       setValidate: (fn) => {
