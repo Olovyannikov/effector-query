@@ -21,6 +21,11 @@
       "types": "./dist/vue.d.ts",
       "import": "./dist/vue.mjs",
       "require": "./dist/vue.cjs"
+    },
+    "./devtools": {
+      "types": "./dist/devtools.d.ts",
+      "import": "./dist/devtools.mjs",
+      "require": "./dist/devtools.cjs"
     }
   },
   "files": [
