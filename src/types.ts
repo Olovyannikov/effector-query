@@ -56,6 +56,8 @@ export interface CacheConfig<Params = unknown> {
   key?: (params: Params) => string;
   /** Event that clears the whole cache when fired. */
   purge?: Event<unknown>;
+  /** Stale-while-revalidate: serve a stale entry immediately, then refetch in the background. */
+  swr?: boolean;
 }
 
 export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
@@ -109,6 +111,7 @@ export interface ResolvedCache<Params = unknown> {
   adapter: CacheAdapter;
   staleAfter: number;
   key: (params: Params) => string;
+  swr: boolean;
 }
 
 /** Internal engine seams that standalone operators (retry/cache/concurrency) configure. */

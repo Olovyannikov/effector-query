@@ -74,9 +74,10 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   let staleAfterConst = Infinity;
   let retryRef: { delay: ResolvedRetry<Error>['delay']; filter: ResolvedRetry<Error>['filter']; suppress: boolean } | null =
     null;
-  let cacheRef: { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string } | null = null;
+  let cacheRef: { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string; swr: boolean } | null = null;
   let validateRef: ((result: unknown, params: Params) => string[] | null) | null = null;
 
+  const swrOf = () => !!cacheRef && cacheRef.swr;
   const stratOf = (v: ConcurrencyStrategy | null): ConcurrencyStrategy => v ?? strategyConst;
   const timesOf = (v: number | null): number => v ?? retryTimesConst;
   const staleOf = (v: number | null): number => v ?? staleAfterConst;
@@ -174,6 +175,8 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const rawDone = createEvent<{ runId: number; params: Params; result: Result }>();
   // validated success — drives $data, cache write, finished.done
   const acceptedDone = createEvent<{ params: Params; result: Result }>();
+  // SWR: a stale cache entry served immediately while a background refetch runs
+  const staleServe = createEvent<{ params: Params; result: Result }>();
 
   const lookupFx = createEffect(async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
     const cfg = cacheRef;
@@ -201,9 +204,23 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     fn: ({ entry, params }) => ({ params, result: (entry as { value: Result }).value }),
     target: cacheHit,
   });
+  // SWR: stale entry present -> serve it now AND revalidate in the background
   sample({
     clock: lookupFx.doneData,
-    filter: ({ fresh }) => !fresh,
+    filter: ({ fresh, entry }) => !fresh && entry != null && swrOf(),
+    fn: ({ entry, params }) => ({ params, result: (entry as { value: Result }).value }),
+    target: staleServe,
+  });
+  sample({
+    clock: lookupFx.doneData,
+    filter: ({ fresh, entry }) => !fresh && entry != null && swrOf(),
+    fn: ({ params }) => ({ params }),
+    target: toExec,
+  });
+  // miss, or stale without SWR -> just execute
+  sample({
+    clock: lookupFx.doneData,
+    filter: ({ fresh, entry }) => !fresh && !(entry != null && swrOf()),
     fn: ({ params }) => ({ params }),
     target: toExec,
   });
@@ -354,6 +371,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
 
   // ---- state stores ----
   $status
+    .on(staleServe, () => 'done' as const)
     .on(tagged, () => 'pending' as const)
     .on(acceptedDone, () => 'done' as const)
     .on(cacheHit, () => 'done' as const)
@@ -363,6 +381,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   $data
     .on(acceptedDone, (_d, { params, result }) => mapData({ result, params }))
     .on(cacheHit, (_d, { params, result }) => mapData({ result, params }))
+    .on(staleServe, (_d, { params, result }) => mapData({ result, params }))
     .reset(reset);
 
   $error
@@ -370,7 +389,12 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     .on(intermediateFail, (_e, { params, error }) => mapError({ error, params }))
     .reset([tagged, acceptedDone, cacheHit, reset]);
 
-  $stale.on(acceptedDone, () => false).on(cacheHit, () => false).reset(reset);
+  $stale
+    .on(staleServe, () => true)
+    .on(acceptedDone, () => false)
+    .on(cacheHit, () => false)
+    .reset(reset);
+  $params.on(staleServe, (_p, h) => h.params ?? null);
 
   const $pending = combine(runFx.pending, $retrying, (p, r) => p || r);
 
@@ -434,7 +458,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
           cacheRef = null;
           return;
         }
-        cacheRef = { adapter: cfg.adapter, key: cfg.key };
+        cacheRef = { adapter: cfg.adapter, key: cfg.key, swr: cfg.swr };
         staleAfterConst = cfg.staleAfter;
       },
       setValidate: (fn) => {

@@ -51,7 +51,7 @@ characterQuery.start(1); // origin loads automatically when the character resolv
 - **`effect`** — your `Effect<Params, Result, Error>`. (`handler: async params => …` is sugar that wraps it in `createEffect`.)
 - **`concurrency`** — `'TAKE_LATEST'` (default), `'TAKE_FIRST'`, `'TAKE_EVERY'`.
 - **`retry`** — `number` or `{ times, delay?, filter?, suppressIntermediateErrors? }`. Each retry is a real effect call (graph-level), visible in devtools. Helpers: `linearDelay`, `exponentialDelay`.
-- **`cache`** — `true` or `{ adapter?, staleAfter?, key?, purge? }`. Adapters: `inMemoryCache` (default), `localStorageCache`, `sessionStorageCache`, `voidCache`.
+- **`cache`** — `true` or `{ adapter?, staleAfter?, key?, purge?, swr? }`. `swr: true` serves a stale entry immediately and revalidates in the background (`$stale` flips to `true`, then `false` on fresh data). Adapters: `inMemoryCache({ maxAge?, maxEntries? })` (default, LRU GC), `localStorageCache`, `sessionStorageCache`, `voidCache`.
 - **`enabled`** — `Store<boolean>` gate.
 - **`mapData` / `mapError`** — normalize result / error before they hit the stores.
 

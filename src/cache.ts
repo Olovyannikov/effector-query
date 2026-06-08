@@ -1,12 +1,44 @@
 import type { CacheAdapter, CacheEntry } from './types';
 
-/** In-memory cache. Lives as long as the adapter instance. */
-export function inMemoryCache(): CacheAdapter {
+export interface InMemoryCacheOptions {
+  /** Drop entries older than this (ms) on access. */
+  maxAge?: number;
+  /** Keep at most this many entries (LRU eviction). */
+  maxEntries?: number;
+  /** Clock, overridable in tests. Default: () => Date.now(). */
+  now?: () => number;
+}
+
+/** In-memory cache with optional GC (maxAge / maxEntries, LRU). */
+export function inMemoryCache(options: InMemoryCacheOptions = {}): CacheAdapter {
+  const { maxAge, maxEntries, now = () => Date.now() } = options;
   const store = new Map<string, CacheEntry>();
+
+  const expired = (entry: CacheEntry) => maxAge != null && now() - entry.storedAt >= maxAge;
+
   return {
-    get: (key) => store.get(key) ?? null,
+    get: (key) => {
+      const entry = store.get(key);
+      if (!entry) return null;
+      if (expired(entry)) {
+        store.delete(key);
+        return null;
+      }
+      // LRU touch: move to most-recently-used
+      store.delete(key);
+      store.set(key, entry);
+      return entry;
+    },
     set: (key, value, storedAt) => {
+      store.delete(key);
       store.set(key, { value, storedAt });
+      if (maxEntries != null) {
+        while (store.size > maxEntries) {
+          const oldest = store.keys().next().value;
+          if (oldest === undefined) break;
+          store.delete(oldest);
+        }
+      }
     },
     remove: (key) => {
       store.delete(key);

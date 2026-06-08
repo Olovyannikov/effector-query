@@ -39,9 +39,10 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] `createJsonQuery` — declarative URL/method/query/body/headers over global `fetch`, abort-aware, normalized `RequestError`, optional contract, all query options
 
 ### 0.5 — Caching that scales
-- [ ] Cache GC: `maxAge` / `maxEntries`, observable `hit/miss/expired/evicted`
+- [x] Cache GC: `inMemoryCache({ maxAge, maxEntries })` with LRU eviction
+- [x] SWR mode (`cache: { swr: true }`) — serve stale, revalidate in background
 - [ ] Request dedupe (in-flight coalescing by key)
-- [ ] SWR mode (serve stale, revalidate in background) as a first-class option
+- [ ] Observable cache events (`hit/miss/expired/evicted`)
 - [ ] Persistence adapters with versioning/migration
 
 ### 0.6 — Lists & pagination

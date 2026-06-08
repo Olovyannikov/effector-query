@@ -64,6 +64,7 @@ export function cache<Q extends AnyQuery>(query: Q, opts: boolean | CacheConfig<
     adapter: cfg.adapter ?? inMemoryCache(),
     staleAfter,
     key: cfg.key ?? ((p: unknown) => stableStringify(p)),
+    swr: cfg.swr ?? false,
   });
   if (typeof opts === 'object' && opts.purge && is.unit(opts.purge)) {
     sample({ clock: opts.purge, target: query.__.purgeFx });
