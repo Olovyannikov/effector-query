@@ -46,8 +46,8 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] Persistence with versioning/migration (`localStorageCache`/`sessionStorageCache` `{ version, maxAge }`)
 
 ### 0.6 — Lists & pagination
-- [ ] Pagination / infinite-query helpers (cursor + offset)
-- [ ] Normalized list updates from mutations
+- [x] `createInfiniteQuery` — cursor/offset pagination, `start` + `fetchNext`, `getNextPageParam`, `$pages`/`$hasNextPage`, built on `createQuery`
+- [ ] Normalized list updates from mutations (patch a page item in place via `update`/optimistic)
 
 ### 0.7 — Framework bindings & DX
 - [x] `@@unitShape` support for direct `useUnit(query)` (React + Vue)

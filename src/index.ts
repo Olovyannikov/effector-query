@@ -7,6 +7,13 @@ export {
   type JsonRequest,
   type CreateJsonQueryConfig,
 } from './json-query';
+export {
+  createInfiniteQuery,
+  type InfiniteQuery,
+  type CreateInfiniteQueryConfig,
+  type CreateInfiniteQueryHandlerConfig,
+  type GetNextPageParamCtx,
+} from './infinite-query';
 export { connectQuery } from './connect-query';
 export { concurrency, retry, cache } from './operators';
 export { invalidate, type InvalidateConfig } from './invalidate';

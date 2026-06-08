@@ -238,6 +238,28 @@ createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['neg
 Contracts are **structural** — the schema libraries aren't imported, you pass your
 own schema. On failure, `$error` is a `ValidationError` with `.validationErrors`.
 
+## `createInfiniteQuery` — pagination
+
+Cursor/offset pagination that accumulates pages. `start` loads the first page
+(resetting), `fetchNext` appends the next one — driven by `getNextPageParam`:
+
+```ts
+import { createInfiniteQuery } from 'effector-query';
+
+const feed = createInfiniteQuery({
+  effect: fetchPageFx, // Effect<{ params, pageParam }, Page>
+  initialPageParam: 0,
+  getNextPageParam: ({ lastPage }) => lastPage.nextCursor ?? null, // null/undefined = done
+});
+
+feed.start({ tag: 'cats' });
+feed.fetchNext(); // appends; no-op when $hasNextPage is false or already loading
+```
+
+Exposes `$pages` (= `$data`), `$pageParams`, `$hasNextPage`, `$status`, `$pending`,
+`$error`, `finished.{done,fail}`, and `useUnit(feed)` support. Built on `createQuery`,
+so the page fetch inherits concurrency / cancellation.
+
 ## `createJsonQuery` — declarative HTTP
 
 Declare an endpoint over the global `fetch` (no HTTP-client dependency), with
