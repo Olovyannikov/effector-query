@@ -70,4 +70,11 @@ describe('createQuery — basics', () => {
     const q = createQuery({ effect: fx });
     expect(q.__.effect).toBe(fx);
   });
+
+  it('labels units for devtools when a name is given', () => {
+    const q = createQuery({ effect: createEffect(async () => 1), name: 'todos' });
+    expect(q.__.runFx.shortName).toBe('todos.runFx');
+    expect(q.$data.shortName).toBe('todos.$data');
+    expect(q.start.shortName).toBe('todos.start');
+  });
 });

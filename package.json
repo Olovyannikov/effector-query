@@ -16,6 +16,11 @@
       "types": "./dist/react.d.ts",
       "import": "./dist/react.mjs",
       "require": "./dist/react.cjs"
+    },
+    "./vue": {
+      "types": "./dist/vue.d.ts",
+      "import": "./dist/vue.mjs",
+      "require": "./dist/vue.cjs"
     }
   },
   "files": [
@@ -35,15 +40,15 @@
   "peerDependencies": {
     "effector": ">=23",
     "effector-react": ">=23",
-    "react": ">=18"
+    "effector-vue": ">=23",
+    "react": ">=18",
+    "vue": ">=3"
   },
   "peerDependenciesMeta": {
-    "effector-react": {
-      "optional": true
-    },
-    "react": {
-      "optional": true
-    }
+    "effector-react": { "optional": true },
+    "react": { "optional": true },
+    "effector-vue": { "optional": true },
+    "vue": { "optional": true }
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",

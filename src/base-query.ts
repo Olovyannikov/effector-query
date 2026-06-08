@@ -63,6 +63,11 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const mapData = config.mapData ?? (({ result }) => result as unknown as Mapped);
   const mapError = config.mapError ?? (({ error }) => error);
 
+  // devtools labelling: name the public units when a `name` is given
+  const ns = config.name;
+  const nm = (suffix: string) => (ns ? { name: `${ns}.${suffix}` } : undefined);
+  const evName = (suffix: string): string | undefined => (ns ? `${ns}.${suffix}` : undefined);
+
   // ---- config: reactive sourced stores (fork-correct) + constant closures ----
   const $strategySrc: Store<ConcurrencyStrategy | null> =
     sourced.strategy ?? createStore<ConcurrencyStrategy | null>(null);
@@ -91,17 +96,17 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     strategy === 'TAKE_EVERY' ? true : runId === lastId;
 
   // ---- public units ----
-  const start = createEvent<Params>();
-  const refresh = createEvent<Params>();
-  const reset = createEvent<void>();
-  const cancel = createEvent<void>();
+  const start = createEvent<Params>(evName('start'));
+  const refresh = createEvent<Params>(evName('refresh'));
+  const reset = createEvent<void>(evName('reset'));
+  const cancel = createEvent<void>(evName('cancel'));
 
   const $enabled = config.enabled ?? createStore(true);
-  const $data = createStore<Mapped | null>(config.initialData ?? null);
-  const $error = createStore<Error | null>(null);
-  const $status = createStore<QueryStatus>('initial');
-  const $stale = createStore(false);
-  const $params = createStore<Params | null>(null);
+  const $data = createStore<Mapped | null>(config.initialData ?? null, nm('$data'));
+  const $error = createStore<Error | null>(null, nm('$error'));
+  const $status = createStore<QueryStatus>('initial', nm('$status'));
+  const $stale = createStore(false, nm('$stale'));
+  const $params = createStore<Params | null>(null, nm('$params'));
 
   const aborted = createEvent<{ params: Params }>();
   const finishedDone = createEvent<{ params: Params; result: Mapped }>();
@@ -123,7 +128,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     controllers.clear();
   });
 
-  const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>(async ({ runId, params }) => {
+  const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>({
+    name: ns ? `${ns}.runFx` : undefined,
+    handler: async ({ runId, params }) => {
     const key = dedupeKey(params);
     if (key) inflightKeys.add(key);
     const controller = isAbortable ? new AbortController() : null;
@@ -135,6 +142,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       if (key) inflightKeys.delete(key);
       if (controller) controllers.delete(controller);
     }
+    },
   });
 
   const requested = createEvent<{ params: Params; fresh: boolean }>();

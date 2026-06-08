@@ -51,14 +51,27 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 
 ### 0.7 — Framework bindings & DX
 - [x] `@@unitShape` support for direct `useUnit(query)` (React + Vue)
-- [ ] Dedicated Vue `useQuery` helper + Solid binding (`effector-solid`)
-- [ ] effector devtools / inspector integration and labelling
+- [x] React `useQuery` (`effector-query/react`) and Vue `useQuery` (`effector-query/vue`) helpers with derived flags
+- [x] Devtools labelling: `name` config labels the public units (`<name>.start`, `<name>.$data`, `<name>.runFx`, …)
+- [ ] Solid binding (`effector-query/solid` via `effector-solid`) — deferred: needs vite-plugin-solid + a separate JSX runtime that conflicts with the React/Vue plugins in one vitest config; will land with its own test project
+
+### 0.8 — Devtools & introspection
+- [ ] Deep labelling: name ALL internal units (lookup/retry/concurrency seams), opt-in via a `debug` flag
+- [ ] `inspect`/logger adapter: subscribe to a query's lifecycle (start → run → done/fail/abort → cache hit/miss) as a structured event stream for the effector inspector / custom logging
+- [ ] `@effector/inspector` & `effector-logger` recipes + a tiny `attachQueryLogger(query)` helper
+- [ ] Redux-devtools-style timeline of a query's runs (params, attempt, cache outcome, duration)
+
+### 0.9 — Documentation site (VitePress)
+- [ ] `docs/` VitePress site: Guide (concepts, effect-first model, why-not-farfetched), API reference, Recipes (SSR/testing, mutations+invalidate, optimistic, pagination, sourced config, validation, shared factory), Migration (from farfetched)
+- [ ] Runnable examples embedded (Stackblitz/Twoslash type-checked snippets)
+- [ ] Deploy to GitHub Pages via CI; versioned docs from 0.x → 1.0
+- [ ] API docs generated/checked from the `.d.ts` so they can't drift
 
 ### 1.0 — Stabilize
 - [ ] API freeze + migration guide from 0.x and from farfetched
-- [ ] Documentation site with recipes (SSR, testing, mutations, pagination)
 - [ ] Bundle-size budget + tree-shaking guarantees, ESM/CJS builds, typed `exports`
 - [ ] CI: typecheck, tests, size-limit, release automation (changesets)
+- [ ] Normalized list updates from mutations (patch a page item via `update`/optimistic) — carried from 0.6
 
 ## Engineering guardrails
 

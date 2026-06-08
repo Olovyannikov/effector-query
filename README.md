@@ -258,7 +258,8 @@ feed.fetchNext(); // appends; no-op when $hasNextPage is false or already loadin
 
 Exposes `$pages` (= `$data`), `$pageParams`, `$hasNextPage`, `$status`, `$pending`,
 `$error`, `finished.{done,fail}`, and `useUnit(feed)` support. Built on `createQuery`,
-so the page fetch inherits concurrency / cancellation.
+so the page fetch inherits concurrency / cancellation. Runnable demo:
+[`examples/infinite-query.ts`](./examples/infinite-query.ts).
 
 ## `createJsonQuery` — declarative HTTP
 
@@ -306,18 +307,36 @@ const { data, pending, refetch } = useUnit(userQuery);
 </script>
 ```
 
-For React there's also a thin `useQuery` helper that adds derived booleans:
+There are also thin `useQuery` helpers that add derived booleans
+(`isInitial / isPending / isDone / isFail`):
 
 ```tsx
+// React — effector-query/react
 import { useQuery } from 'effector-query/react';
-
 const { data, isPending, isFail, error, start, refetch } = useQuery(userQuery);
 useEffect(() => start(id), [id]); // queries never auto-start
 ```
 
-`useQuery` returns the unit shape plus `isInitial / isPending / isDone / isFail`.
-Works with `<Provider value={scope}>` for SSR. React binding requires the optional
-`react` + `effector-react` peers.
+```vue
+<!-- Vue — effector-query/vue (returns refs) -->
+<script setup lang="ts">
+import { useQuery } from 'effector-query/vue';
+const { data, isPending, isDone, start } = useQuery(userQuery);
+</script>
+```
+
+React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, for
+SSR. Bindings require the optional `react`+`effector-react` / `vue`+`effector-vue` peers.
+(Solid binding is on the roadmap.)
+
+### Devtools labelling
+
+Pass `name` to label the public units in the effector inspector:
+
+```ts
+const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
+// units appear as todos.start, todos.$data, todos.$status, todos.runFx, …
+```
 
 ## Development
 

@@ -15,6 +15,7 @@ export default defineConfig({
       entry: {
         index: 'src/index.ts',
         react: 'src/react.ts',
+        vue: 'src/vue.ts',
       },
       formats: ['es', 'cjs'],
       fileName: (format, entry) => `${entry}.${format === 'es' ? 'mjs' : 'cjs'}`,
@@ -27,6 +28,7 @@ export default defineConfig({
         'effector-vue/composition',
         'react',
         'react-dom',
+        'vue',
       ],
     },
   },

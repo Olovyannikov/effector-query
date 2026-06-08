@@ -7,6 +7,7 @@ import { Scope } from 'effector';
 import { useUnit } from 'effector-vue/composition';
 import { EffectorScopePlugin } from 'effector-vue';
 import { createQuery } from '../src';
+import { useQuery } from '../src/vue';
 
 function mountWithScope(component: ReturnType<typeof defineComponent>, scope: Scope) {
   return mount(component, {
@@ -52,5 +53,29 @@ describe('useUnit(query) — Vue binding', () => {
     expect(scope.getState(query.$data)).toBe('v1-2');
     expect(wrapper.text()).toBe('idle:v1-2');
     expect(calls).toBe(2);
+  });
+
+  it('useQuery helper exposes derived flags', async () => {
+    const fx = createEffect(async (id: number) => `user-${id}`);
+    const query = createQuery({ effect: fx });
+
+    const Comp = defineComponent({
+      setup() {
+        const { data, isInitial, isPending, isDone } = useQuery(query);
+        return { data, isInitial, isPending, isDone };
+      },
+      render() {
+        const flag = this.isInitial ? 'initial' : this.isDone ? 'done' : this.isPending ? 'pending' : '?';
+        return h('span', `${flag}:${this.data ?? 'null'}`);
+      },
+    });
+
+    const scope = fork();
+    const wrapper = mountWithScope(Comp, scope);
+    expect(wrapper.text()).toBe('initial:null');
+
+    await allSettled(query.start, { scope, params: 3 });
+    await nextTick();
+    expect(wrapper.text()).toBe('done:user-3');
   });
 });
