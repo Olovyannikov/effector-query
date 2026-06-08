@@ -35,7 +35,14 @@ effector-react's `<Provider>` (so it works with SSR / `fork`).
  └───────────────┴────────────────────────────────────┘
 ```
 
-Collapsed, it's a small `⚡ queries (N)` pill in the corner; click to expand.
+## Try it live
+
+A real query wired to the library — click the buttons and watch status, data and the
+event log update (with retry on failure):
+
+<DevtoolsDemo />
+
+Collapsed, the real panel is a small `⚡ queries (N)` pill in the corner; click to expand.
 
 - A colored dot per query: grey `initial`, amber `pending`, green `done`, red `fail`.
 - The detail pane shows **params**, **data** and **error** as JSON, plus a live **log**

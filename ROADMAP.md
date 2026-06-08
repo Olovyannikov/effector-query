@@ -80,6 +80,46 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] Normalized list updates from mutations — `update`/`optimisticUpdate` recipe + spec (`docs/recipes/list-updates`)
 - [ ] API freeze + tag 1.0 — maintainer decision once the API has soaked; pre-1.0 minors may still break (called out in the changelog)
 
+## Compared to TanStack Query — gaps to close
+
+Where we already match TanStack Query: queries + status, caching (`staleAfter` ≈ staleTime,
+`maxAge`/`maxEntries` ≈ gcTime-ish), SWR, request dedupe, retry + backoff, cancellation,
+dependent queries (`connectQuery`), mutations + optimistic + invalidation, forward infinite
+queries, devtools, SSR via `fork`/`allSettled`, validation, declarative HTTP (`createJsonQuery`).
+
+What's missing, planned as effector-flavored features (post-1.0, order TBD):
+
+### 1.1 — Automatic refetching
+- [ ] Polling: `refetchInterval` (number | `Store<number>` | fn), paused while disabled/offline
+- [ ] `refetchOnWindowFocus` / `refetchOnReconnect` — opt-in, tree-shakeable browser triggers
+- [ ] Refetch-stale-on-subscribe helper for the bindings (TanStack's `refetchOnMount`)
+
+### 1.2 — Data UX
+- [ ] `keepPreviousData` / `placeholderData` — keep showing previous/placeholder data while a new params-set loads (great for search & pagination)
+- [ ] `prefetch(query, params)` — warm the cache without subscribing
+- [ ] Structural sharing — preserve referential identity of unchanged data
+- [ ] `select`-style derived subscription (lighter than `mapData` for per-consumer slices)
+
+### 1.3 — Cache & client surface (effector-flavored, no global client)
+- [ ] Bulk invalidation by key/predicate over a lightweight query registry
+- [ ] Imperative cache read/write helpers (`getQueryData` / `setQueryData` analogues)
+- [ ] `gcTime`: drop cache entries with no subscribers after N ms
+- [ ] Dehydrate/hydrate the whole cache (beyond per-query storage adapters)
+
+### 1.4 — Lists & parallelism
+- [ ] Bidirectional infinite query: `fetchPreviousPage`, `getPreviousPageParam`, `maxPages`
+- [ ] Parallel/dynamic queries helper (TanStack's `useQueries`)
+
+### 1.5 — Framework integration
+- [ ] React Suspense binding (`useSuspenseQuery`) + error-boundary (`throwOnError`)
+- [ ] Network mode / offline: pause runs when offline, resume on reconnect
+- [ ] Vue & Solid devtools parity
+
+### Deliberately not copied
+- A central mutable `QueryClient` — effector is decentralized; we use operators + a small
+  registry instead of a god-object.
+- Hook-first configuration — config lives on the query unit, framework-agnostic.
+
 ## Engineering guardrails
 
 - Every feature lands with tests driven by `fork`/`allSettled` (no real timers/network in unit tests).
