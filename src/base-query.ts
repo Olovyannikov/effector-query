@@ -20,6 +20,7 @@ import type {
   ResolvedRetry,
   SourcedConfig,
 } from './types';
+import { ValidationError } from './validation';
 
 interface Run<P> {
   runId: number;
@@ -74,6 +75,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   let retryRef: { delay: ResolvedRetry<Error>['delay']; filter: ResolvedRetry<Error>['filter']; suppress: boolean } | null =
     null;
   let cacheRef: { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string } | null = null;
+  let validateRef: ((result: unknown, params: Params) => string[] | null) | null = null;
 
   const stratOf = (v: ConcurrencyStrategy | null): ConcurrencyStrategy => v ?? strategyConst;
   const timesOf = (v: number | null): number => v ?? retryTimesConst;
@@ -168,6 +170,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   // cache lookup / exec branch — presence via cacheRef, staleAfter sourced
   const toExec = createEvent<{ params: Params }>();
   const cacheHit = createEvent<{ params: Params; result: Result }>();
+  // current-run success, before validation (carries runId for the retry path)
+  const rawDone = createEvent<{ runId: number; params: Params; result: Result }>();
+  // validated success — drives $data, cache write, finished.done
   const acceptedDone = createEvent<{ params: Params; result: Result }>();
 
   const lookupFx = createEffect(async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
@@ -233,8 +238,8 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     clock: runFx.done,
     source: { lastId: $runId, strat: $strategySrc },
     filter: ({ lastId, strat }, { result }) => isCurrent(stratOf(strat), lastId, result.runId),
-    fn: (_s, { result }) => ({ params: result.params, result: result.result }),
-    target: acceptedDone,
+    fn: (_s, { result }) => ({ runId: result.runId, params: result.params, result: result.result }),
+    target: rawDone,
   });
   sample({
     clock: runFx.done,
@@ -258,30 +263,57 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const scheduleRetry = createEvent<Run<Params> & { error: Error }>();
   const finalFail = createEvent<{ params: Params; error: Error }>();
   const intermediateFail = createEvent<{ params: Params; error: Error }>();
+  // unified failure stream: transport failures + validation failures
+  const failed = createEvent<{ runId: number; params: Params; error: Error }>();
+
+  // validation gate: a current-run success must pass the contract / validate fn,
+  // otherwise it becomes a (retryable) ValidationError failure.
+  sample({
+    clock: rawDone,
+    filter: ({ params, result }) => !validateRef || validateRef(result, params) === null,
+    fn: ({ params, result }) => ({ params, result }),
+    target: acceptedDone,
+  });
+  sample({
+    clock: rawDone,
+    filter: ({ params, result }) => !!validateRef && validateRef(result, params) !== null,
+    fn: ({ runId, params, result }) => ({
+      runId,
+      params,
+      error: new ValidationError(validateRef!(result, params) ?? [], result) as unknown as Error,
+    }),
+    target: failed,
+  });
+  // transport failures into the same stream
+  sample({
+    clock: runFx.fail,
+    fn: ({ params, error }) => ({ runId: params.runId, params: params.params, error }),
+    target: failed,
+  });
 
   const failSource = { lastId: $runId, attempts: $attempts, timesSrc: $retryTimesSrc, strat: $strategySrc };
   sample({
-    clock: runFx.fail,
+    clock: failed,
     source: failSource,
-    filter: ({ lastId, attempts, timesSrc, strat }, { params, error }) =>
-      willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), params.runId, error),
-    fn: (_s, { params, error }) => ({ runId: params.runId, params: params.params, error }),
+    filter: ({ lastId, attempts, timesSrc, strat }, { runId, error }) =>
+      willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), runId, error),
+    fn: (_s, { runId, params, error }) => ({ runId, params, error }),
     target: scheduleRetry,
   });
   sample({
-    clock: runFx.fail,
+    clock: failed,
     source: failSource,
-    filter: ({ lastId, attempts, timesSrc, strat }, { params, error }) =>
-      isCurrent(stratOf(strat), lastId, params.runId) &&
-      !willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), params.runId, error),
-    fn: (_s, { params, error }) => ({ params: params.params, error }),
+    filter: ({ lastId, attempts, timesSrc, strat }, { runId, error }) =>
+      isCurrent(stratOf(strat), lastId, runId) &&
+      !willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), runId, error),
+    fn: (_s, { params, error }) => ({ params, error }),
     target: finalFail,
   });
   sample({
-    clock: runFx.fail,
+    clock: failed,
     source: { lastId: $runId, strat: $strategySrc },
-    filter: ({ lastId, strat }, { params }) => !isCurrent(stratOf(strat), lastId, params.runId),
-    fn: (_s, { params }) => ({ params: params.params }),
+    filter: ({ lastId, strat }, { runId }) => !isCurrent(stratOf(strat), lastId, runId),
+    fn: (_s, { params }) => ({ params }),
     target: aborted,
   });
 
@@ -404,6 +436,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
         }
         cacheRef = { adapter: cfg.adapter, key: cfg.key };
         staleAfterConst = cfg.staleAfter;
+      },
+      setValidate: (fn) => {
+        validateRef = fn;
       },
     },
 

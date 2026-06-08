@@ -37,5 +37,29 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
   if (r != null) retry(query, r);
   if (ca) cache(query, ca);
 
+  // validation: contract + custom validate
+  const { contract, validate } = config;
+  if (contract || validate) {
+    const checks: Array<(result: unknown, params: Params) => string[] | null> = [];
+    if (contract) {
+      checks.push((result) => (contract.isData(result) ? null : contract.getErrorMessages(result)));
+    }
+    if (validate) {
+      checks.push((result, params) => {
+        const verdict = validate({ result: result as Result, params });
+        if (verdict === true || verdict == null) return null;
+        if (verdict === false) return ['Validation failed'];
+        return verdict;
+      });
+    }
+    query.__.setValidate((result, params) => {
+      for (const check of checks) {
+        const messages = check(result, params);
+        if (messages) return messages;
+      }
+      return null;
+    });
+  }
+
   return query;
 }

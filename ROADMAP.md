@@ -35,8 +35,8 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] Sourced configuration: inline `enabled`, `concurrency`, `retry.times`, `cache.staleAfter` accept a reactive `Store`, read fork-correctly (each scope sees its own value). Engine reads `sourcedStore ?? constant`; user stores are used directly in `source` (fork-safe), constants live in closures. (`delay` / `filter` / cache `key`+`adapter` remain static functions; standalone operators take constants.)
 
 ### 0.4 — Validation & declarative fetching
-- [ ] Contract/validation hook with adapters (`zod`, `valibot`, `runtypes`)
-- [ ] `createJsonQuery` factory (declarative URL/method/headers/body, response contract)
+- [x] Contract/validation hook: `contract` + `validate` on `createQuery`; failures become retryable `ValidationError`. Adapters: `zodContract` (structural), `standardSchemaContract` (valibot / zod 3.24+ / arktype), `createContract`
+- [x] `createJsonQuery` — declarative URL/method/query/body/headers over global `fetch`, abort-aware, normalized `RequestError`, optional contract, all query options
 
 ### 0.5 — Caching that scales
 - [ ] Cache GC: `maxAge` / `maxEntries`, observable `hit/miss/expired/evicted`

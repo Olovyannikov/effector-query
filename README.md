@@ -218,6 +218,44 @@ stale results are simply ignored.
 > this is a non-issue; just avoid sharing one query instance across concurrent
 > requests if you also call `cancel`.
 
+## Validation (contracts)
+
+Validate a response against a schema; a failure becomes a `ValidationError`
+(retryable like any other failure):
+
+```ts
+import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-query';
+
+createQuery({ effect: getUserFx, contract: zodContract(UserSchema) });           // zod
+createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
+createQuery({ effect: getUserFx, contract: createContract({ isData: (r) => isUser(r) }) }); // manual
+createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['negative price'] }); // ad-hoc
+```
+
+Contracts are **structural** — the schema libraries aren't imported, you pass your
+own schema. On failure, `$error` is a `ValidationError` with `.validationErrors`.
+
+## `createJsonQuery` — declarative HTTP
+
+Declare an endpoint over the global `fetch` (no HTTP-client dependency), with
+abort-aware cancellation, normalized `RequestError`, optional contract, and all the
+usual options:
+
+```ts
+import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-query';
+
+export const getProductsQuery = createJsonQuery({
+  request: { url: 'https://api/products', query: ({ search }) => ({ search, limit: 20 }) },
+  response: { contract: zodContract(ProductList) },
+  concurrency: 'TAKE_LATEST',
+  cache: { staleAfter: 30_000 },
+});
+
+export const createUser = createJsonQuery<NewUser, User>({
+  request: { url: 'https://api/users', method: HTTP_METHODS.POST, body: (u) => u },
+});
+```
+
 ## Framework bindings
 
 A query implements effector's `@@unitShape` protocol, so you can pass it straight

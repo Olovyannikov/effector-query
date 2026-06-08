@@ -1,4 +1,5 @@
 import type { Effect, Event, EventCallable, Store } from 'effector';
+import type { Contract } from './validation';
 
 export type QueryStatus = 'initial' | 'pending' | 'done' | 'fail';
 
@@ -68,6 +69,10 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
   mapData?: (ctx: { result: Result; params: Params }) => Mapped;
   /** Normalize an error before writing it to $error. */
   mapError?: (ctx: { error: Error; params: Params }) => Error;
+  /** Validate the response against a schema; failure -> ValidationError. */
+  contract?: Contract<Result>;
+  /** Custom validation: return true/void = ok, false or string[] = invalid. */
+  validate?: (ctx: { result: Result; params: Params }) => boolean | string[] | void;
 
   retry?: number | RetryConfig<Error>;
   cache?: boolean | CacheConfig<Params>;
@@ -111,6 +116,8 @@ export interface QueryEngine<Params, Error> {
   setStrategy: (strategy: ConcurrencyStrategy) => void;
   setRetry: (cfg: ResolvedRetry<Error> | null) => void;
   setCache: (cfg: ResolvedCache<Params> | null) => void;
+  /** Validation check: return error messages (invalid) or null (ok). */
+  setValidate: (fn: ((result: unknown, params: Params) => string[] | null) | null) => void;
   purgeFx: Effect<void, void, any>;
 }
 

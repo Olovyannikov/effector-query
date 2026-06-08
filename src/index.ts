@@ -1,5 +1,12 @@
 export { createQuery } from './create-query';
 export { createMutation } from './create-mutation';
+export {
+  createJsonQuery,
+  HTTP_METHODS,
+  type HttpMethod,
+  type JsonRequest,
+  type CreateJsonQueryConfig,
+} from './json-query';
 export { connectQuery } from './connect-query';
 export { concurrency, retry, cache } from './operators';
 export { invalidate, type InvalidateConfig } from './invalidate';
@@ -26,6 +33,13 @@ export {
   sessionStorageCache,
   voidCache,
 } from './cache';
+export {
+  ValidationError,
+  createContract,
+  zodContract,
+  standardSchemaContract,
+  type Contract,
+} from './validation';
 export { stableStringify } from './utils';
 export type {
   Query,
