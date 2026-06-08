@@ -77,4 +77,10 @@ describe('createQuery — basics', () => {
     expect(q.$data.shortName).toBe('todos.$data');
     expect(q.start.shortName).toBe('todos.start');
   });
+
+  it('debug labels units even without a name (uses "query")', () => {
+    const q = createQuery({ effect: createEffect(async () => 1), debug: true });
+    expect(q.__.runFx.shortName).toBe('query.runFx');
+    expect(q.$status.shortName).toBe('query.$status');
+  });
 });

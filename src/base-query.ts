@@ -63,8 +63,8 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const mapData = config.mapData ?? (({ result }) => result as unknown as Mapped);
   const mapError = config.mapError ?? (({ error }) => error);
 
-  // devtools labelling: name the public units when a `name` is given
-  const ns = config.name;
+  // devtools labelling: name the public units when a `name` (or `debug`) is given
+  const ns = config.name ?? (config.debug ? 'query' : undefined);
   const nm = (suffix: string) => (ns ? { name: `${ns}.${suffix}` } : undefined);
   const evName = (suffix: string): string | undefined => (ns ? `${ns}.${suffix}` : undefined);
 

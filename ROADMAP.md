@@ -60,9 +60,10 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] `attachQueryLogger(query, { name, handler })` — structured, timed log entries (per-run `durationMs`); default logs to console, custom handler forwards anywhere
 - [x] Public-unit labelling via `name` (start/$data/$status/runFx + inspect.* units)
 - [x] Visual devtools panel (TanStack-style) — `EffectorQueryDevtools` (`effector-query/devtools`, React): live status, params, data, error, per-query event log; docs page with a visual mock
-- [ ] Deep labelling: name ALL internal units (lookup/retry/concurrency seams), opt-in via a `debug` flag
-- [ ] `@effector/inspector` / `effector-logger` recipe pages (land with the docs site)
-- [ ] Vue devtools component
+- [x] `debug` flag — label the public/inspect units for the inspector even without a `name`
+- [x] `@effector/inspector` / logging recipe page
+- [ ] Deep labelling of every internal unit (lookup/retry/concurrency seams) — needs a domain-based pass
+- [ ] Vue devtools component (parity with the React panel)
 
 ### 0.9 — Documentation site (VitePress)
 - [x] `docs/` VitePress site: Guide (getting-started, concepts, vs-farfetched), API reference (queries, mutations, http+validation, pagination, bindings, introspection), Recipes (SSR/testing, optimistic, shared factory)

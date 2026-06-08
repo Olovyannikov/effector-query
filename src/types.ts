@@ -85,6 +85,8 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
 
   /** Prefix for unit names (devtools). */
   name?: string;
+  /** Label units for the effector inspector even without a `name` (uses `query`). */
+  debug?: boolean;
 }
 
 /** Reactive (sourced) config stores read fork-correctly by the engine. */
