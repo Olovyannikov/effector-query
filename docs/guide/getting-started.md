@@ -1,8 +1,17 @@
 # Getting started
 
+This page gets you from zero to a working query in a couple of minutes. For the *why*,
+read the [Introduction](/guide/introduction) first.
+
 `effector-query` is a small, friendly query layer for [effector](https://effector.dev),
 built on **real effects**. The unit of work is your own `Effect<Params, Result, Error>`
 (including `attach`-built factory effects) — the query is just a thin reactive shell.
+
+::: tip Prerequisites
+You'll want a basic feel for effector (`createEffect`, stores, `sample`). If you're new,
+skim the [effector docs](https://effector.dev) — everything here is just plain effector
+units composed for you.
+:::
 
 ## Install
 

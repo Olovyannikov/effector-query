@@ -8,7 +8,7 @@ export default defineConfig({
   cleanUrls: true,
   themeConfig: {
     nav: [
-      { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'Guide', link: '/guide/introduction' },
       { text: 'API', link: '/api/queries' },
       { text: 'Recipes', link: '/recipes/ssr-and-testing' },
       { text: 'Roadmap', link: 'https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md' },
@@ -18,6 +18,7 @@ export default defineConfig({
         {
           text: 'Guide',
           items: [
+            { text: 'Introduction', link: '/guide/introduction' },
             { text: 'Getting started', link: '/guide/getting-started' },
             { text: 'Core concepts', link: '/guide/concepts' },
             { text: 'vs. farfetched', link: '/guide/vs-farfetched' },

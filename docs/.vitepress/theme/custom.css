@@ -1,0 +1,27 @@
+:root {
+  --vp-c-brand-1: #e8590c;
+  --vp-c-brand-2: #f76707;
+  --vp-c-brand-3: #fd7e14;
+  --vp-c-brand-soft: rgba(253, 126, 20, 0.14);
+
+  /* hero "name" gradient */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #fd7e14 10%, #f08c00 50%, #e8590c);
+
+  /* soft glow behind the hero */
+  --vp-home-hero-image-background-image: linear-gradient(45deg, #fd7e1455, #e8590c33);
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+.dark {
+  --vp-c-brand-1: #ffa94d;
+  --vp-c-brand-2: #ffb866;
+  --vp-c-brand-3: #ff922b;
+  --vp-c-brand-soft: rgba(255, 169, 77, 0.16);
+  --vp-home-hero-name-background: linear-gradient(120deg, #ffd8a8 10%, #ffa94d 50%, #ff922b);
+}
+
+/* a touch more breathing room in feature cards */
+.VPFeature .details {
+  line-height: 1.55;
+}
