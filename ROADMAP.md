@@ -66,6 +66,7 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 0.9 — Documentation site (VitePress)
 - [x] `docs/` VitePress site: Guide (getting-started, concepts, vs-farfetched), API reference (queries, mutations, http+validation, pagination, bindings, introspection), Recipes (SSR/testing, optimistic, shared factory)
 - [x] `docs:dev` / `docs:build` / `docs:preview` scripts; local search; build verified
+- [x] i18n: English + Russian (`/ru/`) with a language switcher; warmer example-first home + Introduction; branded theme
 - [x] GitHub Pages deploy workflow (`.github/workflows/docs.yml`) + CI gate (`ci.yml`: typecheck/test/build)
 - [ ] Type-checked snippets (Twoslash) and embedded runnable examples
 - [ ] Versioned docs from 0.x → 1.0; API docs generated/checked from `.d.ts`
