@@ -1,0 +1,20 @@
+[
+  {
+    "name": "core (effector-query)",
+    "path": "dist/index.mjs",
+    "limit": "10 kB",
+    "ignore": ["effector"]
+  },
+  {
+    "name": "react binding",
+    "path": "dist/react.mjs",
+    "limit": "1 kB",
+    "ignore": ["effector", "effector-react", "react"]
+  },
+  {
+    "name": "vue binding",
+    "path": "dist/vue.mjs",
+    "limit": "1 kB",
+    "ignore": ["effector", "effector-vue", "effector-vue/composition", "vue"]
+  }
+]

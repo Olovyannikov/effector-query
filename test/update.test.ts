@@ -30,6 +30,35 @@ describe('update (patch $data without refetch)', () => {
     expect(listFetches).toBe(1); // no refetch
   });
 
+  it('patches a list item by id (normalized list update)', async () => {
+    interface Todo {
+      id: number;
+      done: boolean;
+    }
+    const todos = createQuery({ effect: createEffect(async (): Promise<Todo[]> => [
+      { id: 1, done: false },
+      { id: 2, done: false },
+    ]) });
+    const toggle = createMutation({
+      effect: createEffect(async (id: number): Promise<Todo> => ({ id, done: true })),
+    });
+
+    update({
+      query: todos,
+      on: toggle,
+      fn: ({ data, result: updated }) => (data ?? []).map((t) => (t.id === updated.id ? updated : t)),
+    });
+
+    const scope = fork();
+    await allSettled(todos.start, { scope });
+    await allSettled(toggle.mutate, { scope, params: 2 });
+
+    expect(scope.getState(todos.$data)).toEqual([
+      { id: 1, done: false },
+      { id: 2, done: true },
+    ]);
+  });
+
   it('works with a raw event trigger', async () => {
     const q = createQuery({ effect: createEffect(async () => 0) });
     const bump = createEvent<number>();

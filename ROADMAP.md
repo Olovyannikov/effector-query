@@ -71,10 +71,11 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [ ] Versioned docs from 0.x → 1.0; API docs generated/checked from `.d.ts`
 
 ### 1.0 — Stabilize
-- [ ] API freeze + migration guide from 0.x and from farfetched
-- [ ] Bundle-size budget + tree-shaking guarantees, ESM/CJS builds, typed `exports`
-- [ ] CI: typecheck, tests, size-limit, release automation (changesets)
-- [ ] Normalized list updates from mutations (patch a page item via `update`/optimistic) — carried from 0.6
+- [x] Migration guide (from farfetched and within 0.x) — `docs/guide/migration`
+- [x] Bundle-size budget (`size-limit`, core ~5.5 kB), `sideEffects: false` tree-shaking, ESM/CJS builds + typed `exports`
+- [x] CI: typecheck / tests / build / size-limit (`ci.yml`); release automation via changesets (`release.yml` + `.changeset/`)
+- [x] Normalized list updates from mutations — `update`/`optimisticUpdate` recipe + spec (`docs/recipes/list-updates`)
+- [ ] API freeze + tag 1.0 — maintainer decision once the API has soaked; pre-1.0 minors may still break (called out in the changelog)
 
 ## Engineering guardrails
 

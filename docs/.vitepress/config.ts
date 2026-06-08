@@ -21,6 +21,7 @@ export default defineConfig({
             { text: 'Getting started', link: '/guide/getting-started' },
             { text: 'Core concepts', link: '/guide/concepts' },
             { text: 'vs. farfetched', link: '/guide/vs-farfetched' },
+            { text: 'Migration', link: '/guide/migration' },
           ],
         },
       ],
@@ -43,6 +44,7 @@ export default defineConfig({
           items: [
             { text: 'SSR & testing', link: '/recipes/ssr-and-testing' },
             { text: 'Optimistic updates', link: '/recipes/optimistic' },
+            { text: 'List updates', link: '/recipes/list-updates' },
             { text: 'Shared request factory', link: '/recipes/shared-factory' },
           ],
         },
