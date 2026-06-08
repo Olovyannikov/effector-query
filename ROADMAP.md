@@ -32,7 +32,7 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 0.3 — Operators & power-user surface
 - [x] Real cancellation: `createRequestFx` effects are abort-aware; query aborts on cancel/reset and on TAKE_LATEST supersede
 - [x] Engine refactor: `createBaseQuery` carries all machinery driven by live config; `concurrency()` / `retry()` / `cache()` are standalone, composable, post-hoc operators; inline `createQuery` options are sugar over them
-- [~] Sourced configuration — partial: `enabled` accepts a store; `retry.times` store is resolved at setup (not yet reactive); `delay` / `staleAfter` / cache `key` still static. Full sourced config is a follow-up.
+- [x] Sourced configuration: inline `enabled`, `concurrency`, `retry.times`, `cache.staleAfter` accept a reactive `Store`, read fork-correctly (each scope sees its own value). Engine reads `sourcedStore ?? constant`; user stores are used directly in `source` (fork-safe), constants live in closures. (`delay` / `filter` / cache `key`+`adapter` remain static functions; standalone operators take constants.)
 
 ### 0.4 — Validation & declarative fetching
 - [ ] Contract/validation hook with adapters (`zod`, `valibot`, `runtypes`)

@@ -49,8 +49,8 @@ export interface CacheAdapter {
 export interface CacheConfig<Params = unknown> {
   /** Storage implementation. Default: inMemoryCache(). */
   adapter?: CacheAdapter;
-  /** ms after which a cached entry is considered stale. Default: Infinity (never). */
-  staleAfter?: number;
+  /** ms after which a cached entry is considered stale. Default: Infinity (never). Inline accepts a reactive `Store<number>`. */
+  staleAfter?: number | Store<number>;
   /** Cache key from params. Default: stable JSON of params. */
   key?: (params: Params) => string;
   /** Event that clears the whole cache when fired. */
@@ -71,10 +71,18 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
 
   retry?: number | RetryConfig<Error>;
   cache?: boolean | CacheConfig<Params>;
-  concurrency?: ConcurrencyStrategy;
+  /** Inline accepts a reactive `Store<ConcurrencyStrategy>`. */
+  concurrency?: ConcurrencyStrategy | Store<ConcurrencyStrategy>;
 
   /** Prefix for unit names (devtools). */
   name?: string;
+}
+
+/** Reactive (sourced) config stores read fork-correctly by the engine. */
+export interface SourcedConfig {
+  strategy?: Store<ConcurrencyStrategy>;
+  retryTimes?: Store<number>;
+  staleAfter?: Store<number>;
 }
 
 /** Same as CreateQueryConfig but with a plain async handler instead of an Effect. */

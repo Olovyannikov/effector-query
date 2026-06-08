@@ -55,6 +55,22 @@ characterQuery.start(1); // origin loads automatically when the character resolv
 - **`enabled`** — `Store<boolean>` gate.
 - **`mapData` / `mapError`** — normalize result / error before they hit the stores.
 
+#### Sourced (reactive) config
+
+Inline `concurrency`, `retry.times` and `cache.staleAfter` accept a `Store` instead
+of a constant — the engine reads it reactively and **fork-correctly** (each scope
+sees its own value):
+
+```ts
+const $retries = createStore(0); // e.g. bump when online
+createQuery({ effect: fx, retry: { times: $retries, delay: exponentialDelay(200) } });
+
+createQuery({ effect: fx, concurrency: $strategy, cache: { staleAfter: $ttl } });
+```
+
+`enabled` is likewise a store. (Reactive sourcing is available through the inline
+options; the standalone operators take constants.)
+
 ### Operators
 
 `concurrency` / `retry` / `cache` are standalone, composable operators — the inline

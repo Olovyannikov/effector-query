@@ -7,6 +7,7 @@ import {
   sample,
   type Effect,
   type EventCallable,
+  type Store,
 } from 'effector';
 
 import type {
@@ -17,6 +18,7 @@ import type {
   QueryStatus,
   ResolvedCache,
   ResolvedRetry,
+  SourcedConfig,
 } from './types';
 
 interface Run<P> {
@@ -28,15 +30,23 @@ interface ExecDone<P, R> extends Run<P> {
 }
 
 /**
- * The engine. Contains ALL machinery (concurrency / retry / cache) always, driven
- * by mutable config set through `__.setStrategy/setRetry/setCache`. Operators flip
- * that config at setup time (before any `fork`), so they compose and can even be
- * applied after creation. Filters/handlers read the live config at run time.
+ * The engine. Contains ALL machinery (concurrency / retry / cache) always.
+ *
+ * Config is read fork-correctly through two layers:
+ *  - reactive "sourced" stores ($strategySrc / $retryTimesSrc / $staleAfterSrc) —
+ *    either the user's own Store (passed by `createQuery` for inline `Store` options)
+ *    or a `createStore(null)` placeholder;
+ *  - constant closures (strategyConst / retryTimesConst / staleAfterConst + retryRef /
+ *    cacheRef) set by the standalone operators (post-hoc, fork-safe because config is
+ *    global, not scoped state).
+ *
+ * Effective value = sourcedStoreValue ?? constant.
  */
 export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result>(
   config:
     | CreateQueryConfig<Params, Result, Error, Mapped>
     | CreateQueryHandlerConfig<Params, Result, Error, Mapped>,
+  sourced: SourcedConfig = {},
 ): Query<Params, Result, Error, Mapped> {
   const effect =
     'effect' in config
@@ -52,10 +62,24 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const mapData = config.mapData ?? (({ result }) => result as unknown as Mapped);
   const mapError = config.mapError ?? (({ error }) => error);
 
-  // ---- live, operator-configurable engine state ----
-  let strategy: ConcurrencyStrategy = 'TAKE_LATEST';
-  let retryCfg: ResolvedRetry<Error> | null = null;
-  let cacheCfg: ResolvedCache<Params> | null = null;
+  // ---- config: reactive sourced stores (fork-correct) + constant closures ----
+  const $strategySrc: Store<ConcurrencyStrategy | null> =
+    sourced.strategy ?? createStore<ConcurrencyStrategy | null>(null);
+  const $retryTimesSrc: Store<number | null> = sourced.retryTimes ?? createStore<number | null>(null);
+  const $staleAfterSrc: Store<number | null> = sourced.staleAfter ?? createStore<number | null>(null);
+
+  let strategyConst: ConcurrencyStrategy = 'TAKE_LATEST';
+  let retryTimesConst = 0;
+  let staleAfterConst = Infinity;
+  let retryRef: { delay: ResolvedRetry<Error>['delay']; filter: ResolvedRetry<Error>['filter']; suppress: boolean } | null =
+    null;
+  let cacheRef: { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string } | null = null;
+
+  const stratOf = (v: ConcurrencyStrategy | null): ConcurrencyStrategy => v ?? strategyConst;
+  const timesOf = (v: number | null): number => v ?? retryTimesConst;
+  const staleOf = (v: number | null): number => v ?? staleAfterConst;
+  const isCurrent = (strategy: ConcurrencyStrategy, lastId: number, runId: number) =>
+    strategy === 'TAKE_EVERY' ? true : runId === lastId;
 
   // ---- public units ----
   const start = createEvent<Params>();
@@ -124,44 +148,48 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     target: aborted,
   });
 
-  // concurrency gate (TAKE_FIRST drops while busy) — strategy read live
+  // concurrency gate (TAKE_FIRST drops while busy) — strategy sourced
   const proceed = createEvent<{ params: Params; fresh: boolean }>();
   sample({
     clock: allowed,
-    source: runFx.pending,
-    filter: (busy) => !(strategy === 'TAKE_FIRST' && busy),
-    fn: (_b, r) => r,
+    source: { busy: runFx.pending, strat: $strategySrc },
+    filter: ({ busy, strat }) => !(stratOf(strat) === 'TAKE_FIRST' && busy),
+    fn: (_s, r) => r,
     target: proceed,
   });
   sample({
     clock: allowed,
-    source: runFx.pending,
-    filter: (busy) => strategy === 'TAKE_FIRST' && busy,
-    fn: (_b, r) => ({ params: r.params }),
+    source: { busy: runFx.pending, strat: $strategySrc },
+    filter: ({ busy, strat }) => stratOf(strat) === 'TAKE_FIRST' && busy,
+    fn: (_s, r) => ({ params: r.params }),
     target: aborted,
   });
 
-  // cache lookup / exec branch — cacheCfg read live; when null, behaves as no-cache
+  // cache lookup / exec branch — presence via cacheRef, staleAfter sourced
   const toExec = createEvent<{ params: Params }>();
   const cacheHit = createEvent<{ params: Params; result: Result }>();
   const acceptedDone = createEvent<{ params: Params; result: Result }>();
 
-  const lookupFx = createEffect(async (params: Params) => {
-    const cfg = cacheCfg;
+  const lookupFx = createEffect(async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
+    const cfg = cacheRef;
     if (!cfg) return { entry: null, params, fresh: false };
     const entry = await cfg.adapter.get(cfg.key(params));
-    const fresh = entry != null && Date.now() - entry.storedAt < cfg.staleAfter;
+    const fresh = entry != null && Date.now() - entry.storedAt < staleAfter;
     return { entry, params, fresh };
   });
-  // no cache (or refresh) -> straight to exec
   sample({
     clock: proceed,
-    filter: (r) => !cacheCfg || r.fresh,
+    filter: (r) => !cacheRef || r.fresh,
     fn: (r) => ({ params: r.params }),
     target: toExec,
   });
-  // cache present & not refresh -> lookup
-  sample({ clock: proceed, filter: (r) => !!cacheCfg && !r.fresh, fn: (r) => r.params, target: lookupFx });
+  sample({
+    clock: proceed,
+    source: $staleAfterSrc,
+    filter: (_s, r) => !!cacheRef && !r.fresh,
+    fn: (s, r) => ({ params: r.params, staleAfter: staleOf(s) }),
+    target: lookupFx,
+  });
   sample({
     clock: lookupFx.doneData,
     filter: ({ fresh }) => fresh,
@@ -176,13 +204,13 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
 
   const setFx = createEffect((p: { params: Params; result: Result }) => {
-    const cfg = cacheCfg;
+    const cfg = cacheRef;
     if (cfg) cfg.adapter.set(cfg.key(p.params), p.result, Date.now());
   });
-  sample({ clock: acceptedDone, filter: () => !!cacheCfg, target: setFx });
+  sample({ clock: acceptedDone, filter: () => !!cacheRef, target: setFx });
 
   const purgeFx = createEffect(() => {
-    cacheCfg?.adapter.purge();
+    cacheRef?.adapter.purge();
   });
 
   // tag with a fresh runId, reset attempts, then execute the real effect
@@ -194,63 +222,66 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   $runId.on(tagged, (_id, t) => t.runId);
   $attempts.on(tagged, () => 0);
   // TAKE_LATEST: abort the superseded in-flight request before the new one starts
-  // (registered before the runFx trigger so it fires first).
-  sample({ clock: tagged, filter: () => strategy === 'TAKE_LATEST', target: abortInFlightFx });
+  sample({ clock: tagged, source: $strategySrc, filter: (s) => stratOf(s) === 'TAKE_LATEST', target: abortInFlightFx });
   sample({ clock: tagged, target: runFx });
 
   $params.on(tagged, (_p, t) => t.params ?? null);
   $params.on(cacheHit, (_p, h) => h.params ?? null);
 
   // ---- result acceptance (concurrency) ----
-  const isCurrent = (lastId: number, runId: number) =>
-    strategy === 'TAKE_EVERY' ? true : runId === lastId;
-
   sample({
     clock: runFx.done,
-    source: $runId,
-    filter: (lastId, { result }) => isCurrent(lastId, result.runId),
-    fn: (_id, { result }) => ({ params: result.params, result: result.result }),
+    source: { lastId: $runId, strat: $strategySrc },
+    filter: ({ lastId, strat }, { result }) => isCurrent(stratOf(strat), lastId, result.runId),
+    fn: (_s, { result }) => ({ params: result.params, result: result.result }),
     target: acceptedDone,
   });
   sample({
     clock: runFx.done,
-    source: $runId,
-    filter: (lastId, { result }) => !isCurrent(lastId, result.runId),
-    fn: (_id, { result }) => ({ params: result.params }),
+    source: { lastId: $runId, strat: $strategySrc },
+    filter: ({ lastId, strat }, { result }) => !isCurrent(stratOf(strat), lastId, result.runId),
+    fn: (_s, { result }) => ({ params: result.params }),
     target: aborted,
   });
 
   // ---- failure / retry ----
-  const willRetry = (lastId: number, attempts: number, runId: number, error: Error) =>
-    !!retryCfg &&
-    isCurrent(lastId, runId) &&
-    attempts < retryCfg.times &&
-    retryCfg.filter({ error, attempt: attempts + 1 });
+  const willRetry = (
+    strategy: ConcurrencyStrategy,
+    lastId: number,
+    attempts: number,
+    times: number,
+    runId: number,
+    error: Error,
+  ) =>
+    !!retryRef && isCurrent(strategy, lastId, runId) && attempts < times && retryRef.filter({ error, attempt: attempts + 1 });
 
   const scheduleRetry = createEvent<Run<Params> & { error: Error }>();
   const finalFail = createEvent<{ params: Params; error: Error }>();
   const intermediateFail = createEvent<{ params: Params; error: Error }>();
 
+  const failSource = { lastId: $runId, attempts: $attempts, timesSrc: $retryTimesSrc, strat: $strategySrc };
   sample({
     clock: runFx.fail,
-    source: { lastId: $runId, attempts: $attempts },
-    filter: ({ lastId, attempts }, { params, error }) => willRetry(lastId, attempts, params.runId, error),
+    source: failSource,
+    filter: ({ lastId, attempts, timesSrc, strat }, { params, error }) =>
+      willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), params.runId, error),
     fn: (_s, { params, error }) => ({ runId: params.runId, params: params.params, error }),
     target: scheduleRetry,
   });
   sample({
     clock: runFx.fail,
-    source: { lastId: $runId, attempts: $attempts },
-    filter: ({ lastId, attempts }, { params, error }) =>
-      isCurrent(lastId, params.runId) && !willRetry(lastId, attempts, params.runId, error),
+    source: failSource,
+    filter: ({ lastId, attempts, timesSrc, strat }, { params, error }) =>
+      isCurrent(stratOf(strat), lastId, params.runId) &&
+      !willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), params.runId, error),
     fn: (_s, { params, error }) => ({ params: params.params, error }),
     target: finalFail,
   });
   sample({
     clock: runFx.fail,
-    source: $runId,
-    filter: (lastId, { params }) => !isCurrent(lastId, params.runId),
-    fn: (_id, { params }) => ({ params: params.params }),
+    source: { lastId: $runId, strat: $strategySrc },
+    filter: ({ lastId, strat }, { params }) => !isCurrent(stratOf(strat), lastId, params.runId),
+    fn: (_s, { params }) => ({ params: params.params }),
     target: aborted,
   });
 
@@ -261,16 +292,16 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     clock: scheduleRetry,
     source: $attempts,
     fn: (attempt, s): { ms: number; payload: unknown } => ({
-      ms: (retryCfg?.delay ?? (() => 0))(attempt),
+      ms: (retryRef?.delay ?? (() => 0))(attempt),
       payload: { runId: s.runId, params: s.params } as Run<Params>,
     }),
     target: sleepFx,
   });
   sample({
     clock: sleepFx.doneData,
-    source: $runId,
-    filter: (lastId, payload) => isCurrent(lastId, (payload as Run<Params>).runId),
-    fn: (_id, payload) => payload as Run<Params>,
+    source: { lastId: $runId, strat: $strategySrc },
+    filter: ({ lastId, strat }, payload) => isCurrent(stratOf(strat), lastId, (payload as Run<Params>).runId),
+    fn: (_s, payload) => payload as Run<Params>,
     target: runFx,
   });
   $retrying.reset(sleepFx.done);
@@ -278,7 +309,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   // surface intermediate (retried) failures only when suppression is off
   sample({
     clock: scheduleRetry,
-    filter: () => !!retryCfg && retryCfg.suppress === false,
+    filter: () => !!retryRef && retryRef.suppress === false,
     fn: ({ params, error }) => ({ params, error }),
     target: intermediateFail,
   });
@@ -355,13 +386,24 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       runFx,
       purgeFx,
       setStrategy: (s) => {
-        strategy = s;
+        strategyConst = s;
       },
       setRetry: (cfg) => {
-        retryCfg = cfg;
+        if (!cfg) {
+          retryRef = null;
+          retryTimesConst = 0;
+          return;
+        }
+        retryRef = { delay: cfg.delay, filter: cfg.filter, suppress: cfg.suppress };
+        retryTimesConst = cfg.times;
       },
       setCache: (cfg) => {
-        cacheCfg = cfg;
+        if (!cfg) {
+          cacheRef = null;
+          return;
+        }
+        cacheRef = { adapter: cfg.adapter, key: cfg.key };
+        staleAfterConst = cfg.staleAfter;
       },
     },
 

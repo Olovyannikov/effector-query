@@ -58,9 +58,11 @@ export function cache<Q extends AnyQuery>(query: Q, opts: boolean | CacheConfig<
     return query;
   }
   const cfg = opts === true ? {} : opts;
+  const staleAfter =
+    cfg.staleAfter == null ? Infinity : is.store(cfg.staleAfter) ? cfg.staleAfter.getState() : cfg.staleAfter;
   query.__.setCache({
     adapter: cfg.adapter ?? inMemoryCache(),
-    staleAfter: cfg.staleAfter ?? Infinity,
+    staleAfter,
     key: cfg.key ?? ((p: unknown) => stableStringify(p)),
   });
   if (typeof opts === 'object' && opts.purge && is.unit(opts.purge)) {
