@@ -26,6 +26,9 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm install --frozen-lockfile
       # Opens/updates a "Version Packages" PR; on merge of that PR, publishes.
+      # Requires repo Settings -> Actions -> General -> Workflow permissions ->
+      #   "Allow GitHub Actions to create and approve pull requests" (enabled).
+      # Publishing also needs the NPM_TOKEN secret.
       - uses: changesets/action@v1
         with:
           version: pnpm changeset version
