@@ -117,6 +117,18 @@ export interface ResolvedCache<Params = unknown> {
   dedupe: boolean;
 }
 
+/** Lifecycle event stream for devtools / logging. */
+export interface QueryInspect<Params, Mapped, Error> {
+  start: Event<{ params: Params }>;
+  run: Event<{ params: Params; attempt: number }>;
+  done: Event<{ params: Params; result: Mapped }>;
+  fail: Event<{ params: Params; error: Error }>;
+  aborted: Event<{ params: Params }>;
+  cacheHit: Event<{ params: Params }>;
+  cacheMiss: Event<{ params: Params }>;
+  retry: Event<{ params: Params; attempt: number; error: Error }>;
+}
+
 /** Internal engine seams that standalone operators (retry/cache/concurrency) configure. */
 export interface QueryEngine<Params, Error> {
   setStrategy: (strategy: ConcurrencyStrategy) => void;
@@ -181,6 +193,7 @@ export interface Query<Params, Result, Error, Mapped = Result> {
   __: {
     effect: QueryEffect<Params, Result, Error>;
     runFx: Effect<{ runId: number; params: Params }, any, Error>;
+    inspect: QueryInspect<Params, Mapped, Error>;
   } & QueryEngine<Params, Error>;
 
   /**

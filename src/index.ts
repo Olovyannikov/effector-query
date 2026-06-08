@@ -47,10 +47,17 @@ export {
   standardSchemaContract,
   type Contract,
 } from './validation';
+export {
+  attachQueryLogger,
+  type QueryLogEntry,
+  type QueryLogType,
+  type QueryLoggerOptions,
+} from './inspect';
 export { stableStringify } from './utils';
 export type {
   Query,
   QueryUnitShape,
+  QueryInspect,
   QueryStatus,
   QueryFinished,
   ConcurrencyStrategy,

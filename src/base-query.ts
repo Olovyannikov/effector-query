@@ -441,6 +441,34 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   sample({ clock: finishedDone, fn: ({ params }) => ({ params, status: 'done' as const }), target: finishedFinally });
   sample({ clock: finishedFail, fn: ({ params }) => ({ params, status: 'fail' as const }), target: finishedFinally });
 
+  // ---- introspection (devtools / logger) ----
+  const inspectStart = createEvent<{ params: Params }>(evName('inspect.start'));
+  const inspectRun = createEvent<{ params: Params; attempt: number }>(evName('inspect.run'));
+  const inspectCacheHit = createEvent<{ params: Params }>(evName('inspect.cacheHit'));
+  const inspectCacheMiss = createEvent<{ params: Params }>(evName('inspect.cacheMiss'));
+  const inspectRetry = createEvent<{ params: Params; attempt: number; error: Error }>(evName('inspect.retry'));
+
+  sample({ clock: requested, fn: ({ params }) => ({ params }), target: inspectStart });
+  sample({
+    clock: runFx,
+    source: $attempts,
+    fn: (attempt, run) => ({ params: run.params, attempt }),
+    target: inspectRun,
+  });
+  sample({ clock: cacheHit, fn: ({ params }) => ({ params }), target: inspectCacheHit });
+  sample({
+    clock: lookupFx.doneData,
+    filter: ({ fresh }) => !fresh,
+    fn: ({ params }) => ({ params }),
+    target: inspectCacheMiss,
+  });
+  sample({
+    clock: scheduleRetry,
+    source: $attempts,
+    fn: (attempt, s) => ({ params: s.params, attempt, error: s.error }),
+    target: inspectRetry,
+  });
+
   const refetch = refresh;
 
   return {
@@ -465,6 +493,16 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       effect,
       runFx,
       purgeFx,
+      inspect: {
+        start: inspectStart,
+        run: inspectRun,
+        done: finishedDone,
+        fail: finishedFail,
+        aborted,
+        cacheHit: inspectCacheHit,
+        cacheMiss: inspectCacheMiss,
+        retry: inspectRetry,
+      },
       setStrategy: (s) => {
         strategyConst = s;
       },

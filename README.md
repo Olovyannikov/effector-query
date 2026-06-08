@@ -338,6 +338,22 @@ const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
 // units appear as todos.start, todos.$data, todos.$status, todos.runFx, …
 ```
 
+### Introspection / logging
+
+Every query exposes a lifecycle event stream at `query.__.inspect`
+(`start / run / done / fail / aborted / cacheHit / cacheMiss / retry`).
+`attachQueryLogger` turns it into structured, timed log entries:
+
+```ts
+import { attachQueryLogger } from 'effector-query';
+
+const stop = attachQueryLogger(todos, { name: 'todos' });
+// → { query: 'todos', type: 'run', params, attempt: 0 }
+//   { query: 'todos', type: 'done', params, durationMs: 42 }
+// pass a custom `handler` to forward into your own logger / the effector inspector
+stop(); // unsubscribe
+```
+
 ## Development
 
 Uses **pnpm** and **vite**.

@@ -56,10 +56,12 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [ ] Solid binding (`effector-query/solid` via `effector-solid`) — deferred: needs vite-plugin-solid + a separate JSX runtime that conflicts with the React/Vue plugins in one vitest config; will land with its own test project
 
 ### 0.8 — Devtools & introspection
+- [x] Lifecycle event stream `query.__.inspect` (`start / run / done / fail / aborted / cacheHit / cacheMiss / retry`)
+- [x] `attachQueryLogger(query, { name, handler })` — structured, timed log entries (per-run `durationMs`); default logs to console, custom handler forwards anywhere
+- [x] Public-unit labelling via `name` (start/$data/$status/runFx + inspect.* units)
 - [ ] Deep labelling: name ALL internal units (lookup/retry/concurrency seams), opt-in via a `debug` flag
-- [ ] `inspect`/logger adapter: subscribe to a query's lifecycle (start → run → done/fail/abort → cache hit/miss) as a structured event stream for the effector inspector / custom logging
-- [ ] `@effector/inspector` & `effector-logger` recipes + a tiny `attachQueryLogger(query)` helper
-- [ ] Redux-devtools-style timeline of a query's runs (params, attempt, cache outcome, duration)
+- [ ] `@effector/inspector` / `effector-logger` recipe pages (land with the docs site)
+- [ ] Redux-devtools-style run timeline view (params, attempt, cache outcome, duration)
 
 ### 0.9 — Documentation site (VitePress)
 - [ ] `docs/` VitePress site: Guide (concepts, effect-first model, why-not-farfetched), API reference, Recipes (SSR/testing, mutations+invalidate, optimistic, pagination, sourced config, validation, shared factory), Migration (from farfetched)
