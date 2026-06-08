@@ -158,6 +158,32 @@ const addPost = createMutation({ effect: createPostFx });
 See [`examples/http-clients.ts`](./examples/http-clients.ts) for a full query +
 mutation + invalidate + optimistic flow.
 
+### Composing from a shared factory
+
+Bake `baseURL` + headers/auth into a factory once, then declare endpoints in one
+line each — the FSD `shared/api` pattern:
+
+```ts
+const createCommonRequestFx = createRequestFactory({
+  baseURL: API_URL,
+  headers: () => ({ 'X-API-KEY': apiKey }),
+});
+
+export const getProductsQuery = createQuery({
+  effect: createCommonRequestFx<ProductsRequest, Product[]>((params) => ({ url: '/products', params })),
+  cache: { staleAfter: 30_000 },
+});
+concurrency(getProductsQuery, { strategy: 'TAKE_LATEST' });
+
+export const likeProductMutation = createMutation({
+  effect: createInternalRequestFx<number, Product>((id) => ({ url: `/products/${id}/likes`, method: 'PUT' })),
+});
+invalidate({ on: likeProductMutation, refetch: getProductsQuery });
+```
+
+Full runnable version (with the `createRequestFactory` helper, api-key vs bearer
+factories, and product endpoints): [`examples/shared-factory.ts`](./examples/shared-factory.ts).
+
 ### Real cancellation
 
 Effects built with `createRequestFx` are **abort-aware**: the query owns an
