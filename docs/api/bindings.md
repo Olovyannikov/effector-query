@@ -57,3 +57,32 @@ function UserCard(props: { id: number }) {
 React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, Solid with
 effector-solid's `<Provider>` — all for SSR / `fork`. Bindings require the matching optional
 peers (`react`+`effector-react` / `vue`+`effector-vue` / `solid-js`+`effector-solid`).
+
+## Suspense (React)
+
+`useSuspenseQuery` returns the data directly (never `null`): it **auto-starts** the query,
+suspends the nearest `<Suspense>` while loading, throws to the nearest Error Boundary on failure,
+and returns the data when done.
+
+```tsx
+import { Suspense } from 'react';
+import { useSuspenseQuery } from 'effector-refetch/react';
+
+function UserName({ id }: { id: number }) {
+  const user = useSuspenseQuery(userQuery, id); // suspends until ready
+  return <span>{user.name}</span>;
+}
+
+function Page({ id }: { id: number }) {
+  return (
+    <ErrorBoundary fallback={<p>Failed to load</p>}>
+      <Suspense fallback={<Spinner />}>
+        <UserName id={id} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+```
+
+This is for **client-side** Suspense: reads and triggers are scope-aware, but the settle signal
+is observed globally, so use it with `fork` outside of concurrent SSR streaming.

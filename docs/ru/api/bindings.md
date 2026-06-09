@@ -58,3 +58,32 @@ React работает с `<Provider value={scope}>`, Vue — с `EffectorScopeP
 `<Provider>` из effector-solid; всё для SSR / `fork`. Биндинги требуют соответствующих
 опциональных peer-зависимостей (`react`+`effector-react` / `vue`+`effector-vue` /
 `solid-js`+`effector-solid`).
+
+## Suspense (React)
+
+`useSuspenseQuery` возвращает данные напрямую (никогда не `null`): он **сам стартует** запрос,
+подвешивает ближайший `<Suspense>` на время загрузки, бросает ошибку в ближайший Error Boundary
+при сбое и возвращает данные по готовности.
+
+```tsx
+import { Suspense } from 'react';
+import { useSuspenseQuery } from 'effector-refetch/react';
+
+function UserName({ id }: { id: number }) {
+  const user = useSuspenseQuery(userQuery, id); // подвешивается до готовности
+  return <span>{user.name}</span>;
+}
+
+function Page({ id }: { id: number }) {
+  return (
+    <ErrorBoundary fallback={<p>Не удалось загрузить</p>}>
+      <Suspense fallback={<Spinner />}>
+        <UserName id={id} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+```
+
+Это **клиентский** Suspense: чтение и триггеры учитывают scope, но сигнал завершения
+наблюдается глобально — используйте с `fork` вне конкурентного SSR-стриминга.
