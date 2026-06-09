@@ -68,7 +68,7 @@
     "prepublishOnly": "pnpm run build",
     "size": "size-limit",
     "changeset": "changeset",
-    "release": "pnpm run build && changeset publish",
+    "release": "pnpm run build && pnpm publish --no-git-checks",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

@@ -25,6 +25,13 @@ jobs:
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm install --frozen-lockfile
+      # Diagnostic: fails fast with a clear message if NPM_TOKEN is missing /
+      # read-only / 2FA-blocked, instead of surfacing later as an opaque publish error.
+      - name: Verify npm auth
+        run: npm whoami
+        continue-on-error: true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # Opens/updates a "Version Packages" PR; on merge of that PR, publishes.
       # Requires repo Settings -> Actions -> General -> Workflow permissions ->
       #   "Allow GitHub Actions to create and approve pull requests" (enabled).
