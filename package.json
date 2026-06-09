@@ -62,6 +62,7 @@
   },
   "files": [
     "dist",
+    "skills",
     "README.md",
     "ROADMAP.md",
     "LICENSE"

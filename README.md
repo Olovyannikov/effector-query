@@ -374,6 +374,17 @@ const stop = attachQueryLogger(todos, { name: 'todos' });
 stop(); // unsubscribe
 ```
 
+## AI agents (Claude Code skill)
+
+Ships a [Claude Code skill](./skills/) so agents know the effect-first API and fork-correct
+idioms. Drop it into your project:
+
+```bash
+cp -R node_modules/effector-refetch/skills/effector-refetch .claude/skills/
+```
+
+See [`skills/README.md`](./skills/README.md) for personal/global install and other agent tools.
+
 ## Development
 
 Uses **pnpm** and **vite**.
