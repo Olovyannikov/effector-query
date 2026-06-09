@@ -76,7 +76,15 @@ function QueryRow({
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ color: '#868e96', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+      <div
+        style={{
+          color: '#868e96',
+          fontSize: 11,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          marginBottom: 4,
+        }}
+      >
         {title}
       </div>
       {children}
@@ -130,7 +138,9 @@ function QueryDetail({ name, query }: { name: string; query: AnyQuery }) {
       </Section>
       {state.error != null && (
         <Section title="Error">
-          <pre style={{ ...preStyle, color: COLOR.fail }}>{json((state.error as Error)?.message ?? state.error)}</pre>
+          <pre style={{ ...preStyle, color: COLOR.fail }}>
+            {json((state.error as Error)?.message ?? state.error)}
+          </pre>
         </Section>
       )}
       <Section title="Log">
@@ -205,7 +215,7 @@ export function EffectorQueryDevtools({
     );
   }
 
-  const activeKey = keys.includes(selected) ? selected : keys[0] ?? '';
+  const activeKey = keys.includes(selected) ? selected : (keys[0] ?? '');
 
   return (
     <div style={container} data-testid="eq-devtools">
@@ -237,7 +247,13 @@ export function EffectorQueryDevtools({
             type="button"
             onClick={() => setOpen(false)}
             data-testid="eq-devtools-close"
-            style={{ marginLeft: 'auto', border: 'none', background: 'transparent', color: '#868e96', cursor: 'pointer' }}
+            style={{
+              marginLeft: 'auto',
+              border: 'none',
+              background: 'transparent',
+              color: '#868e96',
+              cursor: 'pointer',
+            }}
           >
             ✕
           </button>

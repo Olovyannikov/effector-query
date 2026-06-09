@@ -1,4 +1,13 @@
-import { createEffect, createEvent, createStore, sample, type Effect, type EventCallable, type Event, type Store } from 'effector';
+import {
+  createEffect,
+  createEvent,
+  createStore,
+  sample,
+  type Effect,
+  type EventCallable,
+  type Event,
+  type Store,
+} from 'effector';
 import { createQuery } from './create-query';
 import type { ConcurrencyStrategy, QueryStatus } from './types';
 
@@ -28,13 +37,19 @@ interface BaseInfiniteConfig<Params, PageParam, Page> {
   name?: string;
 }
 
-export interface CreateInfiniteQueryConfig<Params, PageParam, Page>
-  extends BaseInfiniteConfig<Params, PageParam, Page> {
+export interface CreateInfiniteQueryConfig<Params, PageParam, Page> extends BaseInfiniteConfig<
+  Params,
+  PageParam,
+  Page
+> {
   /** Effect fetching a single page. */
   effect: Effect<{ params: Params; pageParam: PageParam }, Page, unknown>;
 }
-export interface CreateInfiniteQueryHandlerConfig<Params, PageParam, Page>
-  extends BaseInfiniteConfig<Params, PageParam, Page> {
+export interface CreateInfiniteQueryHandlerConfig<Params, PageParam, Page> extends BaseInfiniteConfig<
+  Params,
+  PageParam,
+  Page
+> {
   handler: (ctx: { params: Params; pageParam: PageParam }) => Promise<Page> | Page;
 }
 

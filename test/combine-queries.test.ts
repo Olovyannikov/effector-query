@@ -23,7 +23,9 @@ describe('combineQueries', () => {
 
   it('reflects pending and errors', async () => {
     const resolvers: Array<(v: number) => void> = [];
-    const a = createQuery({ effect: createEffect((_p: void) => new Promise<number>((res) => resolvers.push(res))) });
+    const a = createQuery({
+      effect: createEffect((_p: void) => new Promise<number>((res) => resolvers.push(res))),
+    });
     const b = createQuery({
       effect: createEffect(async (): Promise<number> => {
         throw new Error('boom');

@@ -1,5 +1,5 @@
 ---
-"effector-query": minor
+'effector-query': minor
 ---
 
 Shared defaults + data UX:

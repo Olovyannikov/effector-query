@@ -11,9 +11,7 @@ function App() {
   return (
     <>
       <Routes />
-      {import.meta.env.DEV && (
-        <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />
-      )}
+      {import.meta.env.DEV && <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />}
     </>
   );
 }
@@ -51,11 +49,11 @@ function App() {
 
 ## Пропсы
 
-| проп | тип | по умолчанию |
-| --- | --- | --- |
-| `queries` | `Record<string, Query>` | — |
-| `initialIsOpen` | `boolean` | `false` |
-| `position` | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` |
+| проп            | тип                               | по умолчанию     |
+| --------------- | --------------------------------- | ---------------- |
+| `queries`       | `Record<string, Query>`           | —                |
+| `initialIsOpen` | `boolean`                         | `false`          |
+| `position`      | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` |
 
 ::: tip
 Рендерите только в дев-режиме (`import.meta.env.DEV`) — тогда панель не попадёт в прод.

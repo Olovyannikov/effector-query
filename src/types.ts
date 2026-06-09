@@ -106,8 +106,10 @@ export interface SourcedConfig {
 }
 
 /** Same as CreateQueryConfig but with a plain async handler instead of an Effect. */
-export interface CreateQueryHandlerConfig<Params, Result, Error, Mapped = Result>
-  extends Omit<CreateQueryConfig<Params, Result, Error, Mapped>, 'effect'> {
+export interface CreateQueryHandlerConfig<Params, Result, Error, Mapped = Result> extends Omit<
+  CreateQueryConfig<Params, Result, Error, Mapped>,
+  'effect'
+> {
   handler: (params: Params) => Promise<Result> | Result;
 }
 
@@ -239,8 +241,10 @@ export interface CreateMutationConfig<Params, Result, Error, Mapped = Result> {
   debug?: boolean;
 }
 
-export interface CreateMutationHandlerConfig<Params, Result, Error, Mapped = Result>
-  extends Omit<CreateMutationConfig<Params, Result, Error, Mapped>, 'effect'> {
+export interface CreateMutationHandlerConfig<Params, Result, Error, Mapped = Result> extends Omit<
+  CreateMutationConfig<Params, Result, Error, Mapped>,
+  'effect'
+> {
   handler: (params: Params) => Promise<Result> | Result;
 }
 
@@ -282,18 +286,9 @@ export interface Mutation<Params, Result, Error, Mapped = Result> {
 
 // ---- type-level helpers ----
 
-export type ParamsOf<Q> = Q extends Query<infer P, any, any, any>
-  ? P
-  : Q extends Mutation<infer P, any, any, any>
-    ? P
-    : never;
-export type ResultOf<Q> = Q extends Query<any, any, any, infer M>
-  ? M
-  : Q extends Mutation<any, any, any, infer M>
-    ? M
-    : never;
-export type ErrorOf<Q> = Q extends Query<any, any, infer E, any>
-  ? E
-  : Q extends Mutation<any, any, infer E, any>
-    ? E
-    : never;
+export type ParamsOf<Q> =
+  Q extends Query<infer P, any, any, any> ? P : Q extends Mutation<infer P, any, any, any> ? P : never;
+export type ResultOf<Q> =
+  Q extends Query<any, any, any, infer M> ? M : Q extends Mutation<any, any, any, infer M> ? M : never;
+export type ErrorOf<Q> =
+  Q extends Query<any, any, infer E, any> ? E : Q extends Mutation<any, any, infer E, any> ? E : never;

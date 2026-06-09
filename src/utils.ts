@@ -16,9 +16,7 @@ export function replaceEqualDeep<T>(prev: unknown, next: T): T {
   if (bothArrays || (isPlainObject(prev) && isPlainObject(next))) {
     const prevObj = prev as Record<string, unknown>;
     const nextObj = next as Record<string, unknown>;
-    const nextKeys = bothArrays
-      ? (next as unknown[]).map((_, i) => String(i))
-      : Object.keys(nextObj);
+    const nextKeys = bothArrays ? (next as unknown[]).map((_, i) => String(i)) : Object.keys(nextObj);
     const prevSize = bothArrays ? (prev as unknown[]).length : Object.keys(prevObj).length;
     const nextSize = nextKeys.length;
 

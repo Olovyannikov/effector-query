@@ -1,6 +1,7 @@
 # Contracts and Errors
 
 ## Contents
+
 - Contract forms
 - Validation semantics
 - Error handling model
@@ -8,6 +9,7 @@
 ## Contract Forms
 
 Supported contract shapes:
+
 - type-guard function
 - contract protocol object with `isData/getErrorMessages`
 - Standard Schema contract (`~standard`)
@@ -28,6 +30,7 @@ Supported contract shapes:
 ## Recommendation
 
 Always wire at least one explicit failure path in production flows:
+
 - logging/monitoring event
 - fallback restore logic
 - safe reset event when contract mismatch is critical

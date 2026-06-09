@@ -34,7 +34,9 @@ export function createContract<Data>(c: {
 // ---- zod ----
 
 interface ZodLike<T> {
-  safeParse: (raw: unknown) =>
+  safeParse: (
+    raw: unknown,
+  ) =>
     | { success: true; data: T }
     | { success: false; error: { issues: { path: PropertyKey[]; message: string }[] } };
 }

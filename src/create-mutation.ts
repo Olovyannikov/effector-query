@@ -1,10 +1,6 @@
 import type { EventCallable } from 'effector';
 import { createQuery } from './create-query';
-import type {
-  CreateMutationConfig,
-  CreateMutationHandlerConfig,
-  Mutation,
-} from './types';
+import type { CreateMutationConfig, CreateMutationHandlerConfig, Mutation } from './types';
 
 /**
  * A Mutation is a write-flavored Query: same effect-first engine (status,

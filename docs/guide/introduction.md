@@ -9,8 +9,8 @@ like to not refetch what you just fetched, and ideally none of this lives inside
 component.
 
 Hand-rolled, that's a swamp of `useState`/`useEffect`, race conditions, and logic welded
-to the view. effector solves the *state* part beautifully with events, stores and effects.
-**effector-query** owns the *data-fetching* part on top of it.
+to the view. effector solves the _state_ part beautifully with events, stores and effects.
+**effector-query** owns the _data-fetching_ part on top of it.
 
 ## The idea: build on real effects
 
@@ -48,7 +48,7 @@ That's the difference from a "black box" data layer: you keep effector's mental 
   features are standalone operators for the rest.
 - **No magic.** It's plain effector units (`createStore` / `sample` / `createEffect`) you
   could have written — just composed for you.
-- **Honest.** We tell you when *not* to use it, and how it compares to
+- **Honest.** We tell you when _not_ to use it, and how it compares to
   [farfetched](/guide/vs-farfetched).
 
 Ready? [Get started →](/guide/getting-started)

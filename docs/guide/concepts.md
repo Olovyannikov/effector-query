@@ -15,16 +15,16 @@ query.__.effect === myFx; // the real effect
 
 `$status` moves through `'initial' → 'pending' → 'done' | 'fail'`. A query exposes:
 
-| store/event | meaning |
-| --- | --- |
-| `$data` | latest (validated, mapped) result |
-| `$error` | latest error |
-| `$status` | `initial \| pending \| done \| fail` |
-| `$pending` | request (or retry) in flight |
-| `$stale` | current data is past `staleAfter` |
-| `$params` | last params the query ran with |
-| `finished.{done,fail,finally}` | lifecycle events |
-| `aborted` | a result was discarded (concurrency / cancel / skip) |
+| store/event                    | meaning                                              |
+| ------------------------------ | ---------------------------------------------------- |
+| `$data`                        | latest (validated, mapped) result                    |
+| `$error`                       | latest error                                         |
+| `$status`                      | `initial \| pending \| done \| fail`                 |
+| `$pending`                     | request (or retry) in flight                         |
+| `$stale`                       | current data is past `staleAfter`                    |
+| `$params`                      | last params the query ran with                       |
+| `finished.{done,fail,finally}` | lifecycle events                                     |
+| `aborted`                      | a result was discarded (concurrency / cancel / skip) |
 
 ## Triggers
 

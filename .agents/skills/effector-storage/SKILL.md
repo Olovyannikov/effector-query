@@ -10,6 +10,7 @@ Use this skill to design, implement, and debug `effector-storage` integrations w
 ## Workflow
 
 1. Classify the request:
+
 - `adapter-choice`: pick the right adapter for environment and data behavior.
 - `integration`: wire `persist`/`createPersist` into existing model flow.
 - `contracts-errors`: validate storage payloads and route failures.
@@ -17,6 +18,7 @@ Use this skill to design, implement, and debug `effector-storage` integrations w
 - `ssr-fallback`: make persistence safe across browser/server runtimes.
 
 2. Load references progressively:
+
 - Start with `references/core-patterns.md`.
 - Add `references/adapter-matrix.md` when adapter selection/configuration is needed.
 - Add `references/tools-and-composition.md` for `async`, `either`, `farcached`, or composition recipes.
@@ -24,6 +26,7 @@ Use this skill to design, implement, and debug `effector-storage` integrations w
 - End with `references/pitfalls-and-checklist.md` before finalizing.
 
 3. Build answer contract:
+
 - Start with a concrete adapter decision and why.
 - Provide a minimal working snippet with explicit key strategy.
 - List behavior caveats (init timing, sync limits, validation behavior).

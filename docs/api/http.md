@@ -8,8 +8,8 @@ Wrap any HTTP client into a typed, abort-aware effector effect with normalized e
 import { ofetch } from 'ofetch';
 import { createRequestFx, createQuery } from 'effector-query';
 
-const getUserFx = createRequestFx<{ id: number }, User>(
-  ({ id }, { signal }) => ofetch(`/api/users/${id}`, { signal }),
+const getUserFx = createRequestFx<{ id: number }, User>(({ id }, { signal }) =>
+  ofetch(`/api/users/${id}`, { signal }),
 );
 const userQuery = createQuery({ effect: getUserFx, cache: true });
 ```
@@ -48,7 +48,7 @@ Validate a response against a schema; a failure becomes a **retryable** `Validat
 ```ts
 import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-query';
 
-createQuery({ effect: getUserFx, contract: zodContract(UserSchema) });           // zod
+createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
 createQuery({ effect: getUserFx, contract: createContract({ isData: isUser }) }); // manual
 createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['negative price'] });

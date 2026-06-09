@@ -104,7 +104,11 @@ describe('createBarrier', () => {
       target: barrier.lock,
     });
     // also lock on the failure that triggers a retry — drive the lock from the raw effect fail
-    sample({ clock: apiFx.failData, filter: (e) => (e as { status?: number }).status === 401, target: barrier.lock });
+    sample({
+      clock: apiFx.failData,
+      filter: (e) => (e as { status?: number }).status === 401,
+      target: barrier.lock,
+    });
 
     api.start();
     // let it fail (401) -> lock+refresh -> retry waits -> token fresh -> success

@@ -1,5 +1,5 @@
 ---
-"effector-query": minor
+'effector-query': minor
 ---
 
 Add a visual devtools panel: `EffectorQueryDevtools` from `effector-query/devtools`

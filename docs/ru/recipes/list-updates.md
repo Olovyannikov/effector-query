@@ -12,8 +12,7 @@ import { update } from 'effector-query';
 update({
   query: todosQuery,
   on: toggleTodoMutation, // возвращает обновлённый Todo
-  fn: ({ data, result: updated }) =>
-    (data ?? []).map((todo) => (todo.id === updated.id ? updated : todo)),
+  fn: ({ data, result: updated }) => (data ?? []).map((todo) => (todo.id === updated.id ? updated : todo)),
 });
 ```
 
@@ -35,11 +34,9 @@ import { optimisticUpdate } from 'effector-query';
 optimisticUpdate({
   query: todosQuery,
   on: toggleTodoMutation,
-  update: ({ data, params: id }) =>
-    (data ?? []).map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+  update: ({ data, params: id }) => (data ?? []).map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
   // при успехе сверяем с серверной версией
-  commit: ({ data, result: updated }) =>
-    (data ?? []).map((t) => (t.id === updated.id ? updated : t)),
+  commit: ({ data, result: updated }) => (data ?? []).map((t) => (t.id === updated.id ? updated : t)),
 });
 ```
 

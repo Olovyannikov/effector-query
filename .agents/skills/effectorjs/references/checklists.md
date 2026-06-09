@@ -44,28 +44,37 @@
 ## 5. Acceptance Scenarios
 
 ### A. Model Design
+
 - Given a feature request, output includes model topology + wiring snippets.
 
 ### B. Anti-Pattern Refactor
+
 - Given logic in `watch` or `getState`, output provides declarative replacement.
 
 ### B1. Glossary Semantics
+
 - Given model/dataflow review, output validates glossary semantics (common unit usage, derived store constraints, reducer purity/no-op behavior).
 
 ### C. SSR Scope
+
 - Given SSR requirement, output includes request-scoped fork + serialization lifecycle.
 
 ### D. Explicit Start
+
 - Given startup requirement, output includes explicit `appStarted` flow and entrypoint trigger strategy.
 
 ### E. React Integration
+
 - Given React integration, output routes unit usage through `useUnit`.
 
 ### F. Solid Integration
+
 - Given Solid integration, output routes unit usage through `useUnit` with correct accessor handling.
 
 ### G. Vue Integration
+
 - Given Vue integration, output provides modern `effector-vue` integration guidance.
 
 ### H. Legacy Input
+
 - Given legacy API usage/imports, output marks it as legacy and offers modern v23+ migration path.

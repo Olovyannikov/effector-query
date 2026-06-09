@@ -35,10 +35,14 @@ describe('update (patch $data without refetch)', () => {
       id: number;
       done: boolean;
     }
-    const todos = createQuery({ effect: createEffect(async (): Promise<Todo[]> => [
-      { id: 1, done: false },
-      { id: 2, done: false },
-    ]) });
+    const todos = createQuery({
+      effect: createEffect(
+        async (): Promise<Todo[]> => [
+          { id: 1, done: false },
+          { id: 2, done: false },
+        ],
+      ),
+    });
     const toggle = createMutation({
       effect: createEffect(async (id: number): Promise<Todo> => ({ id, done: true })),
     });

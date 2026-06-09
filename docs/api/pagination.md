@@ -50,10 +50,7 @@ Aggregate several independent queries into combined stores (the effector-flavore
 ```ts
 import { combineQueries } from 'effector-query';
 
-const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([
-  userQuery,
-  postsQuery,
-]);
+const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([userQuery, postsQuery]);
 // $data: [User | null, Post[] | null]   $pending: any in flight   $isSuccess: all done
 ```
 

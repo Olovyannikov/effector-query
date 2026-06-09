@@ -2,11 +2,7 @@ import { is, merge, sample, type Effect, type Event } from 'effector';
 import type { Mutation, Query } from './types';
 
 type AnyQuery = Query<any, any, any, any>;
-type Trigger =
-  | AnyQuery
-  | Mutation<any, any, any, any>
-  | Event<any>
-  | Effect<any, any, any>;
+type Trigger = AnyQuery | Mutation<any, any, any, any> | Event<any> | Effect<any, any, any>;
 
 function toEvent(trigger: Trigger): Event<any> {
   if (trigger && typeof trigger === 'object' && 'finished' in trigger) {

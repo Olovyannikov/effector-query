@@ -1,6 +1,7 @@
 # Core Patterns
 
 ## Contents
+
 - API forms
 - Key options
 - Lifecycle signals
@@ -9,10 +10,10 @@
 ## API Forms
 
 ```ts
-import { persist, createPersist } from 'effector-storage/<adapter-or-core>'
+import { persist, createPersist } from 'effector-storage/<adapter-or-core>';
 
-persist({ store, key, ...options })
-persist({ source, target, key, ...options })
+persist({ store, key, ...options });
+persist({ source, target, key, ...options });
 ```
 
 - `store` form: easiest for straightforward two-way sync with one store.
@@ -33,6 +34,7 @@ Use `createPersist(defaults)` to preconfigure shared options (`keyPrefix`, `pick
 ## Lifecycle Signals
 
 Operation channels include payload metadata:
+
 - `key`, `keyPrefix`, `operation`
 - `done`: successful `get`/`set`
 - `fail`: failed `get`/`set`/`validate`
@@ -45,7 +47,7 @@ If `fail` is not provided, errors go to `console.error`.
 Persist all stores in a domain:
 
 ```ts
-app.onCreateStore((store) => persist({ store }))
+app.onCreateStore((store) => persist({ store }));
 ```
 
 Persist a partial view safely:
@@ -55,7 +57,7 @@ persist({
   source: $entity.map((x) => x.id),
   target: idChanged,
   key: 'entity-id',
-})
+});
 ```
 
 Keep mapped values plain to reduce circular update risks.

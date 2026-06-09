@@ -8,10 +8,12 @@ interface Page {
 }
 
 function makeQuery() {
-  const fetchPage = createEffect(async ({ params, pageParam }: { params: { q: string }; pageParam: number }): Promise<Page> => ({
-    items: [`${params.q}-${pageParam}`],
-    next: pageParam < 2 ? pageParam + 1 : null,
-  }));
+  const fetchPage = createEffect(
+    async ({ params, pageParam }: { params: { q: string }; pageParam: number }): Promise<Page> => ({
+      items: [`${params.q}-${pageParam}`],
+      next: pageParam < 2 ? pageParam + 1 : null,
+    }),
+  );
   const query = createInfiniteQuery({
     effect: fetchPage,
     initialPageParam: 0,

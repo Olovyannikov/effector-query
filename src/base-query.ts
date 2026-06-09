@@ -52,9 +52,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   sourced: SourcedConfig = {},
 ): Query<Params, Result, Error, Mapped> {
   const effectFx =
-    'effect' in config
-      ? config.effect
-      : (createEffect(config.handler) as Effect<Params, Result, Error>);
+    'effect' in config ? config.effect : (createEffect(config.handler) as Effect<Params, Result, Error>);
 
   const isAbortable = (effectFx as { __abortable?: boolean }).__abortable === true;
   const callEffect = (params: Params, signal: AbortSignal): Promise<Result> =>
@@ -82,11 +80,17 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   let strategyConst: ConcurrencyStrategy = 'TAKE_LATEST';
   let retryTimesConst = 0;
   let staleAfterConst = Infinity;
-  let retryRef: { delay: ResolvedRetry<Error>['delay']; filter: ResolvedRetry<Error>['filter']; suppress: boolean } | null =
-    null;
-  let cacheRef:
-    | { adapter: ResolvedCache<Params>['adapter']; key: (p: Params) => string; swr: boolean; dedupe: boolean }
-    | null = null;
+  let retryRef: {
+    delay: ResolvedRetry<Error>['delay'];
+    filter: ResolvedRetry<Error>['filter'];
+    suppress: boolean;
+  } | null = null;
+  let cacheRef: {
+    adapter: ResolvedCache<Params>['adapter'];
+    key: (p: Params) => string;
+    swr: boolean;
+    dedupe: boolean;
+  } | null = null;
   // keys with a request currently in flight (for dedupe coalescing)
   const inflightKeys = new Set<string>();
   const dedupeKey = (params: Params): string | null =>
@@ -148,19 +152,19 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>({
     name: ns ? `${ns}.runFx` : undefined,
     handler: async ({ runId, params }) => {
-    // wait while the environment is paused (e.g. during a token refresh)
-    if (config.barrier) await config.barrier.__.wait();
-    const key = dedupeKey(params);
-    if (key) inflightKeys.add(key);
-    const controller = isAbortable ? new AbortController() : null;
-    if (controller) controllers.add(controller);
-    try {
-      const result = await callEffect(params, controller?.signal ?? new AbortController().signal);
-      return { runId, params, result };
-    } finally {
-      if (key) inflightKeys.delete(key);
-      if (controller) controllers.delete(controller);
-    }
+      // wait while the environment is paused (e.g. during a token refresh)
+      if (config.barrier) await config.barrier.__.wait();
+      const key = dedupeKey(params);
+      if (key) inflightKeys.add(key);
+      const controller = isAbortable ? new AbortController() : null;
+      if (controller) controllers.add(controller);
+      try {
+        const result = await callEffect(params, controller?.signal ?? new AbortController().signal);
+        return { runId, params, result };
+      } finally {
+        if (key) inflightKeys.delete(key);
+        if (controller) controllers.delete(controller);
+      }
     },
   });
 
@@ -264,12 +268,14 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   sample({ clock: acceptedDone, filter: () => !!cacheRef, target: setFx });
 
   // prefetch: warm the cache without touching $data/$status (cache-only; skips if fresh)
-  const prefetchLookupFx = createEffect(async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
-    const cfg = cacheRef;
-    if (!cfg) return { params, fresh: false };
-    const entry = await cfg.adapter.get(cfg.key(params));
-    return { params, fresh: entry != null && Date.now() - entry.storedAt < staleAfter };
-  });
+  const prefetchLookupFx = createEffect(
+    async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
+      const cfg = cacheRef;
+      if (!cfg) return { params, fresh: false };
+      const entry = await cfg.adapter.get(cfg.key(params));
+      return { params, fresh: entry != null && Date.now() - entry.storedAt < staleAfter };
+    },
+  );
   const prefetchRunFx = createEffect<Params, { params: Params; result: Result }, Error>(async (params) => ({
     params,
     result: await callEffect(params, new AbortController().signal),
@@ -281,7 +287,12 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     fn: (s, params) => ({ params, staleAfter: staleOf(s) }),
     target: prefetchLookupFx,
   });
-  sample({ clock: prefetchLookupFx.doneData, filter: ({ fresh }) => !fresh, fn: ({ params }) => params, target: prefetchRunFx });
+  sample({
+    clock: prefetchLookupFx.doneData,
+    filter: ({ fresh }) => !fresh,
+    fn: ({ params }) => params,
+    target: prefetchRunFx,
+  });
   sample({ clock: prefetchRunFx.doneData, target: setFx });
 
   const purgeFx = createEffect(() => {
@@ -308,7 +319,12 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   $runId.on(tagged, (_id, t) => t.runId);
   $attempts.on(tagged, () => 0);
   // TAKE_LATEST: abort the superseded in-flight request before the new one starts
-  sample({ clock: tagged, source: $strategySrc, filter: (s) => stratOf(s) === 'TAKE_LATEST', target: abortInFlightFx });
+  sample({
+    clock: tagged,
+    source: $strategySrc,
+    filter: (s) => stratOf(s) === 'TAKE_LATEST',
+    target: abortInFlightFx,
+  });
   sample({ clock: tagged, target: runFx });
 
   $params.on(tagged, (_p, t) => t.params ?? null);
@@ -339,7 +355,10 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     runId: number,
     error: Error,
   ) =>
-    !!retryRef && isCurrent(strategy, lastId, runId) && attempts < times && retryRef.filter({ error, attempt: attempts + 1 });
+    !!retryRef &&
+    isCurrent(strategy, lastId, runId) &&
+    attempts < times &&
+    retryRef.filter({ error, attempt: attempts + 1 });
 
   const scheduleRetry = createEvent<Run<Params> & { error: Error }>();
   const finalFail = createEvent<{ params: Params; error: Error }>();
@@ -504,8 +523,16 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     fn: ({ params, error }) => ({ params, error: mapError({ error, params }) }),
     target: finishedFail,
   });
-  sample({ clock: finishedDone, fn: ({ params }) => ({ params, status: 'done' as const }), target: finishedFinally });
-  sample({ clock: finishedFail, fn: ({ params }) => ({ params, status: 'fail' as const }), target: finishedFinally });
+  sample({
+    clock: finishedDone,
+    fn: ({ params }) => ({ params, status: 'done' as const }),
+    target: finishedFinally,
+  });
+  sample({
+    clock: finishedFail,
+    fn: ({ params }) => ({ params, status: 'fail' as const }),
+    target: finishedFinally,
+  });
 
   // ---- polling (refetchInterval) ----
   // After each settle, if interval > 0 and enabled, wait then refresh with last params.
@@ -542,7 +569,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const inspectRun = createEvent<{ params: Params; attempt: number }>(evName('inspect.run'));
   const inspectCacheHit = createEvent<{ params: Params }>(evName('inspect.cacheHit'));
   const inspectCacheMiss = createEvent<{ params: Params }>(evName('inspect.cacheMiss'));
-  const inspectRetry = createEvent<{ params: Params; attempt: number; error: Error }>(evName('inspect.retry'));
+  const inspectRetry = createEvent<{ params: Params; attempt: number; error: Error }>(
+    evName('inspect.retry'),
+  );
 
   sample({ clock: requested, fn: ({ params }) => ({ params }), target: inspectStart });
   sample({

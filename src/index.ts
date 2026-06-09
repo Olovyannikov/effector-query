@@ -45,12 +45,7 @@ export {
   type RequestContext,
   type CreateRequestFxOptions,
 } from './request';
-export {
-  inMemoryCache,
-  localStorageCache,
-  sessionStorageCache,
-  voidCache,
-} from './cache';
+export { inMemoryCache, localStorageCache, sessionStorageCache, voidCache } from './cache';
 export {
   ValidationError,
   createContract,
@@ -58,12 +53,7 @@ export {
   standardSchemaContract,
   type Contract,
 } from './validation';
-export {
-  attachQueryLogger,
-  type QueryLogEntry,
-  type QueryLogType,
-  type QueryLoggerOptions,
-} from './inspect';
+export { attachQueryLogger, type QueryLogEntry, type QueryLogType, type QueryLoggerOptions } from './inspect';
 export { stableStringify } from './utils';
 export type {
   Query,

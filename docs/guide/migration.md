@@ -5,17 +5,17 @@
 The mental model is close, so most code maps directly. The main shift: **bring your own
 effect**, and inline options are available alongside operators.
 
-| farfetched | effector-query |
-| --- | --- |
-| `createQuery({ handler })` | `createQuery({ effect })` (or `{ handler }`) |
-| `createJsonQuery({ ... })` | `createJsonQuery({ request, response })` |
-| `retry(query, { times, delay })` | `retry(query, …)` **or** inline `createQuery({ retry })` |
-| `cache(query, { ... })` | `cache(query, …)` **or** inline `createQuery({ cache })` |
-| `concurrency(query, { strategy })` | `concurrency(query, …)` **or** inline `createQuery({ concurrency })` |
-| `connectQuery({ source, fn, target })` | identical |
-| `createMutation` | `createMutation` (+ `mutate` alias) |
-| contracts | `zodContract` / `standardSchemaContract` / `createContract` |
-| `$data / $error / $status / $pending` | same names |
+| farfetched                             | effector-query                                                       |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| `createQuery({ handler })`             | `createQuery({ effect })` (or `{ handler }`)                         |
+| `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                             |
+| `retry(query, { times, delay })`       | `retry(query, …)` **or** inline `createQuery({ retry })`             |
+| `cache(query, { ... })`                | `cache(query, …)` **or** inline `createQuery({ cache })`             |
+| `concurrency(query, { strategy })`     | `concurrency(query, …)` **or** inline `createQuery({ concurrency })` |
+| `connectQuery({ source, fn, target })` | identical                                                            |
+| `createMutation`                       | `createMutation` (+ `mutate` alias)                                  |
+| contracts                              | `zodContract` / `standardSchemaContract` / `createContract`          |
+| `$data / $error / $status / $pending`  | same names                                                           |
 
 Notable differences:
 

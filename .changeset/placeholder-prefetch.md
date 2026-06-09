@@ -1,5 +1,5 @@
 ---
-"effector-query": minor
+'effector-query': minor
 ---
 
 Data UX (1.2): `placeholderData` (value or `(prev) => …`) with a `$isPlaceholderData`

@@ -40,7 +40,11 @@ export function attachQueryLogger(
   query: Query<any, any, any, any>,
   options: QueryLoggerOptions = {},
 ): () => void {
-  const { name = 'query', handler = (e) => console.log('[effector-query]', e), now = () => Date.now() } = options;
+  const {
+    name = 'query',
+    handler = (e) => console.log('[effector-query]', e),
+    now = () => Date.now(),
+  } = options;
   const { inspect } = query.__;
 
   let runAt: number | null = null;
@@ -61,7 +65,13 @@ export function attachQueryLogger(
       emit({ query: name, type: 'done', params, durationMs: runAt == null ? undefined : now() - runAt }),
     ),
     inspect.fail.watch(({ params, error }) =>
-      emit({ query: name, type: 'fail', params, error, durationMs: runAt == null ? undefined : now() - runAt }),
+      emit({
+        query: name,
+        type: 'fail',
+        params,
+        error,
+        durationMs: runAt == null ? undefined : now() - runAt,
+      }),
     ),
     inspect.aborted.watch(({ params }) => emit({ query: name, type: 'aborted', params })),
   ];

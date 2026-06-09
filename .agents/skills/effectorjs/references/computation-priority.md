@@ -14,6 +14,7 @@ Effector runs graph work by priority to keep dataflow deterministic. Pure comput
 4. `effect` -> `.watch`, effect handlers
 
 Implications:
+
 - `sample`/`guard`/`combine` run before `.watch`.
 - Side effects in pure stages can break consistency expectations.
 

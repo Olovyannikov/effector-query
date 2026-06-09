@@ -11,9 +11,7 @@ function App() {
   return (
     <>
       <Routes />
-      {import.meta.env.DEV && (
-        <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />
-      )}
+      {import.meta.env.DEV && <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />}
     </>
   );
 }
@@ -51,11 +49,11 @@ Collapsed, the real panel is a small `⚡ queries (N)` pill in the corner; click
 
 ## Props
 
-| prop | type | default |
-| --- | --- | --- |
-| `queries` | `Record<string, Query>` | — |
-| `initialIsOpen` | `boolean` | `false` |
-| `position` | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` |
+| prop            | type                              | default          |
+| --------------- | --------------------------------- | ---------------- |
+| `queries`       | `Record<string, Query>`           | —                |
+| `initialIsOpen` | `boolean`                         | `false`          |
+| `position`      | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` |
 
 ::: tip
 Render it only in development (`import.meta.env.DEV`) and it won't ship to production.

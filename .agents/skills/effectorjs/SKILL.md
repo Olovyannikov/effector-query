@@ -10,6 +10,7 @@ Use this skill to produce deterministic, scope-safe Effector solutions for new f
 ## Workflow
 
 1. Classify the request:
+
 - `modeling`: create or extend stores/events/effects.
 - `refactor`: replace anti-patterns with declarative flows.
 - `ssr`: implement or debug scope-safe SSR.
@@ -17,6 +18,7 @@ Use this skill to produce deterministic, scope-safe Effector solutions for new f
 - `legacy-migration`: move old patterns to modern v23+ safely.
 
 2. Load only required references:
+
 - Always start with `references/core-patterns.md`.
 - Always load `references/lint-derived-best-practices.md` after core patterns to enforce plugin-backed best practices.
 - Add `references/explicit-start.md` when task touches app bootstrap, startup logic, initialization order, tests, scope, or SSR.
@@ -29,6 +31,7 @@ Use this skill to produce deterministic, scope-safe Effector solutions for new f
 - End with `references/checklists.md` for acceptance criteria.
 
 3. Build solution in this order:
+
 - Model atomic stores and explicit events.
 - Define explicit app start (`appStarted`) and keep startup wiring declarative.
 - Move side effects to effects.
@@ -37,6 +40,7 @@ Use this skill to produce deterministic, scope-safe Effector solutions for new f
 - For UI frameworks, use `useUnit` and correct provider wiring.
 
 4. Produce output contract:
+
 - Proposed model topology (stores/events/effects and responsibilities).
 - Wiring snippets (`sample`, `attach`, `split` if needed).
 - Scope/SSR notes when applicable.

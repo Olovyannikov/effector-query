@@ -50,10 +50,7 @@ feed.fetchPrevious(); // prepend; гейт по $hasPreviousPage
 ```ts
 import { combineQueries } from 'effector-query';
 
-const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([
-  userQuery,
-  postsQuery,
-]);
+const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([userQuery, postsQuery]);
 // $data: [User | null, Post[] | null]   $pending: любой в полёте   $isSuccess: все done
 ```
 

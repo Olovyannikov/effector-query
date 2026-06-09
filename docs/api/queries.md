@@ -4,15 +4,17 @@
 import { createQuery } from 'effector-query';
 
 const query = createQuery({
-  effect,                  // Effect<Params, Result, Error> (or `handler`)
+  effect, // Effect<Params, Result, Error> (or `handler`)
   initialData,
-  enabled,                 // Store<boolean>
-  mapData, mapError,
-  contract, validate,      // see HTTP & validation
-  retry,                   // number | { times, delay?, filter?, suppressIntermediateErrors? }
-  cache,                   // true | { adapter?, staleAfter?, key?, purge?, swr?, dedupe? }
-  concurrency,             // 'TAKE_LATEST' (default) | 'TAKE_FIRST' | 'TAKE_EVERY'
-  name,                    // devtools label
+  enabled, // Store<boolean>
+  mapData,
+  mapError,
+  contract,
+  validate, // see HTTP & validation
+  retry, // number | { times, delay?, filter?, suppressIntermediateErrors? }
+  cache, // true | { adapter?, staleAfter?, key?, purge?, swr?, dedupe? }
+  concurrency, // 'TAKE_LATEST' (default) | 'TAKE_FIRST' | 'TAKE_EVERY'
+  name, // devtools label
 });
 ```
 

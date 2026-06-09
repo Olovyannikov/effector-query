@@ -12,8 +12,8 @@ const { createQuery, createMutation } = createQueryFactory({
   concurrency: 'TAKE_LATEST',
 });
 
-const todos = createQuery({ effect: fetchTodosFx });          // по умолчанию retry 2 + cache
-const search = createQuery({ effect: searchFx, retry: 0 });    // переопределение: без ретраев
+const todos = createQuery({ effect: fetchTodosFx }); // по умолчанию retry 2 + cache
+const search = createQuery({ effect: searchFx, retry: 0 }); // переопределение: без ретраев
 ```
 
 ## Чтобы все запросы поллились

@@ -10,9 +10,7 @@ function bareQuery<P, R>(handler: (p: P) => Promise<R>) {
 describe('standalone operators (post-hoc, composable)', () => {
   it('concurrency(query, { strategy }) applied after creation', async () => {
     const resolvers: Array<(v: string) => void> = [];
-    const fx = createEffect(
-      (_p: number) => new Promise<string>((res) => resolvers.push(res)),
-    );
+    const fx = createEffect((_p: number) => new Promise<string>((res) => resolvers.push(res)));
     const query = createQuery({ effect: fx }); // default TAKE_LATEST
     concurrency(query, { strategy: 'TAKE_FIRST' }); // override post-hoc
 

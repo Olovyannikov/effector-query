@@ -10,7 +10,7 @@ The unit of work is your own `Effect<Params, Result, Error>` (including `attach`
 import { createQuery, connectQuery } from 'effector-query';
 
 const characterQuery = createQuery({
-  effect: fetchCharacterFx,      // a real effector Effect
+  effect: fetchCharacterFx, // a real effector Effect
   retry: 3,
   cache: true,
   concurrency: 'TAKE_LATEST',
@@ -31,22 +31,22 @@ characterQuery.start(1); // origin loads automatically when the character resolv
 
 `createQuery(config)` returns a `Query` object:
 
-| member | type | meaning |
-| --- | --- | --- |
-| `start` | `EventCallable<Params>` | run (honoring cache / concurrency / enabled) |
-| `refresh` | `EventCallable<Params>` | run, bypassing cache freshness |
-| `reset` | `EventCallable<void>` | reset to initial + invalidate in-flight |
-| `cancel` | `EventCallable<void>` | drop in-flight result, keep data |
-| `$data` | `Store<Mapped \| null>` | latest result |
-| `$error` | `Store<Error \| null>` | latest error |
-| `$status` | `Store<'initial'\|'pending'\|'done'\|'fail'>` | |
-| `$pending` | `Store<boolean>` | request (or retry) in flight |
-| `$stale` | `Store<boolean>` | current data is past `staleAfter` |
-| `$enabled` | `Store<boolean>` | gate |
-| `$params` | `Store<Params \| null>` | last params the query ran with |
-| `finished.{done,fail,finally}` | `Event<…>` | lifecycle |
-| `aborted` | `Event<{ params }>` | result discarded (concurrency / cancel / skip) |
-| `__.effect` / `__.runFx` | `Effect` | escape hatch to the real effects |
+| member                         | type                                          | meaning                                        |
+| ------------------------------ | --------------------------------------------- | ---------------------------------------------- |
+| `start`                        | `EventCallable<Params>`                       | run (honoring cache / concurrency / enabled)   |
+| `refresh`                      | `EventCallable<Params>`                       | run, bypassing cache freshness                 |
+| `reset`                        | `EventCallable<void>`                         | reset to initial + invalidate in-flight        |
+| `cancel`                       | `EventCallable<void>`                         | drop in-flight result, keep data               |
+| `$data`                        | `Store<Mapped \| null>`                       | latest result                                  |
+| `$error`                       | `Store<Error \| null>`                        | latest error                                   |
+| `$status`                      | `Store<'initial'\|'pending'\|'done'\|'fail'>` |                                                |
+| `$pending`                     | `Store<boolean>`                              | request (or retry) in flight                   |
+| `$stale`                       | `Store<boolean>`                              | current data is past `staleAfter`              |
+| `$enabled`                     | `Store<boolean>`                              | gate                                           |
+| `$params`                      | `Store<Params \| null>`                       | last params the query ran with                 |
+| `finished.{done,fail,finally}` | `Event<…>`                                    | lifecycle                                      |
+| `aborted`                      | `Event<{ params }>`                           | result discarded (concurrency / cancel / skip) |
+| `__.effect` / `__.runFx`       | `Effect`                                      | escape hatch to the real effects               |
 
 ### Options
 
@@ -122,6 +122,7 @@ addTodo.mutate({ text: 'Buy milk' }); // -> todosQuery refetches automatically
 ```
 
 `invalidate({ on, refetch, filter? })`:
+
 - **`on`** — a Mutation/Query (fires on success), an `Event`, or an `Effect`; or an array of them.
 - **`refetch`** — a query or array of queries; each re-runs with its last params, only if it has run before (`status !== 'initial'`).
 - **`filter`** — optional gate on the trigger payload (e.g. mutation `{ params, result }`).
@@ -163,13 +164,13 @@ import axios from 'axios';
 import { createRequestFx, createQuery, createMutation } from 'effector-query';
 
 // ofetch
-const getPostsFx = createRequestFx<{ userId: number }, Post[]>(
-  ({ userId }, { signal }) => ofetch('/api/posts', { query: { userId }, signal }),
+const getPostsFx = createRequestFx<{ userId: number }, Post[]>(({ userId }, { signal }) =>
+  ofetch('/api/posts', { query: { userId }, signal }),
 );
 
 // axios
-const createPostFx = createRequestFx<NewPost, Post>(
-  (body, { signal }) => axios.post('/api/posts', body, { signal }).then((r) => r.data),
+const createPostFx = createRequestFx<NewPost, Post>((body, { signal }) =>
+  axios.post('/api/posts', body, { signal }).then((r) => r.data),
 );
 
 const postsQuery = createQuery({ effect: getPostsFx, cache: true, retry: 2 });
@@ -218,7 +219,7 @@ cancelled — so ofetch/axios actually stop:
 Plain effects (without `createRequestFx`) keep the previous behavior — their
 stale results are simply ignored.
 
-> SSR note: in-flight controllers are tracked per query *instance* (a closure
+> SSR note: in-flight controllers are tracked per query _instance_ (a closure
 > `Set`), not per scope. For isolated SSR you already build per-request units, so
 > this is a non-issue; just avoid sharing one query instance across concurrent
 > requests if you also call `cancel`.
@@ -231,7 +232,7 @@ Validate a response against a schema; a failure becomes a `ValidationError`
 ```ts
 import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-query';
 
-createQuery({ effect: getUserFx, contract: zodContract(UserSchema) });           // zod
+createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
 createQuery({ effect: getUserFx, contract: createContract({ isData: (r) => isUser(r) }) }); // manual
 createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['negative price'] }); // ad-hoc
@@ -384,18 +385,18 @@ expect(scope.getState(originQuery.$data)).toBeTruthy();
 
 [farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is still **pre-1.0**, the original "1.0 by end of 2024" target has slipped well past, the last release was **0.15.0 (Jan 2026)**, and the issue backlog keeps growing. effector-query exists to be the **maintained, effect-first** option with a smaller, friendlier surface and a committed road to 1.0 — not to claim farfetched is dead.
 
-| | farfetched | effector-query |
-| --- | --- | --- |
-| unit of work | internal event-based Executor; query is a self-contained abstraction | your real `Effect` is first-class; query wraps it |
-| primary input | `handler` (wrapped internally); `effect` is one path | `effect` is the main input; `handler` is sugar |
-| retry / cache / concurrency | separate operators `retry()/cache()/concurrency()` | inline options on `createQuery` (default concurrency `TAKE_LATEST`) |
-| connectQuery | yes | yes (compatible shape) |
-| validation | `contract`, `validate`, sourced params | `mapData` / `mapError` (contracts on the roadmap) |
-| ready-made | `createJsonQuery`, storage adapters w/ GC, dedupe, mutations | bring your own effect (factories on the roadmap) |
-| SSR / tests | fork-friendly | fork-friendly |
-| status | pre-1.0, slowed cadence | pre-1.0, actively building toward 1.0 |
+|                             | farfetched                                                           | effector-query                                                      |
+| --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| unit of work                | internal event-based Executor; query is a self-contained abstraction | your real `Effect` is first-class; query wraps it                   |
+| primary input               | `handler` (wrapped internally); `effect` is one path                 | `effect` is the main input; `handler` is sugar                      |
+| retry / cache / concurrency | separate operators `retry()/cache()/concurrency()`                   | inline options on `createQuery` (default concurrency `TAKE_LATEST`) |
+| connectQuery                | yes                                                                  | yes (compatible shape)                                              |
+| validation                  | `contract`, `validate`, sourced params                               | `mapData` / `mapError` (contracts on the roadmap)                   |
+| ready-made                  | `createJsonQuery`, storage adapters w/ GC, dedupe, mutations         | bring your own effect (factories on the roadmap)                    |
+| SSR / tests                 | fork-friendly                                                        | fork-friendly                                                       |
+| status                      | pre-1.0, slowed cadence                                              | pre-1.0, actively building toward 1.0                               |
 
-**Honest trade-off.** *Today* farfetched ships more batteries — contracts, `createJsonQuery`, sourced configuration, request dedupe, cache adapters with GC, mutations. effector-query is currently simpler and closer to bare effector ("I already have an effect, wrap it"). We treat farfetched's extra surface as our [roadmap](./ROADMAP.md), not as a reason to depend on a stalling library. If you need those batteries *right now*, farfetched still has them; if you want an effect-first API on a project that intends to be maintained, use this.
+**Honest trade-off.** _Today_ farfetched ships more batteries — contracts, `createJsonQuery`, sourced configuration, request dedupe, cache adapters with GC, mutations. effector-query is currently simpler and closer to bare effector ("I already have an effect, wrap it"). We treat farfetched's extra surface as our [roadmap](./ROADMAP.md), not as a reason to depend on a stalling library. If you need those batteries _right now_, farfetched still has them; if you want an effect-first API on a project that intends to be maintained, use this.
 
 ## Status
 

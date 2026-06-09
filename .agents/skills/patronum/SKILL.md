@@ -11,6 +11,7 @@ Target Patronum v2.x by default.
 ## Workflow
 
 1. Classify request:
+
 - `operator-choice`: choose one or several operators for a task.
 - `api-explain`: explain signature, overloads, and return value.
 - `compose`: combine multiple operators into one flow.
@@ -18,12 +19,14 @@ Target Patronum v2.x by default.
 - `migration`: map legacy forms to modern usage.
 
 2. Load references progressively:
+
 - Start with `references/operator-matrix.md`.
 - Add `references/recipes.md` for task-to-solution mapping.
 - Add `references/pitfalls.md` for caveats and anti-patterns.
 - Add `references/migration-notes.md` when legacy forms appear.
 
 3. Build answer contract:
+
 - Start with decision: selected operator(s) and why.
 - Provide minimal practical snippet.
 - Add caveats (imports, overload differences, behavior traps).

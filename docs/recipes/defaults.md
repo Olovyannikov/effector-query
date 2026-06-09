@@ -12,8 +12,8 @@ const { createQuery, createMutation } = createQueryFactory({
   concurrency: 'TAKE_LATEST',
 });
 
-const todos = createQuery({ effect: fetchTodosFx });          // retry 2 + cache by default
-const search = createQuery({ effect: searchFx, retry: 0 });    // override: no retry
+const todos = createQuery({ effect: fetchTodosFx }); // retry 2 + cache by default
+const search = createQuery({ effect: searchFx, retry: 0 }); // override: no retry
 ```
 
 ## Make every query poll

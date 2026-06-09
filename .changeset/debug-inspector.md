@@ -1,5 +1,5 @@
 ---
-"effector-query": minor
+'effector-query': minor
 ---
 
 Add a `debug` option to `createQuery`/`createMutation` that labels the public and

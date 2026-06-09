@@ -1,6 +1,7 @@
 # Adapter Matrix
 
 ## Contents
+
 - Quick selection
 - Adapter-specific notes
 - Key-area synchronization model
@@ -20,26 +21,31 @@
 ## Adapter-Specific Notes
 
 ### `local` / `session`
+
 - Options: `sync`, `serialize`, `deserialize`, `timeout`, `def`.
 - `local` defaults `sync: true`, `session` defaults `sync: false`.
 - `timeout` throttles writes and flushes on unload/desist.
 
 ### `query`
+
 - Options: `method`, `state`, `serialize`, `deserialize`, `timeout`, `def`.
 - Default method is `pushState`.
 - `timeout` batches updates globally; shortest timeout wins.
 
 ### `broadcast`
+
 - Option: `channel`.
 - Useful for tabs/workers synchronization where values should not be written to local/session storage.
 - Not durable; possible race/desync under very frequent updates.
 
 ### `storage` / `asyncStorage`
+
 - Use when integrating non-standard storage implementations.
 - `storage`: sync `getItem/setItem` APIs.
 - `asyncStorage`: async `getItem/setItem` APIs.
 
 ### `memory`, `nil`, `log`
+
 - `memory`: deterministic test adapter.
 - `nil` and `log`: explicit no-op adapters, useful with `either` fallback.
 

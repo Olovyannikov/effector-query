@@ -1,5 +1,5 @@
 ---
-"effector-query": minor
+'effector-query': minor
 ---
 
 `createBarrier({ perform })` — a mutex to "pause the environment": gated queries (via the

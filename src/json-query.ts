@@ -1,11 +1,6 @@
 import { createRequestFx, RequestError } from './request';
 import { createQuery } from './create-query';
-import type {
-  CacheConfig,
-  ConcurrencyStrategy,
-  Query,
-  RetryConfig,
-} from './types';
+import type { CacheConfig, ConcurrencyStrategy, Query, RetryConfig } from './types';
 import type { Contract } from './validation';
 import type { Store } from 'effector';
 

@@ -31,5 +31,5 @@ Bindings are scope-aware: React via `<Provider value={scope}>`, Vue via the
   is **fork-correct** — each scope sees its own value.
 - Cache adapters hold state outside the effector scope; for isolated SSR build queries
   per request (as usual), or pass a fresh adapter.
-- In-flight `AbortController`s are tracked per query *instance*; avoid sharing one query
+- In-flight `AbortController`s are tracked per query _instance_; avoid sharing one query
   instance across concurrent SSR requests if you also call `cancel`.

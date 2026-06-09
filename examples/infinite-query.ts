@@ -19,9 +19,9 @@ interface CharactersPage {
 
 const fetchCharactersPageFx = createEffect(
   ({ params, pageParam }: { params: { species: string }; pageParam: number }): Promise<CharactersPage> =>
-    fetch(
-      `https://rickandmortyapi.com/api/character?species=${params.species}&page=${pageParam}`,
-    ).then((r) => r.json()),
+    fetch(`https://rickandmortyapi.com/api/character?species=${params.species}&page=${pageParam}`).then((r) =>
+      r.json(),
+    ),
 );
 
 const characters = createInfiniteQuery({

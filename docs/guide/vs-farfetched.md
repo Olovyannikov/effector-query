@@ -7,17 +7,17 @@ has slipped, and the issue backlog keeps growing. `effector-query` exists to be 
 **maintained, effect-first** option with a smaller, friendlier surface — not to claim
 farfetched is dead.
 
-| | farfetched | effector-query |
-| --- | --- | --- |
-| unit of work | internal event-based executor | your real `Effect` — first-class |
-| primary input | `handler` (wrapped); `effect` is one path | `effect` is the main input; `handler` is sugar |
-| retry / cache / concurrency | separate operators | inline options **and** standalone operators |
-| sourced config | sourced fields | reactive `Store` for `enabled` / `concurrency` / `retry.times` / `cache.staleAfter` |
-| validation | `contract`, `validate` | `contract` (zod / Standard Schema) + `validate` |
-| declarative HTTP | `createJsonQuery` | `createJsonQuery` (global `fetch`, zero deps) |
-| pagination | — | `createInfiniteQuery` |
-| cancellation | abort + discard | real `AbortSignal` via `createRequestFx` |
-| bindings | react / solid / vue | `useUnit(query)` (react + vue) + `useQuery` helpers |
+|                             | farfetched                                | effector-query                                                                      |
+| --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| unit of work                | internal event-based executor             | your real `Effect` — first-class                                                    |
+| primary input               | `handler` (wrapped); `effect` is one path | `effect` is the main input; `handler` is sugar                                      |
+| retry / cache / concurrency | separate operators                        | inline options **and** standalone operators                                         |
+| sourced config              | sourced fields                            | reactive `Store` for `enabled` / `concurrency` / `retry.times` / `cache.staleAfter` |
+| validation                  | `contract`, `validate`                    | `contract` (zod / Standard Schema) + `validate`                                     |
+| declarative HTTP            | `createJsonQuery`                         | `createJsonQuery` (global `fetch`, zero deps)                                       |
+| pagination                  | —                                         | `createInfiniteQuery`                                                               |
+| cancellation                | abort + discard                           | real `AbortSignal` via `createRequestFx`                                            |
+| bindings                    | react / solid / vue                       | `useUnit(query)` (react + vue) + `useQuery` helpers                                 |
 
 **Honest trade-off.** farfetched still ships more in some areas (sourced everything,
 JSON contracts ecosystem, maturity). `effector-query` is simpler, closer to bare

@@ -1,6 +1,7 @@
 # Tools and Composition
 
 ## Contents
+
 - `async`
 - `either`
 - `farcached`
@@ -13,7 +14,7 @@ Wraps sync adapters so init/read/write become async.
 Use when immediate synchronous restore causes ordering issues (for example, handlers attached after `persist`).
 
 ```ts
-persist({ adapter: async(local), store: $state, key: 'state' })
+persist({ adapter: async(local), store: $state, key: 'state' });
 ```
 
 ## `either`
@@ -25,7 +26,7 @@ persist({
   adapter: either(local, log),
   store: $state,
   key: 'state',
-})
+});
 ```
 
 Use for SSR/universal code where browser-only adapters become no-op on server.

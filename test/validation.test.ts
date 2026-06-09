@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { allSettled, createEffect, fork } from 'effector';
-import {
-  createContract,
-  createQuery,
-  standardSchemaContract,
-  ValidationError,
-  zodContract,
-} from '../src';
+import { createContract, createQuery, standardSchemaContract, ValidationError, zodContract } from '../src';
 
 describe('validation', () => {
   it('contract: valid response passes through', async () => {
@@ -79,9 +73,7 @@ describe('validation', () => {
     const schema = {
       '~standard': {
         validate: (value: unknown) =>
-          typeof value === 'number'
-            ? { value }
-            : { issues: [{ message: 'not a number' }] },
+          typeof value === 'number' ? { value } : { issues: [{ message: 'not a number' }] },
       },
     };
     const contract = standardSchemaContract<number>(schema);

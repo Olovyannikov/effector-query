@@ -1,6 +1,6 @@
 # Getting started
 
-This page gets you from zero to a working query in a couple of minutes. For the *why*,
+This page gets you from zero to a working query in a couple of minutes. For the _why_,
 read the [Introduction](/guide/introduction) first.
 
 `effector-query` is a small, friendly query layer for [effector](https://effector.dev),
@@ -32,9 +32,7 @@ pnpm add effector-vue vue           # for effector-query/vue
 import { createEffect } from 'effector';
 import { createQuery } from 'effector-query';
 
-const fetchUserFx = createEffect((id: number) =>
-  fetch(`/api/users/${id}`).then((r) => r.json()),
-);
+const fetchUserFx = createEffect((id: number) => fetch(`/api/users/${id}`).then((r) => r.json()));
 
 const userQuery = createQuery({
   effect: fetchUserFx,

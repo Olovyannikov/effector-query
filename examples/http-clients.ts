@@ -61,8 +61,7 @@ optimisticUpdate({
     { id: -1, userId: params.userId, title: params.title, body: '' },
     ...(data ?? []),
   ],
-  commit: ({ data, result }) =>
-    (data ?? []).map((p) => (p.id === -1 ? result : p)),
+  commit: ({ data, result }) => (data ?? []).map((p) => (p.id === -1 ? result : p)),
 });
 
 async function main() {

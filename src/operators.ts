@@ -1,13 +1,7 @@
 import { is, sample, type Store } from 'effector';
 import { inMemoryCache } from './cache';
 import { stableStringify } from './utils';
-import type {
-  CacheConfig,
-  ConcurrencyStrategy,
-  DelayFn,
-  Query,
-  RetryConfig,
-} from './types';
+import type { CacheConfig, ConcurrencyStrategy, DelayFn, Query, RetryConfig } from './types';
 
 type AnyQuery = Query<any, any, any, any>;
 
@@ -18,10 +12,7 @@ type AnyQuery = Query<any, any, any, any>;
  *
  * `createQuery({ concurrency })` is sugar over this.
  */
-export function concurrency<Q extends AnyQuery>(
-  query: Q,
-  opts: { strategy: ConcurrencyStrategy },
-): Q {
+export function concurrency<Q extends AnyQuery>(query: Q, opts: { strategy: ConcurrencyStrategy }): Q {
   query.__.setStrategy(opts.strategy);
   return query;
 }
@@ -35,11 +26,7 @@ export function retry<Q extends AnyQuery>(query: Q, opts: number | RetryConfig<a
   const cfg = typeof opts === 'number' ? { times: opts } : opts;
   const times = typeof cfg.times === 'number' ? cfg.times : (cfg.times as Store<number>).getState();
   const delay: DelayFn =
-    cfg.delay == null
-      ? () => 0
-      : typeof cfg.delay === 'number'
-        ? () => cfg.delay as number
-        : cfg.delay;
+    cfg.delay == null ? () => 0 : typeof cfg.delay === 'number' ? () => cfg.delay as number : cfg.delay;
   query.__.setRetry({
     times,
     delay,

@@ -90,11 +90,7 @@ const clearLog = () => (log.value = []);
         <div class="eqd__section">LOG</div>
         <div class="eqd__pre eqd__log">
           <span v-if="log.length === 0" style="color: #5c5f66">no activity yet — click “Load”</span>
-          <div
-            v-for="(e, i) in log"
-            :key="i"
-            :style="{ color: e.type === 'fail' ? '#ff8787' : '#c1c2c5' }"
-          >
+          <div v-for="(e, i) in log" :key="i" :style="{ color: e.type === 'fail' ? '#ff8787' : '#c1c2c5' }">
             <span style="color: #868e96">{{ e.type }}</span>
             <template v-if="e.attempt != null"> #{{ e.attempt }}</template>
             <template v-if="e.durationMs != null"> ({{ e.durationMs }}ms)</template>
@@ -107,7 +103,11 @@ const clearLog = () => (log.value = []);
 
 <style scoped>
 .eqd {
-  font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font:
+    13px/1.45 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
 }
 .eqd__bar {
   display: flex;

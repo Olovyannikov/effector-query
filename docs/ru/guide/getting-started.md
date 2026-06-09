@@ -1,6 +1,6 @@
 # Быстрый старт
 
-Эта страница проведёт от нуля до рабочего запроса за пару минут. Про *зачем* — сначала
+Эта страница проведёт от нуля до рабочего запроса за пару минут. Про _зачем_ — сначала
 прочитайте [Введение](/ru/guide/introduction).
 
 `effector-query` — небольшой дружелюбный слой запросов для [effector](https://effector.dev),
@@ -32,9 +32,7 @@ pnpm add effector-vue vue           # для effector-query/vue
 import { createEffect } from 'effector';
 import { createQuery } from 'effector-query';
 
-const fetchUserFx = createEffect((id: number) =>
-  fetch(`/api/users/${id}`).then((r) => r.json()),
-);
+const fetchUserFx = createEffect((id: number) => fetch(`/api/users/${id}`).then((r) => r.json()));
 
 const userQuery = createQuery({
   effect: fetchUserFx,

@@ -7,17 +7,17 @@ issues растёт. `effector-query` существует, чтобы быть 
 вариантом с меньшей и более дружелюбной поверхностью — а не чтобы заявлять, что farfetched
 мёртв.
 
-| | farfetched | effector-query |
-| --- | --- | --- |
-| единица работы | внутренний event-based исполнитель | ваш реальный `Effect` — first-class |
-| основной вход | `handler` (оборачивается); `effect` — один из путей | `effect` — основной вход; `handler` — сахар |
-| retry / cache / concurrency | отдельные операторы | inline-опции **и** отдельные операторы |
-| sourced-конфиг | sourced-поля | реактивный `Store` для `enabled` / `concurrency` / `retry.times` / `cache.staleAfter` |
-| валидация | `contract`, `validate` | `contract` (zod / Standard Schema) + `validate` |
-| декларативный HTTP | `createJsonQuery` | `createJsonQuery` (глобальный `fetch`, без зависимостей) |
-| пагинация | — | `createInfiniteQuery` |
-| отмена | abort + discard | реальный `AbortSignal` через `createRequestFx` |
-| биндинги | react / solid / vue | `useUnit(query)` (react + vue) + хелперы `useQuery` |
+|                             | farfetched                                          | effector-query                                                                        |
+| --------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| единица работы              | внутренний event-based исполнитель                  | ваш реальный `Effect` — first-class                                                   |
+| основной вход               | `handler` (оборачивается); `effect` — один из путей | `effect` — основной вход; `handler` — сахар                                           |
+| retry / cache / concurrency | отдельные операторы                                 | inline-опции **и** отдельные операторы                                                |
+| sourced-конфиг              | sourced-поля                                        | реактивный `Store` для `enabled` / `concurrency` / `retry.times` / `cache.staleAfter` |
+| валидация                   | `contract`, `validate`                              | `contract` (zod / Standard Schema) + `validate`                                       |
+| декларативный HTTP          | `createJsonQuery`                                   | `createJsonQuery` (глобальный `fetch`, без зависимостей)                              |
+| пагинация                   | —                                                   | `createInfiniteQuery`                                                                 |
+| отмена                      | abort + discard                                     | реальный `AbortSignal` через `createRequestFx`                                        |
+| биндинги                    | react / solid / vue                                 | `useUnit(query)` (react + vue) + хелперы `useQuery`                                   |
 
 **Честный компромисс.** В некоторых местах farfetched всё ещё богаче (sourced везде,
 экосистема JSON-контрактов, зрелость). `effector-query` проще, ближе к голому effector

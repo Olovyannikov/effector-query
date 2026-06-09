@@ -13,15 +13,15 @@ const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
 
 Каждый query предоставляет `query.__.inspect` — события effector для подписки:
 
-| событие | payload |
-| --- | --- |
-| `start` | `{ params }` |
-| `run` | `{ params, attempt }` |
-| `done` | `{ params, result }` |
-| `fail` | `{ params, error }` |
-| `aborted` | `{ params }` |
-| `cacheHit` / `cacheMiss` | `{ params }` |
-| `retry` | `{ params, attempt, error }` |
+| событие                  | payload                      |
+| ------------------------ | ---------------------------- |
+| `start`                  | `{ params }`                 |
+| `run`                    | `{ params, attempt }`        |
+| `done`                   | `{ params, result }`         |
+| `fail`                   | `{ params, error }`          |
+| `aborted`                | `{ params }`                 |
+| `cacheHit` / `cacheMiss` | `{ params }`                 |
+| `retry`                  | `{ params, attempt, error }` |
 
 ## attachQueryLogger
 
