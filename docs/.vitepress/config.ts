@@ -103,7 +103,9 @@ const ruSidebar = {
 export default defineConfig({
   title: 'effector-refetch',
   description: 'Friendly query layer for effector, built on real effects',
-  base: '/effector-query/',
+  // Overridable for per-PR previews (gh-pages subfolder): the preview workflow
+  // sets DOCS_BASE=/effector-query/pr-preview/pr-N/ so assets resolve correctly.
+  base: process.env.DOCS_BASE || '/effector-query/',
   lastUpdated: true,
   cleanUrls: true,
   themeConfig: {

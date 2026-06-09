@@ -5,17 +5,20 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Deploys the production docs to the `gh-pages` branch (root). PR previews live
+# under `pr-preview/` on the same branch, so `clean-exclude: pr-preview` keeps
+# them intact and `force: false` avoids clobbering concurrent preview pushes.
+# Repo setup: Settings → Pages → Source: "Deploy from a branch" → gh-pages /(root),
+# and Settings → Actions → Workflow permissions: read and write.
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: docs-deploy
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,19 +29,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm docs:build
-      - uses: actions/configure-pages@v5
+      - uses: JamesIves/github-pages-deploy-action@v4
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/.vitepress/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          folder: docs/.vitepress/dist
+          branch: gh-pages
+          clean-exclude: pr-preview
+          force: false

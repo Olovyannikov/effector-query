@@ -1,0 +1,41 @@
+name: PR docs preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+# Builds the docs for each PR and publishes them to gh-pages under
+# pr-preview/pr-<N>/, commenting the live URL on the PR (removed on close).
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: preview-${{ github.ref }}
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        if: github.event.action != 'closed'
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: github.event.action != 'closed'
+      # Build under the preview subpath so assets resolve at /pr-preview/pr-N/.
+      - run: pnpm docs:build
+        if: github.event.action != 'closed'
+        env:
+          DOCS_BASE: /effector-query/pr-preview/pr-${{ github.event.number }}/
+
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: docs/.vitepress/dist
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto
+          comment: true

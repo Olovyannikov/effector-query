@@ -51,3 +51,15 @@ npx tsx examples/graphql.ts
 ```
 
 Or `pnpm build` and `pnpm pack` to get a tarball you can `pnpm add` into another project.
+
+## PR previews & canary builds
+
+Every pull request gets two automatic stands:
+
+- **Docs preview** — the site is built and published to `gh-pages` under
+  `…/pr-preview/pr-<N>/`; a bot comments the live URL on the PR (removed when it closes).
+- **Canary package** — [pkg.pr.new](https://pkg.pr.new) publishes a preview build you can install
+  straight from the PR: `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>` (no npm
+  pollution). The bot comments the exact command.
+
+So a reviewer can click the docs link and `npm i` the canary into a real app before merging.
