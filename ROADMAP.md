@@ -115,6 +115,9 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - [ ] Bidirectional infinite query: `fetchPreviousPage`, `getPreviousPageParam`, `maxPages`
 - [ ] Parallel/dynamic queries helper (TanStack's `useQueries`)
 
+### 1.4a — Barrier / mutex
+- [x] `createBarrier({ perform })` — pause gated queries (e.g. on 401), run a refresh, resume the queue; `barrier` option on queries and the factory. Auth recipe.
+
 ### 1.5 — Framework integration
 - [ ] React Suspense binding (`useSuspenseQuery`) + error-boundary (`throwOnError`)
 - [ ] Network mode / offline: pause runs when offline, resume on reconnect

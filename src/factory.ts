@@ -12,6 +12,7 @@ import type {
   Query,
   RetryConfig,
 } from './types';
+import type { Barrier } from './barrier';
 
 /** Policy options applied to every query/mutation built by a factory. */
 export interface QueryFactoryDefaults {
@@ -22,6 +23,7 @@ export interface QueryFactoryDefaults {
   structuralSharing?: boolean;
   enabled?: Store<boolean>;
   debug?: boolean;
+  barrier?: Barrier;
 }
 
 export interface QueryFactory {
@@ -44,6 +46,7 @@ export function createQueryFactory(defaults: QueryFactoryDefaults = {}): QueryFa
     retry: defaults.retry,
     concurrency: defaults.concurrency,
     debug: defaults.debug,
+    barrier: defaults.barrier,
   };
 
   function factoryQuery<Params, Result, Error = unknown, Mapped = Result>(

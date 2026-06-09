@@ -148,6 +148,8 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>({
     name: ns ? `${ns}.runFx` : undefined,
     handler: async ({ runId, params }) => {
+    // wait while the environment is paused (e.g. during a token refresh)
+    if (config.barrier) await config.barrier.__.wait();
     const key = dedupeKey(params);
     if (key) inflightKeys.add(key);
     const controller = isAbortable ? new AbortController() : null;
@@ -439,6 +441,13 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     .on(cacheHit, () => 'done' as const)
     .on(finalFail, () => 'fail' as const)
     .reset(reset);
+  // cancel leaves "pending" — settle the status to reflect what we have
+  sample({
+    clock: cancel,
+    source: $data,
+    fn: (data): QueryStatus => (data != null ? 'done' : 'initial'),
+    target: $status,
+  });
 
   const commitData = (prev: Mapped | null, value: Mapped): Mapped =>
     config.structuralSharing ? (replaceEqualDeep(prev, value) as Mapped) : value;
@@ -467,7 +476,13 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     .reset(reset);
   $params.on(staleServe, (_p, h) => h.params ?? null);
 
-  const $pending = combine(runFx.pending, $retrying, (p, r) => p || r);
+  // Track the *current* run explicitly: a cancel/reset clears it immediately,
+  // even if a non-abortable effect's promise is still resolving in the background.
+  const $inflight = createStore(false)
+    .on(tagged, () => true)
+    .on([acceptedDone, finalFail, cacheHit], () => false)
+    .on(invalidate, () => false);
+  const $pending = combine($inflight, $retrying, (p, r) => p || r);
 
   // ---- finished / lifecycle wiring ----
   sample({

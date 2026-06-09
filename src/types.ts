@@ -1,5 +1,6 @@
 import type { Effect, Event, EventCallable, Store } from 'effector';
 import type { Contract } from './validation';
+import type { Barrier } from './barrier';
 
 export type QueryStatus = 'initial' | 'pending' | 'done' | 'fail';
 
@@ -88,6 +89,8 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
   refetchInterval?: number | Store<number>;
   /** Preserve referential identity of unchanged parts of the result (fewer re-renders). */
   structuralSharing?: boolean;
+  /** Gate execution on a barrier — the effect waits while the barrier is locked (e.g. token refresh). */
+  barrier?: Barrier;
 
   /** Prefix for unit names (devtools). */
   name?: string;
@@ -228,7 +231,10 @@ export interface CreateMutationConfig<Params, Result, Error, Mapped = Result> {
   retry?: number | RetryConfig<Error>;
   /** Default: 'TAKE_EVERY' — independent mutations should not cancel each other. */
   concurrency?: ConcurrencyStrategy;
+  /** Gate execution on a barrier (e.g. token refresh). */
+  barrier?: Barrier;
   name?: string;
+  debug?: boolean;
 }
 
 export interface CreateMutationHandlerConfig<Params, Result, Error, Mapped = Result>

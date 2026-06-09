@@ -1,0 +1,60 @@
+# Auth & barrier (pause the environment)
+
+Sometimes you need to **pause every request**, do something, then resume — the classic
+case being a `401`: pause, refresh the token, replay the queued requests.
+
+`createBarrier` is a mutex that queries wait on. While it's locked, any gated query that
+tries to run blocks; when it unlocks, the queued requests proceed.
+
+```ts
+import { sample } from 'effector';
+import { createBarrier, createQueryFactory } from 'effector-query';
+
+// the barrier runs the refresh when it locks, and unlocks when refresh settles
+const authBarrier = createBarrier({ perform: refreshTokenFx });
+
+// every query/mutation built here waits on the barrier
+const { createQuery, createMutation } = createQueryFactory({ barrier: authBarrier });
+
+const profile = createQuery({
+  effect: getProfileFx, // throws { status: 401 } when the token is stale
+  retry: { times: 1, filter: ({ error }) => error.status === 401 },
+});
+
+// on a 401, lock the barrier — this kicks off refreshTokenFx
+sample({
+  clock: getProfileFx.failData,
+  filter: (error) => error.status === 401,
+  target: authBarrier.lock,
+});
+```
+
+What happens on a stale token:
+
+1. `getProfileFx` fails with `401` → the barrier **locks** and `refreshTokenFx` runs.
+2. The `retry` schedules a re-run — but it **waits at the barrier**.
+3. Other queries started meanwhile also queue.
+4. `refreshTokenFx` settles → the barrier **unlocks** → the retry (and the queue) run with the fresh token.
+
+## API
+
+```ts
+const barrier = createBarrier({ perform?: Effect<void, any> });
+barrier.lock();        // close — gated queries wait
+barrier.unlock();      // open — queued queries proceed
+barrier.$locked;       // Store<boolean>
+```
+
+With `perform`, locking auto-runs the effect and unlocks when it settles (success **or**
+failure — no deadlock). Without it, drive `lock`/`unlock` yourself.
+
+Gate a single query without a factory:
+
+```ts
+const q = createQuery({ effect: fx, barrier: authBarrier });
+```
+
+::: warning Client-side
+The barrier reads the no-scope store, so it's meant for a single running app, not
+per-`fork` isolation. (Request pausing rarely applies during SSR.)
+:::
