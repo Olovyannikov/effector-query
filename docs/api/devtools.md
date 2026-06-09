@@ -1,8 +1,9 @@
 # Devtools
 
 A floating devtools panel — like TanStack Query's — that lists your queries with live
-status, params, data, error and a per-query event log. React-only, imported from
-`effector-refetch/devtools`, and tree-shaken out of your core bundle.
+status, params, data, error and a per-query event log. Available for **React**
+(`effector-refetch/devtools`) and **Vue** (`effector-refetch/devtools/vue`) with the same
+props, and tree-shaken out of your core bundle.
 
 ```tsx
 import { EffectorQueryDevtools } from 'effector-refetch/devtools';
@@ -19,6 +20,22 @@ function App() {
 
 Pass the queries you want to inspect, keyed by display name. The panel is scope-aware via
 effector-react's `<Provider>` (so it works with SSR / `fork`).
+
+## Vue
+
+The same panel for Vue — identical props, scope-aware via effector-vue's `EffectorScopePlugin`:
+
+```vue
+<script setup>
+import { EffectorQueryDevtools } from 'effector-refetch/devtools/vue';
+import { userQuery, todosQuery } from './model';
+</script>
+
+<template>
+  <RouterView />
+  <EffectorQueryDevtools v-if="import.meta.env.DEV" :queries="{ user: userQuery, todos: todosQuery }" />
+</template>
+```
 
 ## What it looks like
 

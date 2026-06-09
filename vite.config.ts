@@ -17,6 +17,7 @@ export default defineConfig({
         react: 'src/react.ts',
         vue: 'src/vue.ts',
         devtools: 'src/devtools.tsx',
+        'devtools-vue': 'src/devtools-vue.ts',
       },
       formats: ['es', 'cjs'],
       fileName: (format, entry) => `${entry}.${format === 'es' ? 'mjs' : 'cjs'}`,

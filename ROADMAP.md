@@ -71,7 +71,7 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] `debug` flag — label the public/inspect units for the inspector even without a `name`
 - [x] `@effector/inspector` / logging recipe page
 - [ ] Deep labelling of every internal unit (lookup/retry/concurrency seams) — needs a domain-based pass
-- [ ] Vue devtools component (parity with the React panel)
+- [x] Vue devtools component (parity with the React panel) — `effector-refetch/devtools/vue`
 
 ### 0.9 — Documentation site (VitePress)
 
