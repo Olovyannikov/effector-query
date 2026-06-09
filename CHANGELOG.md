@@ -1,5 +1,22 @@
 # effector-query
 
+## 0.6.0
+
+### Minor Changes
+
+- bfa0914: Offline / network mode — `createNetworkBarrier()` (browser). A barrier that locks while the
+  browser is offline and unlocks on reconnect: gate queries with it (the `barrier` option or a
+  factory default) and their runs pause when the connection drops, then resume automatically when
+  it returns. Exposes `$online: Store<boolean>` for UI and `stop()` to detach listeners; pairs with
+  `refetchOnReconnect`.
+
+### Patch Changes
+
+- 8cbf62f: Ship a Claude Code Agent Skill (`skills/effector-refetch/SKILL.md`, now included in the published
+  package). Copy it into a project's `.claude/skills/` so AI agents know the effect-first API and
+  the fork-correct idioms (createQuery/createMutation, bindings, SSR via fork/allSettled, barriers,
+  common mistakes). See `skills/README.md` for install.
+
 ## 0.5.0
 
 ### Minor Changes
