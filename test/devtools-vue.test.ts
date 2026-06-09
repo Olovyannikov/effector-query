@@ -9,7 +9,7 @@ import { EffectorQueryDevtools } from '../src/devtools-vue';
 
 function mountWithScope(props: Record<string, unknown>, scope: Scope) {
   return mount(EffectorQueryDevtools, {
-    props,
+    props: props as never,
     global: { plugins: [EffectorScopePlugin({ scope }) as never] },
     attachTo: document.body,
   });

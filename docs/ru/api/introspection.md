@@ -2,12 +2,19 @@
 
 ## Метки для devtools
 
-Передайте `name`, чтобы пометить публичные юниты в инспекторе effector:
+Передайте `name`, чтобы пометить юниты в инспекторе effector — **и публичные, и все внутренние
+швы**, чтобы был читаем весь пайплайн, а не только точки входа:
 
 ```ts
 const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
-// юниты появятся как todos.start, todos.$data, todos.$status, todos.runFx, todos.inspect.*
+// публичные:  todos.start, todos.$data, todos.$status, todos.runFx, todos.inspect.*
+// внутренние: todos.requested, todos.proceed, todos.toExec, todos.lookupFx, todos.toRun,
+//             todos.rawDone, todos.acceptedDone, todos.scheduleRetry, todos.failed,
+//             todos.finalFail, todos.$runId, todos.$attempts, …
 ```
+
+Нет `name`? Передайте `debug: true` — всё пометится под общим неймспейсом `query.*`. Без того и
+другого внутренние юниты остаются безымянными (ноль шума в инспекторе в проде).
 
 ## Поток событий жизненного цикла
 

@@ -2,12 +2,19 @@
 
 ## Devtools labelling
 
-Pass `name` to label the public units in the effector inspector:
+Pass `name` to label the units in the effector inspector — **the public surface and every
+internal seam**, so the whole pipeline is readable, not just the entry points:
 
 ```ts
 const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
-// units appear as todos.start, todos.$data, todos.$status, todos.runFx, todos.inspect.*
+// public:   todos.start, todos.$data, todos.$status, todos.runFx, todos.inspect.*
+// internal: todos.requested, todos.proceed, todos.toExec, todos.lookupFx, todos.toRun,
+//           todos.rawDone, todos.acceptedDone, todos.scheduleRetry, todos.failed,
+//           todos.finalFail, todos.$runId, todos.$attempts, …
 ```
+
+No `name`? Pass `debug: true` to label everything under a generic `query.*` namespace. Without
+either, internal units stay anonymous (zero inspector noise in production).
 
 ## Lifecycle event stream
 

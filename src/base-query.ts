@@ -118,7 +118,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   };
   const initialData = config.initialData ?? resolvePlaceholder(null);
 
-  const $enabled = config.enabled ?? createStore(true);
+  const $enabled = config.enabled ?? createStore(true, nm('$enabled'));
   const $data = createStore<Mapped | null>(initialData ?? null, nm('$data'));
   const $isPlaceholderData = createStore(
     config.placeholderData != null && config.initialData == null,
@@ -129,24 +129,30 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const $stale = createStore(false, nm('$stale'));
   const $params = createStore<Params | null>(null, nm('$params'));
 
-  const aborted = createEvent<{ params: Params }>();
-  const finishedDone = createEvent<{ params: Params; result: Mapped }>();
-  const finishedFail = createEvent<{ params: Params; error: Error }>();
-  const finishedFinally = createEvent<{ params: Params; status: 'done' | 'fail' }>();
-
-  // ---- internal units ----
-  const $runId = createStore(0);
-  const $attempts = createStore(0);
-  const $retrying = createStore(false);
-
-  const sleepFx = createEffect<{ ms: number; payload: unknown }, unknown>(
-    ({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)),
+  const aborted = createEvent<{ params: Params }>(evName('aborted'));
+  const finishedDone = createEvent<{ params: Params; result: Mapped }>(evName('finished.done'));
+  const finishedFail = createEvent<{ params: Params; error: Error }>(evName('finished.fail'));
+  const finishedFinally = createEvent<{ params: Params; status: 'done' | 'fail' }>(
+    evName('finished.finally'),
   );
 
+  // ---- internal units ----
+  const $runId = createStore(0, nm('$runId'));
+  const $attempts = createStore(0, nm('$attempts'));
+  const $retrying = createStore(false, nm('$retrying'));
+
+  const sleepFx = createEffect<{ ms: number; payload: unknown }, unknown>({
+    name: evName('sleepFx'),
+    handler: ({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)),
+  });
+
   const controllers = new Set<AbortController>();
-  const abortInFlightFx = createEffect(() => {
-    controllers.forEach((c) => c.abort());
-    controllers.clear();
+  const abortInFlightFx = createEffect({
+    name: evName('abortInFlightFx'),
+    handler: () => {
+      controllers.forEach((c) => c.abort());
+      controllers.clear();
+    },
   });
 
   const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>({
@@ -168,7 +174,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     },
   });
 
-  const requested = createEvent<{ params: Params; fresh: boolean }>();
+  const requested = createEvent<{ params: Params; fresh: boolean }>(evName('requested'));
   sample({ clock: start, fn: (params) => ({ params, fresh: false }), target: requested });
   sample({ clock: refresh, fn: (params) => ({ params, fresh: true }), target: requested });
 
@@ -188,7 +194,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
 
   // concurrency gate (TAKE_FIRST drops while busy) — strategy sourced
-  const proceed = createEvent<{ params: Params; fresh: boolean }>();
+  const proceed = createEvent<{ params: Params; fresh: boolean }>(evName('proceed'));
   sample({
     clock: allowed,
     source: { busy: runFx.pending, strat: $strategySrc },
@@ -205,21 +211,24 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
 
   // cache lookup / exec branch — presence via cacheRef, staleAfter sourced
-  const toExec = createEvent<{ params: Params }>();
-  const cacheHit = createEvent<{ params: Params; result: Result }>();
+  const toExec = createEvent<{ params: Params }>(evName('toExec'));
+  const cacheHit = createEvent<{ params: Params; result: Result }>(evName('cacheHit'));
   // current-run success, before validation (carries runId for the retry path)
-  const rawDone = createEvent<{ runId: number; params: Params; result: Result }>();
+  const rawDone = createEvent<{ runId: number; params: Params; result: Result }>(evName('rawDone'));
   // validated success — drives $data, cache write, finished.done
-  const acceptedDone = createEvent<{ params: Params; result: Result }>();
+  const acceptedDone = createEvent<{ params: Params; result: Result }>(evName('acceptedDone'));
   // SWR: a stale cache entry served immediately while a background refetch runs
-  const staleServe = createEvent<{ params: Params; result: Result }>();
+  const staleServe = createEvent<{ params: Params; result: Result }>(evName('staleServe'));
 
-  const lookupFx = createEffect(async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
-    const cfg = cacheRef;
-    if (!cfg) return { entry: null, params, fresh: false };
-    const entry = await cfg.adapter.get(cfg.key(params));
-    const fresh = entry != null && Date.now() - entry.storedAt < staleAfter;
-    return { entry, params, fresh };
+  const lookupFx = createEffect({
+    name: evName('lookupFx'),
+    handler: async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
+      const cfg = cacheRef;
+      if (!cfg) return { entry: null, params, fresh: false };
+      const entry = await cfg.adapter.get(cfg.key(params));
+      const fresh = entry != null && Date.now() - entry.storedAt < staleAfter;
+      return { entry, params, fresh };
+    },
   });
   sample({
     clock: proceed,
@@ -261,25 +270,32 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     target: toExec,
   });
 
-  const setFx = createEffect((p: { params: Params; result: Result }) => {
-    const cfg = cacheRef;
-    if (cfg) cfg.adapter.set(cfg.key(p.params), p.result, Date.now());
+  const setFx = createEffect({
+    name: evName('setFx'),
+    handler: (p: { params: Params; result: Result }) => {
+      const cfg = cacheRef;
+      if (cfg) cfg.adapter.set(cfg.key(p.params), p.result, Date.now());
+    },
   });
   sample({ clock: acceptedDone, filter: () => !!cacheRef, target: setFx });
 
   // prefetch: warm the cache without touching $data/$status (cache-only; skips if fresh)
-  const prefetchLookupFx = createEffect(
-    async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
+  const prefetchLookupFx = createEffect({
+    name: evName('prefetchLookupFx'),
+    handler: async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
       const cfg = cacheRef;
       if (!cfg) return { params, fresh: false };
       const entry = await cfg.adapter.get(cfg.key(params));
       return { params, fresh: entry != null && Date.now() - entry.storedAt < staleAfter };
     },
-  );
-  const prefetchRunFx = createEffect<Params, { params: Params; result: Result }, Error>(async (params) => ({
-    params,
-    result: await callEffect(params, new AbortController().signal),
-  }));
+  });
+  const prefetchRunFx = createEffect<Params, { params: Params; result: Result }, Error>({
+    name: evName('prefetchRunFx'),
+    handler: async (params) => ({
+      params,
+      result: await callEffect(params, new AbortController().signal),
+    }),
+  });
   sample({
     clock: prefetch,
     source: $staleAfterSrc,
@@ -295,12 +311,15 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
   sample({ clock: prefetchRunFx.doneData, target: setFx });
 
-  const purgeFx = createEffect(() => {
-    cacheRef?.adapter.purge();
+  const purgeFx = createEffect({
+    name: evName('purgeFx'),
+    handler: () => {
+      cacheRef?.adapter.purge();
+    },
   });
 
   // dedupe gate: drop a run whose key is already in flight (coalesce)
-  const toRun = createEvent<{ params: Params }>();
+  const toRun = createEvent<{ params: Params }>(evName('toRun'));
   sample({
     clock: toExec,
     filter: (r) => {
@@ -360,11 +379,11 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     attempts < times &&
     retryRef.filter({ error, attempt: attempts + 1 });
 
-  const scheduleRetry = createEvent<Run<Params> & { error: Error }>();
-  const finalFail = createEvent<{ params: Params; error: Error }>();
-  const intermediateFail = createEvent<{ params: Params; error: Error }>();
+  const scheduleRetry = createEvent<Run<Params> & { error: Error }>(evName('scheduleRetry'));
+  const finalFail = createEvent<{ params: Params; error: Error }>(evName('finalFail'));
+  const intermediateFail = createEvent<{ params: Params; error: Error }>(evName('intermediateFail'));
   // unified failure stream: transport failures + validation failures
-  const failed = createEvent<{ runId: number; params: Params; error: Error }>();
+  const failed = createEvent<{ runId: number; params: Params; error: Error }>(evName('failed'));
 
   // validation gate: a current-run success must pass the contract / validate fn,
   // otherwise it becomes a (retryable) ValidationError failure.
@@ -501,7 +520,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
 
   // Track the *current* run explicitly: a cancel/reset clears it immediately,
   // even if a non-abortable effect's promise is still resolving in the background.
-  const $inflight = createStore(false)
+  const $inflight = createStore(false, nm('$inflight'))
     .on(tagged, () => true)
     .on([acceptedDone, finalFail, cacheHit], () => false)
     .on(invalidate, () => false);
@@ -537,11 +556,14 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   // ---- polling (refetchInterval) ----
   // After each settle, if interval > 0 and enabled, wait then refresh with last params.
   // A token ($pollId) ensures a single live timer (no doubling) and lets reset stop it.
-  const $pollId = createStore(0);
+  const $pollId = createStore(0, nm('$pollId'));
   const pollSleepFx = createEffect<
     { ms: number; payload: { id: number; params: Params | null } },
     { id: number; params: Params | null }
-  >(({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)));
+  >({
+    name: evName('pollSleepFx'),
+    handler: ({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)),
+  });
 
   const pollScheduled = sample({
     clock: [finishedDone, finishedFail],
