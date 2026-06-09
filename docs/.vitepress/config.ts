@@ -1,4 +1,16 @@
 import { defineConfig } from 'vitepress';
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
+import { fileURLToPath } from 'node:url';
+
+// Resolve `import … from 'effector-refetch'` (and subpaths) in `ts twoslash`
+// snippets against the local source, so type-checked examples match the build.
+const src = fileURLToPath(new URL('../../src', import.meta.url));
+const twoslashPaths = {
+  'effector-refetch': [`${src}/index.ts`],
+  'effector-refetch/react': [`${src}/react.ts`],
+  'effector-refetch/vue': [`${src}/vue.ts`],
+  'effector-refetch/solid': [`${src}/solid.ts`],
+};
 
 const enSidebar = {
   '/guide/': [
@@ -108,6 +120,18 @@ export default defineConfig({
   base: process.env.DOCS_BASE || '/effector-query/',
   lastUpdated: true,
   cleanUrls: true,
+  markdown: {
+    // Only fenced blocks tagged ```ts twoslash``` are type-checked; the rest stay plain.
+    codeTransformers: [
+      transformerTwoslash({
+        twoslashOptions: {
+          // Default target is ESNext (Promise/async available); no `lib` override
+          // (which broke resolution), so twoslashed snippets avoid DOM-only globals.
+          compilerOptions: { paths: twoslashPaths },
+        },
+      }),
+    ],
+  },
   themeConfig: {
     socialLinks: [{ icon: 'github', link: 'https://github.com/Olovyannikov/effector-query' }],
     search: { provider: 'local' },
