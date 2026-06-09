@@ -60,7 +60,7 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] `@@unitShape` support for direct `useUnit(query)` (React + Vue)
 - [x] React `useQuery` (`effector-refetch/react`) and Vue `useQuery` (`effector-refetch/vue`) helpers with derived flags
 - [x] Devtools labelling: `name` config labels the public units (`<name>.start`, `<name>.$data`, `<name>.runFx`, …)
-- [ ] Solid binding (`effector-refetch/solid` via `effector-solid`) — deferred: needs vite-plugin-solid + a separate JSX runtime that conflicts with the React/Vue plugins in one vitest config; will land with its own test project
+- [x] Solid binding (`effector-refetch/solid` via `effector-solid`) — `useQuery` returns Solid accessors + bound triggers; no JSX in the binding, so it needs no extra build/test plugin (tested via `createRoot`)
 
 ### 0.8 — Devtools & introspection
 

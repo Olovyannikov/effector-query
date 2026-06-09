@@ -44,6 +44,11 @@
       "import": "./dist/vue.mjs",
       "require": "./dist/vue.cjs"
     },
+    "./solid": {
+      "types": "./dist/solid.d.ts",
+      "import": "./dist/solid.mjs",
+      "require": "./dist/solid.cjs"
+    },
     "./devtools": {
       "types": "./dist/devtools.d.ts",
       "import": "./dist/devtools.mjs",
@@ -82,8 +87,10 @@
     "effector": ">=23",
     "effector-react": ">=23",
     "effector-vue": ">=23",
+    "effector-solid": ">=0.23",
     "react": ">=18",
-    "vue": ">=3"
+    "vue": ">=3",
+    "solid-js": ">=1.7"
   },
   "peerDependenciesMeta": {
     "effector-react": {
@@ -96,6 +103,12 @@
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "effector-solid": {
+      "optional": true
+    },
+    "solid-js": {
       "optional": true
     }
   },
@@ -111,6 +124,7 @@
     "axios": "^1.17.0",
     "effector": "^23.2.2",
     "effector-react": "^23.3.0",
+    "effector-solid": "^0.23.0",
     "effector-vue": "^23.1.1",
     "eslint": "^10.4.1",
     "eslint-plugin-effector": "^0.18.0",
@@ -121,6 +135,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "size-limit": "^12.1.0",
+    "solid-js": "^1.9.13",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.60.1",
     "vite": "^5.4.11",

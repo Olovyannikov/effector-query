@@ -1,7 +1,7 @@
 # Биндинги фреймворков
 
 Query реализует протокол effector `@@unitShape`, поэтому его можно передать прямо в
-`useUnit` из **effector-react** или **effector-vue** — без обёрток.
+`useUnit` из **effector-react**, **effector-vue** или **effector-solid** — без обёрток.
 
 ```tsx
 // React
@@ -43,6 +43,18 @@ const { data, isPending, isDone, start } = useQuery(userQuery);
 </script>
 ```
 
-React работает с `<Provider value={scope}>`, Vue — с `EffectorScopePlugin`, для SSR.
-Биндинги требуют опциональных peer-зависимостей `react`+`effector-react` /
-`vue`+`effector-vue`. Биндинг Solid — в планах.
+```tsx
+// Solid — effector-refetch/solid (возвращает accessor-ы — вызывайте их)
+import { useQuery } from 'effector-refetch/solid';
+
+function UserCard(props: { id: number }) {
+  const { data, isPending, isFail, start } = useQuery(userQuery);
+  start(props.id); // запросы не стартуют сами
+  return <div>{isPending() ? 'Loading…' : data()?.name}</div>;
+}
+```
+
+React работает с `<Provider value={scope}>`, Vue — с `EffectorScopePlugin`, Solid — с
+`<Provider>` из effector-solid; всё для SSR / `fork`. Биндинги требуют соответствующих
+опциональных peer-зависимостей (`react`+`effector-react` / `vue`+`effector-vue` /
+`solid-js`+`effector-solid`).

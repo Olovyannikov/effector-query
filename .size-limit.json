@@ -16,5 +16,11 @@
     "path": "dist/vue.mjs",
     "limit": "1 kB",
     "ignore": ["effector", "effector-vue", "effector-vue/composition", "vue"]
+  },
+  {
+    "name": "solid binding",
+    "path": "dist/solid.mjs",
+    "limit": "1 kB",
+    "ignore": ["effector", "effector-solid", "solid-js"]
   }
 ]

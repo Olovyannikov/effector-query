@@ -41,6 +41,9 @@ importers:
       effector-react:
         specifier: ^23.3.0
         version: 23.3.0(effector@23.4.4)(react@19.2.7)
+      effector-solid:
+        specifier: ^0.23.0
+        version: 0.23.0(effector@23.4.4)(solid-js@1.9.13)
       effector-vue:
         specifier: ^23.1.1
         version: 23.1.1(@vue/reactivity@3.5.35)(@vue/runtime-core@3.5.35)(effector@23.4.4)(vue@3.5.35(typescript@5.9.3))
@@ -71,6 +74,9 @@ importers:
       size-limit:
         specifier: ^12.1.0
         version: 12.1.0
+      solid-js:
+        specifier: ^1.9.13
+        version: 1.9.13
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
@@ -1562,6 +1568,13 @@ packages:
       effector: ^23.0.0
       react: '>=16.8.0 <20.0.0'
 
+  effector-solid@0.23.0:
+    resolution: {integrity: sha512-2y+tdrkAe4Av21bEtXjEZ+rSSKOGxDDJNbYIFW/y3Q9io5zsJSVtaF19/Smr7qYLD6SzhhKZEUUdWmtpfD9R9Q==}
+    engines: {node: '>=11.0.0'}
+    peerDependencies:
+      effector: ^23.0.0
+      solid-js: '>= 1.3.0'
+
   effector-vue@23.1.1:
     resolution: {integrity: sha512-Y+NwlxpYzzaS6n0eL6ZIGqfTITG9lNb0lbQbLopiTT+19sd8GD3OhsuBOUgYvMid14fKXyfhiZXLx70DjrwpGw==}
     engines: {node: '>=11.0.0'}
@@ -2366,6 +2379,16 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  seroval-plugins@1.5.4:
+    resolution: {integrity: sha512-S0xQPhUTefAhNvNWFg0c1J8qJArHt5KdtJ/cFAofo06KD1MVSeFWyl4iiu+ApDIuw0WhjpOfCdgConOfAnLgkw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      seroval: ^1.0
+
+  seroval@1.5.4:
+    resolution: {integrity: sha512-46uFvgrXTVxZcUorgSSRZ4y+ieqLLQRMlG4bnCZKW3qI6BZm7Rg4ntMW4p1mILEEBZWrFlcpp0AyIIlM6jD9iw==}
+    engines: {node: '>=10'}
+
   shebang-command@2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
     engines: {node: '>=8'}
@@ -2397,6 +2420,9 @@ packages:
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
+
+  solid-js@1.9.13:
+    resolution: {integrity: sha512-6hJeJMOcEX8ktqjpDoJZEmld3ijvcvWBDtiXBm7f4332SiFN66QeAQI1REQshvyUoISsSeJ4PHDauKYbwao9JQ==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -4227,6 +4253,11 @@ snapshots:
       react: 19.2.7
       use-sync-external-store: 1.6.0(react@19.2.7)
 
+  effector-solid@0.23.0(effector@23.4.4)(solid-js@1.9.13):
+    dependencies:
+      effector: 23.4.4
+      solid-js: 1.9.13
+
   effector-vue@23.1.1(@vue/reactivity@3.5.35)(@vue/runtime-core@3.5.35)(effector@23.4.4)(vue@3.5.35(typescript@5.9.3)):
     dependencies:
       '@vue/reactivity': 3.5.35
@@ -5063,6 +5094,12 @@ snapshots:
 
   semver@7.8.2: {}
 
+  seroval-plugins@1.5.4(seroval@1.5.4):
+    dependencies:
+      seroval: 1.5.4
+
+  seroval@1.5.4: {}
+
   shebang-command@2.0.0:
     dependencies:
       shebang-regex: 3.0.0
@@ -5093,6 +5130,12 @@ snapshots:
       tinyglobby: 0.2.17
 
   slash@3.0.0: {}
+
+  solid-js@1.9.13:
+    dependencies:
+      csstype: 3.2.3
+      seroval: 1.5.4
+      seroval-plugins: 1.5.4(seroval@1.5.4)
 
   source-map-js@1.2.1: {}
 

@@ -1,7 +1,7 @@
 # Framework bindings
 
 A query implements effector's `@@unitShape` protocol, so you can pass it straight to
-`useUnit` from **effector-react** or **effector-vue** — no wrapper needed.
+`useUnit` from **effector-react**, **effector-vue** or **effector-solid** — no wrapper needed.
 
 ```tsx
 // React
@@ -43,6 +43,17 @@ const { data, isPending, isDone, start } = useQuery(userQuery);
 </script>
 ```
 
-React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, for SSR.
-Bindings require the optional `react`+`effector-react` / `vue`+`effector-vue` peers.
-A Solid binding is on the roadmap.
+```tsx
+// Solid — effector-refetch/solid (returns accessors — call them)
+import { useQuery } from 'effector-refetch/solid';
+
+function UserCard(props: { id: number }) {
+  const { data, isPending, isFail, start } = useQuery(userQuery);
+  start(props.id); // queries never auto-start
+  return <div>{isPending() ? 'Loading…' : data()?.name}</div>;
+}
+```
+
+React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, Solid with
+effector-solid's `<Provider>` — all for SSR / `fork`. Bindings require the matching optional
+peers (`react`+`effector-react` / `vue`+`effector-vue` / `solid-js`+`effector-solid`).
