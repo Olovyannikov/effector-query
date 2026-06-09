@@ -24,6 +24,41 @@ Exposes `$pages` (= `$data`), `$pageParams`, `$hasNextPage`, `$status`, `$pendin
 `getNextPageParam` receives `{ lastPage, allPages, lastPageParam, allPageParams }` and
 returns the next page param, or `null`/`undefined` when there are no more pages.
 
+### Bidirectional + windowing
+
+Add `getPreviousPageParam` to enable `fetchPrevious` (prepends), and `maxPages` to cap the
+window (drops from the opposite end):
+
+```ts
+const feed = createInfiniteQuery({
+  effect: fetchPageFx,
+  initialPageParam: 10, // start in the middle
+  getNextPageParam: ({ lastPage }) => lastPage.next ?? null,
+  getPreviousPageParam: ({ firstPage }) => firstPage.prev ?? null,
+  maxPages: 3,
+});
+
+feed.fetchPrevious(); // prepend; gated by $hasPreviousPage
+```
+
+Exposes `$hasPreviousPage` alongside `$hasNextPage`.
+
+## Parallel queries — `combineQueries`
+
+Aggregate several independent queries into combined stores (the effector-flavored `useQueries`):
+
+```ts
+import { combineQueries } from 'effector-query';
+
+const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([
+  userQuery,
+  postsQuery,
+]);
+// $data: [User | null, Post[] | null]   $pending: any in flight   $isSuccess: all done
+```
+
+Start the queries as usual; `combineQueries` just reads their combined state.
+
 ::: tip
 The page effect is a plain `Effect<{ params, pageParam }, Page>` — use a regular
 `createEffect`/`handler`, not an abort-aware `createRequestFx` effect (which has a

@@ -9,10 +9,21 @@ export interface GetNextPageParamCtx<PageParam, Page> {
   allPageParams: PageParam[];
 }
 
+export interface GetPreviousPageParamCtx<PageParam, Page> {
+  firstPage: Page;
+  allPages: Page[];
+  firstPageParam: PageParam;
+  allPageParams: PageParam[];
+}
+
 interface BaseInfiniteConfig<Params, PageParam, Page> {
   initialPageParam: PageParam;
   /** Return the next page param, or `null` / `undefined` when there are no more pages. */
   getNextPageParam: (ctx: GetNextPageParamCtx<PageParam, Page>) => PageParam | null | undefined;
+  /** Enable `fetchPrevious`: return the previous page param, or `null`/`undefined` at the start. */
+  getPreviousPageParam?: (ctx: GetPreviousPageParamCtx<PageParam, Page>) => PageParam | null | undefined;
+  /** Cap accumulated pages — drops from the opposite end when exceeded. */
+  maxPages?: number;
   concurrency?: ConcurrencyStrategy;
   name?: string;
 }
@@ -32,6 +43,8 @@ export interface InfiniteQuery<Params, PageParam, Page, Error = unknown> {
   start: EventCallable<Params>;
   /** Load and append the next page (no-op when there is none, or while loading). */
   fetchNext: EventCallable<void>;
+  /** Load and prepend the previous page (needs `getPreviousPageParam`). */
+  fetchPrevious: EventCallable<void>;
   reset: EventCallable<void>;
 
   $pages: Store<Page[]>;
@@ -39,6 +52,7 @@ export interface InfiniteQuery<Params, PageParam, Page, Error = unknown> {
   $data: Store<Page[]>;
   $pageParams: Store<PageParam[]>;
   $hasNextPage: Store<boolean>;
+  $hasPreviousPage: Store<boolean>;
   $status: Store<QueryStatus>;
   $pending: Store<boolean>;
   $error: Store<Error | null>;
@@ -53,11 +67,13 @@ export interface InfiniteQuery<Params, PageParam, Page, Error = unknown> {
     pages: Store<Page[]>;
     data: Store<Page[]>;
     hasNextPage: Store<boolean>;
+    hasPreviousPage: Store<boolean>;
     status: Store<QueryStatus>;
     pending: Store<boolean>;
     error: Store<Error | null>;
     start: EventCallable<Params>;
     fetchNext: EventCallable<void>;
+    fetchPrevious: EventCallable<void>;
     reset: EventCallable<void>;
   };
 }
@@ -65,26 +81,28 @@ export interface InfiniteQuery<Params, PageParam, Page, Error = unknown> {
 interface PageReq<Params, PageParam> {
   params: Params;
   pageParam: PageParam;
-  mode: 'reset' | 'append';
+  mode: 'reset' | 'append' | 'prepend';
 }
 interface InfiniteState<PageParam, Page> {
   pages: Page[];
   pageParams: PageParam[];
   nextPageParam: PageParam | null;
   hasNextPage: boolean;
+  previousPageParam: PageParam | null;
+  hasPreviousPage: boolean;
 }
 
 /**
  * Cursor/offset pagination that accumulates pages. `start` loads the first page
- * (resetting), `fetchNext` appends the next one (driven by `getNextPageParam`).
- * Built on `createQuery`, so the page fetch gets concurrency / cancellation.
+ * (resetting), `fetchNext` appends and (with `getPreviousPageParam`) `fetchPrevious`
+ * prepends. `maxPages` caps the window. Built on `createQuery`.
  */
 export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
   config:
     | CreateInfiniteQueryConfig<Params, PageParam, Page>
     | CreateInfiniteQueryHandlerConfig<Params, PageParam, Page>,
 ): InfiniteQuery<Params, PageParam, Page, Error> {
-  const { initialPageParam, getNextPageParam } = config;
+  const { initialPageParam, getNextPageParam, getPreviousPageParam, maxPages } = config;
 
   const call = (req: PageReq<Params, PageParam>): Promise<Page> =>
     'effect' in config
@@ -103,33 +121,76 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
 
   const start = createEvent<Params>();
   const fetchNext = createEvent<void>();
+  const fetchPrevious = createEvent<void>();
   const reset = createEvent<void>();
 
-  const $params = createStore<Params | null>(null).on(start, (_p, params) => params).reset(reset);
+  const $params = createStore<Params | null>(null)
+    .on(start, (_p, params) => params)
+    .reset(reset);
 
   const initial: InfiniteState<PageParam, Page> = {
     pages: [],
     pageParams: [],
     nextPageParam: null,
     hasNextPage: false,
+    previousPageParam: null,
+    hasPreviousPage: false,
   };
   const $infinite = createStore<InfiniteState<PageParam, Page>>(initial)
     .on(pageQuery.finished.done, (state, { params: req, result: page }) => {
-      const pages = req.mode === 'reset' ? [page] : [...state.pages, page];
-      const pageParams = req.mode === 'reset' ? [req.pageParam] : [...state.pageParams, req.pageParam];
+      let pages: Page[];
+      let pageParams: PageParam[];
+      if (req.mode === 'reset') {
+        pages = [page];
+        pageParams = [req.pageParam];
+      } else if (req.mode === 'prepend') {
+        pages = [page, ...state.pages];
+        pageParams = [req.pageParam, ...state.pageParams];
+      } else {
+        pages = [...state.pages, page];
+        pageParams = [...state.pageParams, req.pageParam];
+      }
+
+      if (maxPages != null && pages.length > maxPages) {
+        if (req.mode === 'prepend') {
+          pages = pages.slice(0, maxPages);
+          pageParams = pageParams.slice(0, maxPages);
+        } else {
+          pages = pages.slice(-maxPages);
+          pageParams = pageParams.slice(-maxPages);
+        }
+      }
+
       const next = getNextPageParam({
-        lastPage: page,
+        lastPage: pages[pages.length - 1],
         allPages: pages,
-        lastPageParam: req.pageParam,
+        lastPageParam: pageParams[pageParams.length - 1],
         allPageParams: pageParams,
       });
-      return { pages, pageParams, nextPageParam: next ?? null, hasNextPage: next != null };
+      const prev = getPreviousPageParam
+        ? getPreviousPageParam({
+            firstPage: pages[0],
+            allPages: pages,
+            firstPageParam: pageParams[0],
+            allPageParams: pageParams,
+          })
+        : undefined;
+
+      return {
+        pages,
+        pageParams,
+        nextPageParam: next ?? null,
+        hasNextPage: next != null,
+        previousPageParam: prev ?? null,
+        hasPreviousPage: prev != null,
+      };
     })
     .reset([reset, start]);
 
   const $pages = $infinite.map((s) => s.pages);
   const $pageParams = $infinite.map((s) => s.pageParams);
   const $hasNextPage = $infinite.map((s) => s.hasNextPage);
+  const $hasPreviousPage = $infinite.map((s) => s.hasPreviousPage);
 
   // load first page
   sample({
@@ -138,15 +199,28 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
     target: pageQuery.start,
   });
 
-  // append next page when available and idle
+  // append next page when available and idle (hasNextPage is only true after a page loaded)
   sample({
     clock: fetchNext,
     source: { params: $params, inf: $infinite, pending: pageQuery.$pending },
-    filter: ({ params, inf, pending }) => inf.hasNextPage && !pending && params !== null,
+    filter: ({ inf, pending }) => inf.hasNextPage && !pending,
     fn: ({ params, inf }): PageReq<Params, PageParam> => ({
       params: params as Params,
       pageParam: inf.nextPageParam as PageParam,
       mode: 'append',
+    }),
+    target: pageQuery.start,
+  });
+
+  // prepend previous page when available and idle
+  sample({
+    clock: fetchPrevious,
+    source: { params: $params, inf: $infinite, pending: pageQuery.$pending },
+    filter: ({ inf, pending }) => inf.hasPreviousPage && !pending,
+    fn: ({ params, inf }): PageReq<Params, PageParam> => ({
+      params: params as Params,
+      pageParam: inf.previousPageParam as PageParam,
+      mode: 'prepend',
     }),
     target: pageQuery.start,
   });
@@ -167,12 +241,14 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
   return {
     start,
     fetchNext,
+    fetchPrevious,
     reset,
 
     $pages,
     $data: $pages,
     $pageParams,
     $hasNextPage,
+    $hasPreviousPage,
     $status: pageQuery.$status,
     $pending: pageQuery.$pending,
     $error: pageQuery.$error,
@@ -184,11 +260,13 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
       pages: $pages,
       data: $pages,
       hasNextPage: $hasNextPage,
+      hasPreviousPage: $hasPreviousPage,
       status: pageQuery.$status,
       pending: pageQuery.$pending,
       error: pageQuery.$error,
       start,
       fetchNext,
+      fetchPrevious,
       reset,
     }),
   };

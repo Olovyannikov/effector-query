@@ -20,7 +20,9 @@ export {
   type CreateInfiniteQueryConfig,
   type CreateInfiniteQueryHandlerConfig,
   type GetNextPageParamCtx,
+  type GetPreviousPageParamCtx,
 } from './infinite-query';
+export { combineQueries, type CombinedQueries } from './combine-queries';
 export { connectQuery } from './connect-query';
 export { concurrency, retry, cache } from './operators';
 export { refetchOnWindowFocus, refetchOnReconnect } from './browser';

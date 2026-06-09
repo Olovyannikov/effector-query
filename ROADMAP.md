@@ -112,8 +112,8 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - [ ] Dehydrate/hydrate the whole cache (beyond per-query storage adapters) — effector `serialize`/`fork({values})` already covers store state; adapter cache hydration is the gap
 
 ### 1.4 — Lists & parallelism
-- [ ] Bidirectional infinite query: `fetchPreviousPage`, `getPreviousPageParam`, `maxPages`
-- [ ] Parallel/dynamic queries helper (TanStack's `useQueries`)
+- [x] Bidirectional infinite query: `fetchPrevious`, `getPreviousPageParam`, `$hasPreviousPage`, `maxPages` windowing
+- [x] `combineQueries([...])` — aggregate queries into combined stores ($data tuple, $pending, $statuses, $errors, $isError, $isSuccess) — the effector-flavored `useQueries`
 
 ### 1.4a — Barrier / mutex
 - [x] `createBarrier({ perform })` — pause gated queries (e.g. on 401), run a refresh, resume the queue; `barrier` option on queries and the factory. Auth recipe.
