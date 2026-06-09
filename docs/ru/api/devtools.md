@@ -2,8 +2,9 @@
 
 Плавающая панель devtools — как у TanStack Query — со списком запросов, их живым статусом,
 параметрами, данными, ошибкой и логом событий по каждому запросу. Доступна для **React**
-(`effector-refetch/devtools`) и **Vue** (`effector-refetch/devtools/vue`) с одинаковыми пропсами,
-вытряхивается из основного бандла tree-shaking-ом.
+(`effector-refetch/devtools`), **Vue** (`effector-refetch/devtools/vue`) и **Solid**
+(`effector-refetch/devtools/solid`) с одинаковыми пропсами, вытряхивается из основного бандла
+tree-shaking-ом.
 
 ```tsx
 import { EffectorQueryDevtools } from 'effector-refetch/devtools';
@@ -35,6 +36,23 @@ import { userQuery, todosQuery } from './model';
   <RouterView />
   <EffectorQueryDevtools v-if="import.meta.env.DEV" :queries="{ user: userQuery, todos: todosQuery }" />
 </template>
+```
+
+## Solid
+
+Та же панель для Solid — идентичные пропсы, scope через `<Provider>` из effector-solid:
+
+```tsx
+import { EffectorQueryDevtools } from 'effector-refetch/devtools/solid';
+
+function App() {
+  return (
+    <>
+      <Routes />
+      {import.meta.env.DEV && <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />}
+    </>
+  );
+}
 ```
 
 ## Как это выглядит

@@ -58,6 +58,11 @@
       "types": "./dist/devtools-vue.d.ts",
       "import": "./dist/devtools-vue.mjs",
       "require": "./dist/devtools-vue.cjs"
+    },
+    "./devtools/solid": {
+      "types": "./dist/devtools-solid.d.ts",
+      "import": "./dist/devtools-solid.mjs",
+      "require": "./dist/devtools-solid.cjs"
     }
   },
   "files": [

@@ -5,14 +5,19 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   // react() enables the automatic JSX runtime in .tsx tests;
   // vue() compiles any Vue SFCs / handles effector-vue interop.
+  // (No solid plugin: the Solid binding/devtools use solid-js/h — no JSX.)
   plugins: [react(), vue()],
+  // Resolve solid-js to its browser/client build so `solid-js/web`'s `render`
+  // works in the happy-dom tests (otherwise the server build throws).
+  resolve: { conditions: ['browser', 'development'] },
   test: {
     // DOM-needing files opt in per-file via `// @vitest-environment happy-dom`;
     // everything else runs in the default node environment.
     environment: 'node',
     include: ['test/**/*.{test,spec}.{ts,tsx}'],
     // effector-vue's ESM does a default-import of `vue`; inlining lets vite
-    // apply interop so it loads under vitest.
-    server: { deps: { inline: ['effector-vue'] } },
+    // apply interop so it loads under vitest. solid-js is inlined so the
+    // browser-condition resolution above applies to it too.
+    server: { deps: { inline: ['effector-vue', 'solid-js', 'effector-solid'] } },
   },
 });

@@ -2,8 +2,8 @@
 
 A floating devtools panel — like TanStack Query's — that lists your queries with live
 status, params, data, error and a per-query event log. Available for **React**
-(`effector-refetch/devtools`) and **Vue** (`effector-refetch/devtools/vue`) with the same
-props, and tree-shaken out of your core bundle.
+(`effector-refetch/devtools`), **Vue** (`effector-refetch/devtools/vue`) and **Solid**
+(`effector-refetch/devtools/solid`) with the same props, and tree-shaken out of your core bundle.
 
 ```tsx
 import { EffectorQueryDevtools } from 'effector-refetch/devtools';
@@ -35,6 +35,23 @@ import { userQuery, todosQuery } from './model';
   <RouterView />
   <EffectorQueryDevtools v-if="import.meta.env.DEV" :queries="{ user: userQuery, todos: todosQuery }" />
 </template>
+```
+
+## Solid
+
+Same panel for Solid — identical props, scope-aware via effector-solid's `<Provider>`:
+
+```tsx
+import { EffectorQueryDevtools } from 'effector-refetch/devtools/solid';
+
+function App() {
+  return (
+    <>
+      <Routes />
+      {import.meta.env.DEV && <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />}
+    </>
+  );
+}
 ```
 
 ## What it looks like
