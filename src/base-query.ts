@@ -479,11 +479,14 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     .on(cacheHit, () => 'done' as const)
     .on(finalFail, () => 'fail' as const)
     .reset(reset);
-  // cancel leaves "pending" — settle the status to reflect what we have
+  // cancel leaves "pending" — settle the status to reflect what we have.
+  // Only when actually in-flight: cancelling an already-settled query (done / fail)
+  // is a no-op, so it can't flip a finished failure back to "done" on stale data.
   sample({
     clock: cancel,
-    source: $data,
-    fn: (data): QueryStatus => (data != null ? 'done' : 'initial'),
+    source: { data: $data, status: $status },
+    filter: ({ status }) => status === 'pending',
+    fn: ({ data }): QueryStatus => (data != null ? 'done' : 'initial'),
     target: $status,
   });
 

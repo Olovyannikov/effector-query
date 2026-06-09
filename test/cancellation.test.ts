@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { allSettled, fork } from 'effector';
+import { allSettled, createEffect, fork } from 'effector';
 import { createQuery, createRequestFx } from '../src';
 
 /** Abort-aware effect that only settles when its signal aborts (rejects). */
@@ -53,6 +53,30 @@ describe('real cancellation (AbortSignal)', () => {
     await allSettled(query.cancel, { scope });
     await Promise.all([p1, p2]);
     expect(signals[1].aborted).toBe(true);
+  });
+
+  it('cancel on an already-settled query is a no-op (does not flip fail -> done)', async () => {
+    let shouldFail = false;
+    const fx = createEffect(async (n: number) => {
+      if (shouldFail) throw new Error('boom');
+      return `v${n}`;
+    });
+    const query = createQuery({ effect: fx });
+    const scope = fork();
+
+    // 1) success -> data present, status done
+    await allSettled(query.start, { scope, params: 1 });
+    expect(scope.getState(query.$status)).toBe('done');
+    expect(scope.getState(query.$data)).toBe('v1');
+
+    // 2) failure -> status fail (stale data from step 1 is still around)
+    shouldFail = true;
+    await allSettled(query.start, { scope, params: 2 });
+    expect(scope.getState(query.$status)).toBe('fail');
+
+    // 3) cancel with nothing in flight must NOT settle to done off the stale data
+    await allSettled(query.cancel, { scope });
+    expect(scope.getState(query.$status)).toBe('fail');
   });
 
   it('TAKE_EVERY does not abort earlier requests', async () => {
