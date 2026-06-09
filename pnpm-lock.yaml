@@ -56,6 +56,9 @@ importers:
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
+      patronum:
+        specifier: ^2.3.0
+        version: 2.3.0(effector@23.4.4)
       prettier:
         specifier: ^3.8.3
         version: 3.8.3
@@ -2208,6 +2211,11 @@ packages:
   pathval@2.0.1:
     resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
     engines: {node: '>= 14.16'}
+
+  patronum@2.3.0:
+    resolution: {integrity: sha512-BfKIOpoymVz6XnkOn8Fi5QZ1a3r/3lXdd8BcdHmYDbIXPTIRnD1EPFBFev/DheWnOge6/ZswEqgNF2ANLGOxLw==}
+    peerDependencies:
+      effector: ^23
 
   perfect-debounce@1.0.0:
     resolution: {integrity: sha512-xCy9V055GLEqoFaHoC1SoLIaLmWctgCUaBaWxDZ7/Zx4CTyX7cJQLJOok/orfjZAh9kEYpjJa4d0KcJmCbctZA==}
@@ -4906,6 +4914,10 @@ snapshots:
   pathe@2.0.3: {}
 
   pathval@2.0.1: {}
+
+  patronum@2.3.0(effector@23.4.4):
+    dependencies:
+      effector: 23.4.4
 
   perfect-debounce@1.0.0: {}
 
