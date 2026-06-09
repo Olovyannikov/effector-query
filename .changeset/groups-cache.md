@@ -1,5 +1,5 @@
 ---
-'effector-query': minor
+'effector-refetch': minor
 ---
 
 Cache & client surface (1.3):

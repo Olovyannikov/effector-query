@@ -24,7 +24,7 @@ createQuery({ effect: fx, refetchInterval: $pollMs });
 Opt-in, browser-only, tree-shakeable:
 
 ```ts
-import { refetchOnWindowFocus, refetchOnReconnect } from 'effector-query';
+import { refetchOnWindowFocus, refetchOnReconnect } from 'effector-refetch';
 
 const stop1 = refetchOnWindowFocus(userQuery);
 const stop2 = refetchOnReconnect(userQuery);

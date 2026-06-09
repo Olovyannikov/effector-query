@@ -3,7 +3,7 @@
 This page gets you from zero to a working query in a couple of minutes. For the _why_,
 read the [Introduction](/guide/introduction) first.
 
-`effector-query` is a small, friendly query layer for [effector](https://effector.dev),
+`effector-refetch` is a small, friendly query layer for [effector](https://effector.dev),
 built on **real effects**. The unit of work is your own `Effect<Params, Result, Error>`
 (including `attach`-built factory effects) — the query is just a thin reactive shell.
 
@@ -16,21 +16,21 @@ units composed for you.
 ## Install
 
 ```bash
-pnpm add effector-query effector
+pnpm add effector-refetch effector
 ```
 
 Framework bindings are optional peer-scoped subpaths:
 
 ```bash
-pnpm add effector-react react       # for effector-query/react
-pnpm add effector-vue vue           # for effector-query/vue
+pnpm add effector-react react       # for effector-refetch/react
+pnpm add effector-vue vue           # for effector-refetch/vue
 ```
 
 ## Your first query
 
 ```ts
 import { createEffect } from 'effector';
-import { createQuery } from 'effector-query';
+import { createQuery } from 'effector-refetch';
 
 const fetchUserFx = createEffect((id: number) => fetch(`/api/users/${id}`).then((r) => r.json()));
 
@@ -48,7 +48,7 @@ userQuery.start(1);
 ## Connecting queries
 
 ```ts
-import { connectQuery } from 'effector-query';
+import { connectQuery } from 'effector-refetch';
 
 connectQuery({
   source: characterQuery,

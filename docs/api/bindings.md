@@ -29,16 +29,16 @@ refetch, refresh, reset, cancel }`.
 Thin helpers that add derived booleans (`isInitial / isPending / isDone / isFail`):
 
 ```tsx
-// React — effector-query/react
-import { useQuery } from 'effector-query/react';
+// React — effector-refetch/react
+import { useQuery } from 'effector-refetch/react';
 const { data, isPending, isFail, error, start } = useQuery(userQuery);
 useEffect(() => start(id), [id]); // queries never auto-start
 ```
 
 ```vue
-<!-- Vue — effector-query/vue (returns refs) -->
+<!-- Vue — effector-refetch/vue (returns refs) -->
 <script setup lang="ts">
-import { useQuery } from 'effector-query/vue';
+import { useQuery } from 'effector-refetch/vue';
 const { data, isPending, isDone, start } = useQuery(userQuery);
 </script>
 ```

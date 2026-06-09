@@ -6,7 +6,7 @@ patch the item in place with [`update`](/api/mutations#update) (or `optimisticUp
 ## Patch an item by id
 
 ```ts
-import { update } from 'effector-query';
+import { update } from 'effector-refetch';
 
 // todosQuery.$data: Todo[]
 update({
@@ -29,7 +29,7 @@ update({
 ## Optimistic toggle with rollback
 
 ```ts
-import { optimisticUpdate } from 'effector-query';
+import { optimisticUpdate } from 'effector-refetch';
 
 optimisticUpdate({
   query: todosQuery,

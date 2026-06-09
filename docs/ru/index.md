@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: effector-query
+  name: effector-refetch
   text: Данные, которые текут
   tagline: Запросы, мутации, кэш и пагинация для effector — поверх ваших реальных эффектов, а не «чёрного ящика». Дружелюбные дефолты, честные компромиссы, готовность к SSR через fork.
   actions:
@@ -41,7 +41,7 @@ features:
 
 ```ts
 import { createEffect } from 'effector';
-import { createQuery, createMutation, invalidate } from 'effector-query';
+import { createQuery, createMutation, invalidate } from 'effector-refetch';
 
 const fetchTodosFx = createEffect(() => fetch('/api/todos').then((r) => r.json()));
 const addTodoFx = createEffect((text: string) =>
@@ -66,7 +66,7 @@ const { data, pending } = useUnit(todos); // React или Vue
 
 ## Почему не «просто эффекты»?
 
-Можно — и вы их по-прежнему используете. effector-query не заменяет эффекты, а берёт на
+Можно — и вы их по-прежнему используете. effector-refetch не заменяет эффекты, а берёт на
 себя скучную и хрупкую обвязку: статусы загрузки/ошибки, ретраи, кэш, отмену запросов,
 дедупликацию, валидацию. Ваш эффект остаётся полноценным юнитом effector, который видно в
 devtools и который тестируется через `fork()`.

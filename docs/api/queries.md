@@ -1,7 +1,7 @@
 # Queries
 
 ```ts
-import { createQuery } from 'effector-query';
+import { createQuery } from 'effector-refetch';
 
 const query = createQuery({
   effect, // Effect<Params, Result, Error> (or `handler`)
@@ -50,7 +50,7 @@ Share these across many queries with a [factory](/recipes/defaults).
 options are sugar over them. Apply them directly, even after creation:
 
 ```ts
-import { createQuery, concurrency, retry, cache } from 'effector-query';
+import { createQuery, concurrency, retry, cache } from 'effector-refetch';
 
 const search = createQuery({ effect: searchFx });
 concurrency(search, { strategy: 'TAKE_LATEST' });

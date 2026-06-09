@@ -42,7 +42,7 @@ export function attachQueryLogger(
 ): () => void {
   const {
     name = 'query',
-    handler = (e) => console.log('[effector-query]', e),
+    handler = (e) => console.log('[effector-refetch]', e),
     now = () => Date.now(),
   } = options;
   const { inspect } = query.__;

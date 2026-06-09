@@ -1,7 +1,7 @@
 # Запросы
 
 ```ts
-import { createQuery } from 'effector-query';
+import { createQuery } from 'effector-refetch';
 
 const query = createQuery({
   effect, // Effect<Params, Result, Error> (или `handler`)
@@ -50,7 +50,7 @@ const query = createQuery({
 — сахар над ними. Применяйте напрямую, в том числе после создания:
 
 ```ts
-import { createQuery, concurrency, retry, cache } from 'effector-query';
+import { createQuery, concurrency, retry, cache } from 'effector-refetch';
 
 const search = createQuery({ effect: searchFx });
 concurrency(search, { strategy: 'TAKE_LATEST' });

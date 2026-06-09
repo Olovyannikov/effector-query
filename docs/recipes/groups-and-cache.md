@@ -6,7 +6,7 @@ A [factory](/recipes/defaults) registers every query it creates, so you can refe
 together — the effector-flavored equivalent of `queryClient.invalidateQueries`:
 
 ```ts
-import { createQueryFactory } from 'effector-query';
+import { createQueryFactory } from 'effector-refetch';
 
 const { createQuery, invalidate } = createQueryFactory();
 
@@ -29,7 +29,7 @@ Need separate groups? Use multiple factories.
 ## Read & write cache imperatively
 
 ```ts
-import { getQueryData, setQueryData } from 'effector-query';
+import { getQueryData, setQueryData } from 'effector-refetch';
 
 const todos = getQueryData(todosQuery); // current $data
 setQueryData(todosQuery, (prev) => [...(prev ?? []), newTodo]); // value or (prev) => next
@@ -41,7 +41,7 @@ These read/write the no-scope store — for a single client app. In scoped code 
 
 ## gcTime?
 
-TanStack's `gcTime` evicts cache entries once they have no observers. effector-query
+TanStack's `gcTime` evicts cache entries once they have no observers. effector-refetch
 doesn't track observers (queries are plain units, not subscriptions), so the closest knob
 is age-based eviction on the adapter: `inMemoryCache({ maxAge })` /
 `localStorageCache({ maxAge })`, plus `maxEntries` for an LRU cap.

@@ -7,7 +7,7 @@ concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias.
 Concurrency defaults to `TAKE_EVERY` so independent writes don't cancel each other.
 
 ```ts
-import { createMutation } from 'effector-query';
+import { createMutation } from 'effector-refetch';
 
 const addTodo = createMutation({ effect: addTodoFx, retry: 2 });
 addTodo.mutate({ text: 'Buy milk' });
@@ -21,7 +21,7 @@ finished, aborted }` and works with `useUnit(mutation)`.
 Refetch queries when something succeeds:
 
 ```ts
-import { invalidate } from 'effector-query';
+import { invalidate } from 'effector-refetch';
 
 invalidate({ on: addTodo, refetch: todosQuery });
 ```
@@ -35,7 +35,7 @@ invalidate({ on: addTodo, refetch: todosQuery });
 Patch a query's `$data` directly from a result — no refetch:
 
 ```ts
-import { update } from 'effector-query';
+import { update } from 'effector-refetch';
 
 update({ query: todosQuery, on: addTodo, fn: ({ data, result }) => [...(data ?? []), result] });
 ```
@@ -45,7 +45,7 @@ update({ query: todosQuery, on: addTodo, fn: ({ data, result }) => [...(data ?? 
 Apply immediately on `start`, roll back on failure, optionally reconcile on success:
 
 ```ts
-import { optimisticUpdate } from 'effector-query';
+import { optimisticUpdate } from 'effector-refetch';
 
 optimisticUpdate({
   query: todosQuery,

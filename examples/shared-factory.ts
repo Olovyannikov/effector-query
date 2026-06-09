@@ -8,7 +8,7 @@
  *
  * wrapped by createQuery / createMutation. This mirrors the pattern from
  * https://github.com/Olovyannikov/FSD-example (shared/api/product/api.ts),
- * but built on effector-query's own `createRequestFx`.
+ * but built on effector-refetch's own `createRequestFx`.
  */
 import { ofetch } from 'ofetch';
 import {

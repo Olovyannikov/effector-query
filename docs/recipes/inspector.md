@@ -1,6 +1,6 @@
 # effector inspector & logging
 
-Beyond the [visual devtools](/api/devtools), effector-query plays well with the broader
+Beyond the [visual devtools](/api/devtools), effector-refetch plays well with the broader
 effector tooling — the inspector and any logger.
 
 ## Name your queries
@@ -28,7 +28,7 @@ For headless logging (server logs, analytics, your own panel), subscribe to the
 lifecycle stream:
 
 ```ts
-import { attachQueryLogger } from 'effector-query';
+import { attachQueryLogger } from 'effector-refetch';
 
 attachQueryLogger(todos, {
   name: 'todos',

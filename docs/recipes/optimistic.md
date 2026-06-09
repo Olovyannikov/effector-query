@@ -4,7 +4,7 @@ Show a change instantly, roll back on failure, reconcile with the server on succ
 then optionally `invalidate` to confirm against server truth (the TanStack pattern).
 
 ```ts
-import { createQuery, createMutation, optimisticUpdate, invalidate } from 'effector-query';
+import { createQuery, createMutation, optimisticUpdate, invalidate } from 'effector-refetch';
 
 const todosQuery = createQuery({ effect: fetchTodosFx });
 const addTodo = createMutation({ effect: addTodoFx });

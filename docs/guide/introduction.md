@@ -10,7 +10,7 @@ component.
 
 Hand-rolled, that's a swamp of `useState`/`useEffect`, race conditions, and logic welded
 to the view. effector solves the _state_ part beautifully with events, stores and effects.
-**effector-query** owns the _data-fetching_ part on top of it.
+**effector-refetch** owns the _data-fetching_ part on top of it.
 
 ## The idea: build on real effects
 

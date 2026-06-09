@@ -8,7 +8,7 @@ tries to run blocks; when it unlocks, the queued requests proceed.
 
 ```ts
 import { sample } from 'effector';
-import { createBarrier, createQueryFactory } from 'effector-query';
+import { createBarrier, createQueryFactory } from 'effector-refetch';
 
 // the barrier runs the refresh when it locks, and unlocks when refresh settles
 const authBarrier = createBarrier({ perform: refreshTokenFx });

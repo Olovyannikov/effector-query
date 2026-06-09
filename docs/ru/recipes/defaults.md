@@ -1,10 +1,10 @@
 # Общие дефолты (фабрика запросов)
 
-В effector-query нет глобального `QueryClient`. Вместо этого общую политику закладывают в
+В effector-refetch нет глобального `QueryClient`. Вместо этого общую политику закладывают в
 фабрику через `createQueryFactory` — опции конкретного вызова всегда переопределяют дефолты.
 
 ```ts
-import { createQueryFactory } from 'effector-query';
+import { createQueryFactory } from 'effector-refetch';
 
 const { createQuery, createMutation } = createQueryFactory({
   retry: 2,

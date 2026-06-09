@@ -5,7 +5,7 @@
 
 ```ts
 import { ofetch } from 'ofetch';
-import { createRequestFx, createQuery, createMutation, concurrency, invalidate } from 'effector-query';
+import { createRequestFx, createQuery, createMutation, concurrency, invalidate } from 'effector-refetch';
 
 const HTTP_METHODS = { GET: 'GET', POST: 'POST', PUT: 'PUT', DELETE: 'DELETE' } as const;
 

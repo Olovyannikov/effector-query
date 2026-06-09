@@ -4,7 +4,7 @@
 желании ещё `invalidate`, чтобы подтвердить серверной правдой (паттерн в духе TanStack).
 
 ```ts
-import { createQuery, createMutation, optimisticUpdate, invalidate } from 'effector-query';
+import { createQuery, createMutation, optimisticUpdate, invalidate } from 'effector-refetch';
 
 const todosQuery = createQuery({ effect: fetchTodosFx });
 const addTodo = createMutation({ effect: addTodoFx });

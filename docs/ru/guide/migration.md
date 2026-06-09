@@ -5,7 +5,7 @@
 Модель близка, поэтому большая часть кода переносится напрямую. Главный сдвиг: **приносите
 свой эффект**, а inline-опции доступны наравне с операторами.
 
-| farfetched                             | effector-query                                                        |
+| farfetched                             | effector-refetch                                                      |
 | -------------------------------------- | --------------------------------------------------------------------- |
 | `createQuery({ handler })`             | `createQuery({ effect })` (или `{ handler }`)                         |
 | `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                              |

@@ -2,10 +2,10 @@
 
 Плавающая панель devtools — как у TanStack Query — со списком запросов, их живым статусом,
 параметрами, данными, ошибкой и логом событий по каждому запросу. Только React, импорт из
-`effector-query/devtools`, вытряхивается из основного бандла tree-shaking-ом.
+`effector-refetch/devtools`, вытряхивается из основного бандла tree-shaking-ом.
 
 ```tsx
-import { EffectorQueryDevtools } from 'effector-query/devtools';
+import { EffectorQueryDevtools } from 'effector-refetch/devtools';
 
 function App() {
   return (
@@ -23,7 +23,7 @@ function App() {
 ## Как это выглядит
 
 ```
- ┌ effector-query · devtools ───────────────────── ✕ ┐
+ ┌ effector-refetch · devtools ───────────────────── ✕ ┐
  │ ● user        │  ● user   done                     │
  │ ● todos  •••  │  PARAMS   7                         │
  │               │  DATA     { "id": 7, "name": "…" }  │

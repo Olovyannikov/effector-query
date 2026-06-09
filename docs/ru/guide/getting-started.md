@@ -3,7 +3,7 @@
 Эта страница проведёт от нуля до рабочего запроса за пару минут. Про _зачем_ — сначала
 прочитайте [Введение](/ru/guide/introduction).
 
-`effector-query` — небольшой дружелюбный слой запросов для [effector](https://effector.dev),
+`effector-refetch` — небольшой дружелюбный слой запросов для [effector](https://effector.dev),
 построенный на **реальных эффектах**. Единица работы — ваш `Effect<Params, Result, Error>`
 (в том числе собранный через `attach`); query — лишь тонкая реактивная обёртка.
 
@@ -16,21 +16,21 @@
 ## Установка
 
 ```bash
-pnpm add effector-query effector
+pnpm add effector-refetch effector
 ```
 
 Биндинги фреймворков — опциональные subpath-импорты:
 
 ```bash
-pnpm add effector-react react       # для effector-query/react
-pnpm add effector-vue vue           # для effector-query/vue
+pnpm add effector-react react       # для effector-refetch/react
+pnpm add effector-vue vue           # для effector-refetch/vue
 ```
 
 ## Первый запрос
 
 ```ts
 import { createEffect } from 'effector';
-import { createQuery } from 'effector-query';
+import { createQuery } from 'effector-refetch';
 
 const fetchUserFx = createEffect((id: number) => fetch(`/api/users/${id}`).then((r) => r.json()));
 
@@ -48,7 +48,7 @@ userQuery.start(1);
 ## Связывание запросов
 
 ```ts
-import { connectQuery } from 'effector-query';
+import { connectQuery } from 'effector-refetch';
 
 connectQuery({
   source: characterQuery,

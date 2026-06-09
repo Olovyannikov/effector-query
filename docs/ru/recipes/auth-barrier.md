@@ -8,7 +8,7 @@ gated-запрос, который пытается выполниться, бл
 
 ```ts
 import { sample } from 'effector';
-import { createBarrier, createQueryFactory } from 'effector-query';
+import { createBarrier, createQueryFactory } from 'effector-refetch';
 
 // barrier запускает рефреш при блокировке и разблокируется, когда рефреш завершится
 const authBarrier = createBarrier({ perform: refreshTokenFx });

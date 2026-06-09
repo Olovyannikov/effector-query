@@ -91,7 +91,7 @@ const ruSidebar = {
 };
 
 export default defineConfig({
-  title: 'effector-query',
+  title: 'effector-refetch',
   description: 'Friendly query layer for effector, built on real effects',
   base: '/effector-query/',
   lastUpdated: true,

@@ -2,10 +2,10 @@
 
 A floating devtools panel — like TanStack Query's — that lists your queries with live
 status, params, data, error and a per-query event log. React-only, imported from
-`effector-query/devtools`, and tree-shaken out of your core bundle.
+`effector-refetch/devtools`, and tree-shaken out of your core bundle.
 
 ```tsx
-import { EffectorQueryDevtools } from 'effector-query/devtools';
+import { EffectorQueryDevtools } from 'effector-refetch/devtools';
 
 function App() {
   return (
@@ -23,7 +23,7 @@ effector-react's `<Provider>` (so it works with SSR / `fork`).
 ## What it looks like
 
 ```
- ┌ effector-query · devtools ───────────────────── ✕ ┐
+ ┌ effector-refetch · devtools ───────────────────── ✕ ┐
  │ ● user        │  ● user   done                     │
  │ ● todos  •••  │  PARAMS   7                         │
  │               │  DATA     { "id": 7, "name": "…" }  │

@@ -6,7 +6,7 @@
 
 ```ts
 import { ofetch } from 'ofetch';
-import { createRequestFx, createQuery } from 'effector-query';
+import { createRequestFx, createQuery } from 'effector-refetch';
 
 const getUserFx = createRequestFx<{ id: number }, User>(({ id }, { signal }) =>
   ofetch(`/api/users/${id}`, { signal }),
@@ -23,7 +23,7 @@ const userQuery = createQuery({ effect: getUserFx, cache: true });
 Декларативный эндпоинт поверх глобального `fetch` (без зависимости от HTTP-клиента):
 
 ```ts
-import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-query';
+import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-refetch';
 
 export const getProductsQuery = createJsonQuery({
   request: { url: 'https://api/products', query: ({ search }) => ({ search, limit: 20 }) },
@@ -46,7 +46,7 @@ export const createUser = createJsonQuery<NewUser, User>({
 Проверяет ответ по схеме; провал превращается в **ретраябельную** `ValidationError`:
 
 ```ts
-import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-query';
+import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-refetch';
 
 createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype

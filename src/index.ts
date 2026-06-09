@@ -35,7 +35,7 @@ export {
   type UpdateFromEvent,
   type OptimisticUpdateConfig,
 } from './update';
-// React binding lives at the 'effector-query/react' subpath so the core stays
+// React binding lives at the 'effector-refetch/react' subpath so the core stays
 // free of any react / effector-react dependency.
 export { linearDelay, exponentialDelay } from './retry';
 export {

@@ -6,7 +6,7 @@
 ## Патч элемента по id
 
 ```ts
-import { update } from 'effector-query';
+import { update } from 'effector-refetch';
 
 // todosQuery.$data: Todo[]
 update({
@@ -29,7 +29,7 @@ update({
 ## Оптимистичный toggle с откатом
 
 ```ts
-import { optimisticUpdate } from 'effector-query';
+import { optimisticUpdate } from 'effector-refetch';
 
 optimisticUpdate({
   query: todosQuery,

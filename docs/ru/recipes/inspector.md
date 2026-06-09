@@ -1,6 +1,6 @@
 # effector inspector и логирование
 
-Помимо [визуальных devtools](/ru/api/devtools), effector-query дружит с общим
+Помимо [визуальных devtools](/ru/api/devtools), effector-refetch дружит с общим
 инструментарием effector — инспектором и любым логгером.
 
 ## Именуйте запросы
@@ -28,7 +28,7 @@ inspect(); // рендерит инспектор; именованные юни
 жизненного цикла:
 
 ```ts
-import { attachQueryLogger } from 'effector-query';
+import { attachQueryLogger } from 'effector-refetch';
 
 attachQueryLogger(todos, {
   name: 'todos',

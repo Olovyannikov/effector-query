@@ -29,16 +29,16 @@ refetch, refresh, reset, cancel }`.
 Тонкие хелперы с производными флагами (`isInitial / isPending / isDone / isFail`):
 
 ```tsx
-// React — effector-query/react
-import { useQuery } from 'effector-query/react';
+// React — effector-refetch/react
+import { useQuery } from 'effector-refetch/react';
 const { data, isPending, isFail, error, start } = useQuery(userQuery);
 useEffect(() => start(id), [id]); // запросы не стартуют сами
 ```
 
 ```vue
-<!-- Vue — effector-query/vue (возвращает ref-ы) -->
+<!-- Vue — effector-refetch/vue (возвращает ref-ы) -->
 <script setup lang="ts">
-import { useQuery } from 'effector-query/vue';
+import { useQuery } from 'effector-refetch/vue';
 const { data, isPending, isDone, start } = useQuery(userQuery);
 </script>
 ```

@@ -58,16 +58,16 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 0.7 — Framework bindings & DX
 
 - [x] `@@unitShape` support for direct `useUnit(query)` (React + Vue)
-- [x] React `useQuery` (`effector-query/react`) and Vue `useQuery` (`effector-query/vue`) helpers with derived flags
+- [x] React `useQuery` (`effector-refetch/react`) and Vue `useQuery` (`effector-refetch/vue`) helpers with derived flags
 - [x] Devtools labelling: `name` config labels the public units (`<name>.start`, `<name>.$data`, `<name>.runFx`, …)
-- [ ] Solid binding (`effector-query/solid` via `effector-solid`) — deferred: needs vite-plugin-solid + a separate JSX runtime that conflicts with the React/Vue plugins in one vitest config; will land with its own test project
+- [ ] Solid binding (`effector-refetch/solid` via `effector-solid`) — deferred: needs vite-plugin-solid + a separate JSX runtime that conflicts with the React/Vue plugins in one vitest config; will land with its own test project
 
 ### 0.8 — Devtools & introspection
 
 - [x] Lifecycle event stream `query.__.inspect` (`start / run / done / fail / aborted / cacheHit / cacheMiss / retry`)
 - [x] `attachQueryLogger(query, { name, handler })` — structured, timed log entries (per-run `durationMs`); default logs to console, custom handler forwards anywhere
 - [x] Public-unit labelling via `name` (start/$data/$status/runFx + inspect.\* units)
-- [x] Visual devtools panel (TanStack-style) — `EffectorQueryDevtools` (`effector-query/devtools`, React): live status, params, data, error, per-query event log; docs page with a visual mock
+- [x] Visual devtools panel (TanStack-style) — `EffectorQueryDevtools` (`effector-refetch/devtools`, React): live status, params, data, error, per-query event log; docs page with a visual mock
 - [x] `debug` flag — label the public/inspect units for the inspector even without a `name`
 - [x] `@effector/inspector` / logging recipe page
 - [ ] Deep labelling of every internal unit (lookup/retry/concurrency seams) — needs a domain-based pass

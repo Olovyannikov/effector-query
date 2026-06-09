@@ -1,5 +1,5 @@
 ---
-'effector-query': minor
+'effector-refetch': minor
 ---
 
 Automatic refetching (1.1): `refetchInterval` polling option on `createQuery`

@@ -1,4 +1,4 @@
-# effector-query
+# effector-refetch
 
 📖 **Docs:** https://olovyannikov.github.io/effector-query/ · 🗺️ [Roadmap](./ROADMAP.md)
 
@@ -7,7 +7,7 @@ A small, friendly query layer for [effector](https://effector.dev), built on **r
 The unit of work is your own `Effect<Params, Result, Error>` (including `attach`-built factory effects) — the query is just a thin reactive shell around it. `retry`, `cache` and `concurrency` are inline options on `createQuery`, not separate operators.
 
 ```ts
-import { createQuery, connectQuery } from 'effector-query';
+import { createQuery, connectQuery } from 'effector-refetch';
 
 const characterQuery = createQuery({
   effect: fetchCharacterFx, // a real effector Effect
@@ -83,7 +83,7 @@ options above are just sugar that applies them. Use them directly to compose or 
 configure a query built elsewhere:
 
 ```ts
-import { createQuery, concurrency, retry, cache } from 'effector-query';
+import { createQuery, concurrency, retry, cache } from 'effector-refetch';
 
 const search = createQuery({ effect: searchFx });
 concurrency(search, { strategy: 'TAKE_LATEST' });
@@ -111,7 +111,7 @@ concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias.
 Concurrency defaults to `TAKE_EVERY` so independent writes don't cancel each other.
 
 ```ts
-import { createMutation, invalidate } from 'effector-query';
+import { createMutation, invalidate } from 'effector-refetch';
 
 const addTodo = createMutation({ effect: addTodoFx, retry: 2 });
 
@@ -134,7 +134,7 @@ A `Mutation` exposes `{ start, mutate, reset, cancel, $data, $error, $status, $p
 Patch a query's `$data` directly from a mutation result — no refetch:
 
 ```ts
-import { update, optimisticUpdate } from 'effector-query';
+import { update, optimisticUpdate } from 'effector-refetch';
 
 update({ query: todosQuery, on: addTodo, fn: ({ data, result }) => [...(data ?? []), result] });
 ```
@@ -161,7 +161,7 @@ with `status` / `data`):
 ```ts
 import { ofetch } from 'ofetch';
 import axios from 'axios';
-import { createRequestFx, createQuery, createMutation } from 'effector-query';
+import { createRequestFx, createQuery, createMutation } from 'effector-refetch';
 
 // ofetch
 const getPostsFx = createRequestFx<{ userId: number }, Post[]>(({ userId }, { signal }) =>
@@ -230,7 +230,7 @@ Validate a response against a schema; a failure becomes a `ValidationError`
 (retryable like any other failure):
 
 ```ts
-import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-query';
+import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-refetch';
 
 createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
@@ -247,7 +247,7 @@ Cursor/offset pagination that accumulates pages. `start` loads the first page
 (resetting), `fetchNext` appends the next one — driven by `getNextPageParam`:
 
 ```ts
-import { createInfiniteQuery } from 'effector-query';
+import { createInfiniteQuery } from 'effector-refetch';
 
 const feed = createInfiniteQuery({
   effect: fetchPageFx, // Effect<{ params, pageParam }, Page>
@@ -271,7 +271,7 @@ abort-aware cancellation, normalized `RequestError`, optional contract, and all 
 usual options:
 
 ```ts
-import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-query';
+import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-refetch';
 
 export const getProductsQuery = createJsonQuery({
   request: { url: 'https://api/products', query: ({ search }) => ({ search, limit: 20 }) },
@@ -314,16 +314,16 @@ There are also thin `useQuery` helpers that add derived booleans
 (`isInitial / isPending / isDone / isFail`):
 
 ```tsx
-// React — effector-query/react
-import { useQuery } from 'effector-query/react';
+// React — effector-refetch/react
+import { useQuery } from 'effector-refetch/react';
 const { data, isPending, isFail, error, start, refetch } = useQuery(userQuery);
 useEffect(() => start(id), [id]); // queries never auto-start
 ```
 
 ```vue
-<!-- Vue — effector-query/vue (returns refs) -->
+<!-- Vue — effector-refetch/vue (returns refs) -->
 <script setup lang="ts">
-import { useQuery } from 'effector-query/vue';
+import { useQuery } from 'effector-refetch/vue';
 const { data, isPending, isDone, start } = useQuery(userQuery);
 </script>
 ```
@@ -348,7 +348,7 @@ Every query exposes a lifecycle event stream at `query.__.inspect`
 `attachQueryLogger` turns it into structured, timed log entries:
 
 ```ts
-import { attachQueryLogger } from 'effector-query';
+import { attachQueryLogger } from 'effector-refetch';
 
 const stop = attachQueryLogger(todos, { name: 'todos' });
 // → { query: 'todos', type: 'run', params, attempt: 0 }
@@ -383,9 +383,9 @@ expect(scope.getState(originQuery.$data)).toBeTruthy();
 
 ## vs. farfetched
 
-[farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is still **pre-1.0**, the original "1.0 by end of 2024" target has slipped well past, the last release was **0.15.0 (Jan 2026)**, and the issue backlog keeps growing. effector-query exists to be the **maintained, effect-first** option with a smaller, friendlier surface and a committed road to 1.0 — not to claim farfetched is dead.
+[farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is still **pre-1.0**, the original "1.0 by end of 2024" target has slipped well past, the last release was **0.15.0 (Jan 2026)**, and the issue backlog keeps growing. effector-refetch exists to be the **maintained, effect-first** option with a smaller, friendlier surface and a committed road to 1.0 — not to claim farfetched is dead.
 
-|                             | farfetched                                                           | effector-query                                                      |
+|                             | farfetched                                                           | effector-refetch                                                    |
 | --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | unit of work                | internal event-based Executor; query is a self-contained abstraction | your real `Effect` is first-class; query wraps it                   |
 | primary input               | `handler` (wrapped internally); `effect` is one path                 | `effect` is the main input; `handler` is sugar                      |
@@ -396,7 +396,7 @@ expect(scope.getState(originQuery.$data)).toBeTruthy();
 | SSR / tests                 | fork-friendly                                                        | fork-friendly                                                       |
 | status                      | pre-1.0, slowed cadence                                              | pre-1.0, actively building toward 1.0                               |
 
-**Honest trade-off.** _Today_ farfetched ships more batteries — contracts, `createJsonQuery`, sourced configuration, request dedupe, cache adapters with GC, mutations. effector-query is currently simpler and closer to bare effector ("I already have an effect, wrap it"). We treat farfetched's extra surface as our [roadmap](./ROADMAP.md), not as a reason to depend on a stalling library. If you need those batteries _right now_, farfetched still has them; if you want an effect-first API on a project that intends to be maintained, use this.
+**Honest trade-off.** _Today_ farfetched ships more batteries — contracts, `createJsonQuery`, sourced configuration, request dedupe, cache adapters with GC, mutations. effector-refetch is currently simpler and closer to bare effector ("I already have an effect, wrap it"). We treat farfetched's extra surface as our [roadmap](./ROADMAP.md), not as a reason to depend on a stalling library. If you need those batteries _right now_, farfetched still has them; if you want an effect-first API on a project that intends to be maintained, use this.
 
 ## Status
 

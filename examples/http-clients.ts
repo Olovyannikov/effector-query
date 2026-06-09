@@ -71,7 +71,7 @@ async function main() {
   const initial = scope.getState(postsQuery.$data);
   console.log('loaded posts:', initial?.length);
 
-  await allSettled(addPost.mutate, { scope, params: { userId: 1, title: 'Hello effector-query' } });
+  await allSettled(addPost.mutate, { scope, params: { userId: 1, title: 'Hello effector-refetch' } });
   const after = scope.getState(postsQuery.$data);
   console.log('after create — first title:', after?.[0]?.title);
   console.log('mutation status:', scope.getState(addPost.$status));

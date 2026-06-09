@@ -68,7 +68,7 @@ const clearLog = () => (log.value = []);
 
     <div class="eqd__panel">
       <div class="eqd__head">
-        <strong style="color: #ffd8a8">effector-query</strong>
+        <strong style="color: #ffd8a8">effector-refetch</strong>
         <span style="color: #868e96; margin-left: 6px">devtools</span>
       </div>
       <div class="eqd__body">

@@ -6,7 +6,7 @@ Wrap any HTTP client into a typed, abort-aware effector effect with normalized e
 
 ```ts
 import { ofetch } from 'ofetch';
-import { createRequestFx, createQuery } from 'effector-query';
+import { createRequestFx, createQuery } from 'effector-refetch';
 
 const getUserFx = createRequestFx<{ id: number }, User>(({ id }, { signal }) =>
   ofetch(`/api/users/${id}`, { signal }),
@@ -23,7 +23,7 @@ Errors are normalized to `RequestError` (`status`, `data`).
 Declarative endpoint over the global `fetch` (no HTTP-client dependency):
 
 ```ts
-import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-query';
+import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-refetch';
 
 export const getProductsQuery = createJsonQuery({
   request: { url: 'https://api/products', query: ({ search }) => ({ search, limit: 20 }) },
@@ -46,7 +46,7 @@ plus all the usual query options.
 Validate a response against a schema; a failure becomes a **retryable** `ValidationError`:
 
 ```ts
-import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-query';
+import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-refetch';
 
 createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype

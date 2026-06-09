@@ -169,7 +169,7 @@ export interface EffectorQueryDevtoolsProps {
 /**
  * A floating devtools panel (TanStack-style) listing queries with live status,
  * params, data, error and a per-query event log. React-only — import from
- * `effector-query/devtools`. Scope-aware via effector-react's `<Provider>`.
+ * `effector-refetch/devtools`. Scope-aware via effector-react's `<Provider>`.
  */
 export function EffectorQueryDevtools({
   queries,
@@ -241,7 +241,7 @@ export function EffectorQueryDevtools({
             borderBottom: '1px solid #2b2c30',
           }}
         >
-          <strong style={{ color: '#ffd8a8' }}>effector-query</strong>
+          <strong style={{ color: '#ffd8a8' }}>effector-refetch</strong>
           <span style={{ marginLeft: 8, color: '#868e96' }}>devtools</span>
           <button
             type="button"

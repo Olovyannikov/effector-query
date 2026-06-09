@@ -28,7 +28,7 @@ Every query exposes `query.__.inspect` — effector events you can subscribe to:
 Turn the stream into structured, timed log entries:
 
 ```ts
-import { attachQueryLogger } from 'effector-query';
+import { attachQueryLogger } from 'effector-refetch';
 
 const stop = attachQueryLogger(todos, { name: 'todos' });
 // → { query: 'todos', type: 'run', params, attempt: 0 }

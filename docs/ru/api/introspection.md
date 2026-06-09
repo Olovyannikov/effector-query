@@ -28,7 +28,7 @@ const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
 Превращает поток в структурные записи с замером времени:
 
 ```ts
-import { attachQueryLogger } from 'effector-query';
+import { attachQueryLogger } from 'effector-refetch';
 
 const stop = attachQueryLogger(todos, { name: 'todos' });
 // → { query: 'todos', type: 'run', params, attempt: 0 }

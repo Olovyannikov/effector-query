@@ -1,10 +1,10 @@
 # Shared defaults (query factory)
 
-effector-query has no global `QueryClient`. Instead, bake shared policy into a factory
+effector-refetch has no global `QueryClient`. Instead, bake shared policy into a factory
 with `createQueryFactory` — per-call options always override the defaults.
 
 ```ts
-import { createQueryFactory } from 'effector-query';
+import { createQueryFactory } from 'effector-refetch';
 
 const { createQuery, createMutation } = createQueryFactory({
   retry: 2,

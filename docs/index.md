@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: effector-query
+  name: effector-refetch
   text: Data fetching that flows
   tagline: Queries, mutations, caching and pagination for effector — built on your real effects, not a black box. Friendly defaults, honest trade-offs, fork-ready for SSR.
   actions:
@@ -10,7 +10,7 @@ hero:
       text: Get started
       link: /guide/getting-started
     - theme: alt
-      text: Why effector-query?
+      text: Why effector-refetch?
       link: /guide/introduction
     - theme: alt
       text: GitHub
@@ -41,7 +41,7 @@ features:
 
 ```ts
 import { createEffect } from 'effector';
-import { createQuery, createMutation, invalidate } from 'effector-query';
+import { createQuery, createMutation, invalidate } from 'effector-refetch';
 
 const fetchTodosFx = createEffect(() => fetch('/api/todos').then((r) => r.json()));
 const addTodoFx = createEffect((text: string) =>
@@ -66,7 +66,7 @@ const { data, pending } = useUnit(todos); // React or Vue
 
 ## Why not just use effects directly?
 
-You can — and you still are. effector-query doesn't replace your effects; it wires the
+You can — and you still are. effector-refetch doesn't replace your effects; it wires the
 boring, fiddly parts around them: loading/error status, retries, caching, request
 cancellation, deduplication, validation. Your effect stays a first-class effector unit
 you can see in devtools and test with `fork()`.

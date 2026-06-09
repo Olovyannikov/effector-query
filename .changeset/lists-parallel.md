@@ -1,5 +1,5 @@
 ---
-'effector-query': minor
+'effector-refetch': minor
 ---
 
 Lists & parallelism (1.4):

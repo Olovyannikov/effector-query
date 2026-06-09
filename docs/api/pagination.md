@@ -6,7 +6,7 @@ Cursor/offset pagination that accumulates pages. `start` loads the first page
 (resetting), `fetchNext` appends the next — driven by `getNextPageParam`.
 
 ```ts
-import { createInfiniteQuery } from 'effector-query';
+import { createInfiniteQuery } from 'effector-refetch';
 
 const feed = createInfiniteQuery({
   effect: fetchPageFx, // Effect<{ params, pageParam }, Page>
@@ -48,7 +48,7 @@ Exposes `$hasPreviousPage` alongside `$hasNextPage`.
 Aggregate several independent queries into combined stores (the effector-flavored `useQueries`):
 
 ```ts
-import { combineQueries } from 'effector-query';
+import { combineQueries } from 'effector-refetch';
 
 const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([userQuery, postsQuery]);
 // $data: [User | null, Post[] | null]   $pending: any in flight   $isSuccess: all done

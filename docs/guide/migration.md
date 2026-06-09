@@ -5,7 +5,7 @@
 The mental model is close, so most code maps directly. The main shift: **bring your own
 effect**, and inline options are available alongside operators.
 
-| farfetched                             | effector-query                                                       |
+| farfetched                             | effector-refetch                                                     |
 | -------------------------------------- | -------------------------------------------------------------------- |
 | `createQuery({ handler })`             | `createQuery({ effect })` (or `{ handler }`)                         |
 | `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                             |
