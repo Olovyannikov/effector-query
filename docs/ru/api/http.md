@@ -20,7 +20,7 @@ const userQuery = createQuery({ effect: getUserFx, cache: true });
 
 Это просто эффект — внутри работает что угодно: multipart **FormData**-загрузки
 ([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
-**GraphQL** (POST `{ query, variables }`, [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)),
+**GraphQL** (POST `{ query, variables }` — см. [рецепт GraphQL](/ru/recipes/graphql)),
 или стриминг ([SSE и WebSocket](/ru/recipes/streaming)).
 
 ## createJsonQuery

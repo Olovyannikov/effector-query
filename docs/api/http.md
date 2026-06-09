@@ -20,7 +20,7 @@ Errors are normalized to `RequestError` (`status`, `data`).
 
 It's just an effect, so anything works inside: multipart **FormData** uploads
 ([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
-**GraphQL** (POST `{ query, variables }`, [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)),
+**GraphQL** (POST `{ query, variables }` — see the [GraphQL recipe](/recipes/graphql)),
 or streaming updates ([SSE & WebSocket](/recipes/streaming)).
 
 ## createJsonQuery
