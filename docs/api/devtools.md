@@ -57,7 +57,15 @@ event log update (with retry on failure):
 
 <DevtoolsDemo />
 
-Collapsed, the real panel is a small `⚡ queries (N)` pill in the corner; click to expand.
+### Multiple queries
+
+The same panel, embedded inline (like TanStack's `DevtoolsPanel`), inspecting **several real
+queries at once**. Pick a query in the left tab list, then drive it — each tab keeps its own
+status, params, data, error and log:
+
+<DevtoolsWidget />
+
+Collapsed, the floating panel is a small `⚡ queries (N)` pill in the corner; click to expand.
 
 - A colored dot per query: grey `initial`, amber `pending`, green `done`, red `fail`.
 - The detail pane shows **params**, **data** and **error** as JSON, plus a live **log**
