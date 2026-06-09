@@ -1,0 +1,32 @@
+{
+  "name": "effector-refetch-codemod",
+  "version": "0.1.0",
+  "description": "Codemod: migrate farfetched (@farfetched/core) usage to effector-refetch — rewrites imports and folds retry/cache/concurrency operators into the inline createQuery config.",
+  "keywords": [
+    "effector",
+    "farfetched",
+    "effector-refetch",
+    "codemod",
+    "migration",
+    "ts-morph"
+  ],
+  "homepage": "https://olovyannikov.github.io/effector-query/guide/migration",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Olovyannikov/effector-query.git",
+    "directory": "codemod"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "effector-refetch-codemod": "./bin.mjs"
+  },
+  "files": [
+    "bin.mjs",
+    "transform.mjs",
+    "README.md"
+  ],
+  "dependencies": {
+    "ts-morph": "^28.0.0"
+  }
+}

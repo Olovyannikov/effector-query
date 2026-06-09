@@ -86,7 +86,7 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 1.0 — Stabilize
 
 - [x] Migration guide (from farfetched and within 0.x) — `docs/guide/migration`
-- [ ] Migration codemod: farfetched → effector-refetch (`createQuery`/`createMutation`/`connectQuery`/operators → inline config; ship as `npx effector-refetch-codemod`, jscodeshift/ts-morph)
+- [x] Migration codemod: farfetched → effector-refetch — `codemod/` package (ts-morph): rewrites `@farfetched/core` imports and folds `retry`/`cache`/`concurrency` operators into the inline `createQuery` config; runnable as `npx effector-refetch-codemod "src/**/*.ts"`, tested. (Publish-ready as its own package.)
 - [x] Bundle-size budget (`size-limit`, core ~5.5 kB), `sideEffects: false` tree-shaking, ESM/CJS builds + typed `exports`
 - [x] CI: typecheck / tests / build / size-limit (`ci.yml`); release automation via changesets (`release.yml` + `.changeset/`)
 - [x] Normalized list updates from mutations — `update`/`optimisticUpdate` recipe + spec (`docs/recipes/list-updates`)

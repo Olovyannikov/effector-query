@@ -1,5 +1,20 @@
 # Migration
 
+## Codemod (automated)
+
+A codemod handles the mechanical parts — rewriting imports and folding the standalone operators
+into the inline `createQuery` config:
+
+```bash
+npx effector-refetch-codemod "src/**/*.{ts,tsx}"
+npx effector-refetch-codemod "src/**/*.ts" --dry   # preview only
+```
+
+It rewrites `@farfetched/core` → `effector-refetch`, turns `retry(q, …)` / `cache(q, …)` /
+`concurrency(q, { strategy })` into `createQuery({ retry, cache, concurrency })`, and drops the
+now-unused operator imports. Operators on a query it can't resolve statically are left as-is —
+review the diff and run your formatter after. The manual mapping below covers the rest.
+
 ## From farfetched
 
 The mental model is close, so most code maps directly. The main shift: **bring your own
