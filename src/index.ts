@@ -25,7 +25,12 @@ export {
 export { combineQueries, type CombinedQueries } from './combine-queries';
 export { connectQuery } from './connect-query';
 export { concurrency, retry, cache } from './operators';
-export { refetchOnWindowFocus, refetchOnReconnect } from './browser';
+export {
+  refetchOnWindowFocus,
+  refetchOnReconnect,
+  createNetworkBarrier,
+  type NetworkBarrier,
+} from './browser';
 export { createBarrier, type Barrier, type CreateBarrierConfig } from './barrier';
 export { invalidate, type InvalidateConfig } from './invalidate';
 export {

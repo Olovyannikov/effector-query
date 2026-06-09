@@ -137,7 +137,7 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 ### 1.5 — Framework integration
 
 - [x] React Suspense binding (`useSuspenseQuery`) — auto-starts, suspends while loading, throws to the nearest Error Boundary on failure, returns data when done (client-side / CSR)
-- [ ] Network mode / offline: pause runs when offline, resume on reconnect
+- [x] Network mode / offline: `createNetworkBarrier()` locks while offline (pauses gated runs), unlocks on reconnect; exposes `$online`. Pairs with `refetchOnReconnect`
 - [ ] Vue & Solid devtools parity
 
 ### Deliberately not copied

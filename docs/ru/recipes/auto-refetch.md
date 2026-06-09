@@ -34,6 +34,29 @@ const stop2 = refetchOnReconnect(userQuery);
 включён. Они читают no-scope-стор, поэтому рассчитаны на одно-клиентское приложение; для
 scope-приложений дёргайте `query.refetch` сами через `scopeBind`.
 
+## Offline / сетевой режим
+
+`createNetworkBarrier()` — это [barrier](/ru/recipes/auth-barrier), который **блокируется, пока
+браузер офлайн**, и разблокируется при реконнекте. Подключите его к запросам — и их прогоны
+встают на паузу при потере сети, а затем сами продолжаются при её возврате, без обвязки на
+каждый запрос:
+
+```ts
+import { createNetworkBarrier, refetchOnReconnect } from 'effector-refetch';
+
+const offline = createNetworkBarrier();
+
+const userQuery = createQuery({ effect: fetchUserFx, barrier: offline });
+// или на всю группу: createQueryFactory({ barrier: offline })
+
+offline.$online; // Store<boolean> — для баннера «вы офлайн»
+refetchOnReconnect(userQuery); // опционально: ещё и обновить уже загруженные данные
+offline.stop(); // отвязать слушатели online/offline при размонтировании
+```
+
+Прогон, запущенный офлайн, висит в `pending` (тело эффекта не вызывается), пока сеть не вернётся.
+Только браузер — на сервере барьер остаётся открытым (онлайн).
+
 ## Композиция с patronum
 
 Триггеры запроса — обычные события effector, поэтому их можно гонять любым оператором

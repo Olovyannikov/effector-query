@@ -35,6 +35,28 @@ Both refetch with the query's last params, only if it has run and is enabled. Th
 the no-scope store, so they're meant for a single-client app; for scoped apps, drive
 `query.refetch` yourself with `scopeBind`.
 
+## Offline / network mode
+
+`createNetworkBarrier()` is a [barrier](/recipes/auth-barrier) that **locks while the browser is
+offline** and unlocks on reconnect. Gate queries with it and their runs pause when the connection
+drops, then resume automatically when it returns — no per-query wiring:
+
+```ts
+import { createNetworkBarrier, refetchOnReconnect } from 'effector-refetch';
+
+const offline = createNetworkBarrier();
+
+const userQuery = createQuery({ effect: fetchUserFx, barrier: offline });
+// or apply it to a whole group: createQueryFactory({ barrier: offline })
+
+offline.$online; // Store<boolean> — drive an "offline" banner
+refetchOnReconnect(userQuery); // optional: also refresh already-loaded data
+offline.stop(); // detach the online/offline listeners on teardown
+```
+
+A run started while offline sits in `pending` (the effect body isn't entered) until the network
+returns. Browser-only — on the server the barrier stays open (online).
+
 ## Compose with patronum
 
 A query's triggers are plain effector events, so you can drive them with any
