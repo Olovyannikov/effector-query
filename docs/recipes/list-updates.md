@@ -40,5 +40,22 @@ optimisticUpdate({
 });
 ```
 
-For a paginated list (`createInfiniteQuery`), patch within `$pages` the same way —
-map over the page that contains the item.
+## Paginated lists (`createInfiniteQuery`)
+
+`update` / `optimisticUpdate` accept an infinite query too — there `data` is the **array of
+pages**, so map over the pages and patch the item in place (no refetch, no flicker):
+
+```ts
+update({
+  query: todosInfinite, // createInfiniteQuery(...)
+  on: toggleTodoMutation,
+  fn: ({ data: pages, result: id }) =>
+    (pages ?? []).map((page) => ({
+      ...page,
+      items: page.items.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+    })),
+});
+```
+
+The same shape works with `optimisticUpdate` (its `update`/`commit` callbacks also receive the
+page array). Patches go through the query's `__.setData` seam, so they're scope-correct.

@@ -40,5 +40,22 @@ optimisticUpdate({
 });
 ```
 
-Для постраничного списка (`createInfiniteQuery`) патчите внутри `$pages` тем же способом —
-мапьте по странице, где лежит элемент.
+## Постраничные списки (`createInfiniteQuery`)
+
+`update` / `optimisticUpdate` принимают и infinite-запрос — там `data` это **массив страниц**,
+поэтому мапьте по страницам и патчите элемент на месте (без рефетча и мигания):
+
+```ts
+update({
+  query: todosInfinite, // createInfiniteQuery(...)
+  on: toggleTodoMutation,
+  fn: ({ data: pages, result: id }) =>
+    (pages ?? []).map((page) => ({
+      ...page,
+      items: page.items.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+    })),
+});
+```
+
+Та же форма работает с `optimisticUpdate` (его колбэки `update`/`commit` тоже получают массив
+страниц). Патчи идут через шов `__.setData`, поэтому scope-корректны.

@@ -36,6 +36,7 @@ export { invalidate, type InvalidateConfig } from './invalidate';
 export {
   update,
   optimisticUpdate,
+  type Patchable,
   type UpdateFromOperation,
   type UpdateFromEvent,
   type OptimisticUpdateConfig,

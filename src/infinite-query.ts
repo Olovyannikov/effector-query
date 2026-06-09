@@ -78,6 +78,9 @@ export interface InfiniteQuery<Params, PageParam, Page, Error = unknown> {
     fail: Event<{ params: Params; error: Error }>;
   };
 
+  /** Write seam for `update`/`optimisticUpdate` — patches the accumulated pages. */
+  __: { setData: EventCallable<Page[] | null> };
+
   '@@unitShape': () => {
     pages: Store<Page[]>;
     data: Store<Page[]>;
@@ -138,6 +141,8 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
   const fetchNext = createEvent<void>();
   const fetchPrevious = createEvent<void>();
   const reset = createEvent<void>();
+  // write seam for update()/optimisticUpdate(): patch the accumulated pages
+  const setData = createEvent<Page[] | null>();
 
   const $params = createStore<Params | null>(null)
     .on(start, (_p, params) => params)
@@ -200,6 +205,7 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
         hasPreviousPage: prev != null,
       };
     })
+    .on(setData, (state, pages) => ({ ...state, pages: pages ?? [] }))
     .reset([reset, start]);
 
   const $pages = $infinite.map((s) => s.pages);
@@ -270,6 +276,8 @@ export function createInfiniteQuery<Params, PageParam, Page, Error = unknown>(
     $params,
 
     finished: { done: finishedDone, fail: finishedFail },
+
+    __: { setData },
 
     '@@unitShape': () => ({
       pages: $pages,

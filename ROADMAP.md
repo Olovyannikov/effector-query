@@ -53,7 +53,7 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 ### 0.6 — Lists & pagination
 
 - [x] `createInfiniteQuery` — cursor/offset pagination, `start` + `fetchNext`, `getNextPageParam`, `$pages`/`$hasNextPage`, built on `createQuery`
-- [ ] Normalized list updates from mutations (patch a page item in place via `update`/optimistic)
+- [x] Normalized list updates from mutations (patch a page item in place via `update`/optimistic) — `update`/`optimisticUpdate` accept an `InfiniteQuery` (`data` = page array), patched through `__.setData`
 
 ### 0.7 — Framework bindings & DX
 
