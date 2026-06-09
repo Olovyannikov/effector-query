@@ -11,7 +11,7 @@ Full documentation as plain text: [llms-full.txt](https://olovyannikov.github.io
 - [Getting started](https://olovyannikov.github.io/effector-query/guide/getting-started.html): This page gets you from zero to a working query in a couple of minutes. For the _why_, read the [Introduction](/guide/introduction) first.
 - [Introduction](https://olovyannikov.github.io/effector-query/guide/introduction.html): Almost every app does the same dance around data: kick off a request, track whether it's loading, catch the error, show the result. Then reality piles on — the user double-clicks, a second request rac
 - [LLMs & AI agents](https://olovyannikov.github.io/effector-query/guide/llms.html): effector-refetch ships machine-readable docs and an installable agent skill, so AI coding agents write idiomatic, fork-correct code with the library.
-- [Migration](https://olovyannikov.github.io/effector-query/guide/migration.html): The mental model is close, so most code maps directly. The main shift: **bring your own effect**, and inline options are available alongside operators.
+- [Migration](https://olovyannikov.github.io/effector-query/guide/migration.html): A codemod handles the mechanical parts — rewriting imports and folding the standalone operators into the inline `createQuery` config:
 - [vs. farfetched](https://olovyannikov.github.io/effector-query/guide/vs-farfetched.html): [farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is s
 
 ## API
