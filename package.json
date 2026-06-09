@@ -85,8 +85,9 @@
     "size": "size-limit",
     "changeset": "changeset",
     "release": "pnpm run build && pnpm publish --no-git-checks",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "docs:llms": "node scripts/gen-llms.mjs",
+    "docs:dev": "node scripts/gen-llms.mjs && vitepress dev docs",
+    "docs:build": "node scripts/gen-llms.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "peerDependencies": {

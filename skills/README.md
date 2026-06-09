@@ -4,7 +4,19 @@ A [Claude Code Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) 
 agents how to use **effector-refetch** correctly — the effect-first API, the bindings, and the
 fork-correct idioms that are easy to get wrong.
 
-## Install into your project
+## Install with the `skills` CLI (recommended)
+
+Using [vercel-labs/skills](https://github.com/vercel-labs/skills) (works with Claude Code and 70+
+other agents):
+
+```bash
+npx skills add Olovyannikov/effector-query            # add to your project's agents
+npx skills add Olovyannikov/effector-query --list     # preview first
+npx skills add Olovyannikov/effector-query -a claude-code  # a specific agent
+npx skills add Olovyannikov/effector-query -g         # global (all your projects)
+```
+
+## Install manually
 
 Copy the skill folder into your project's `.claude/skills/`:
 
