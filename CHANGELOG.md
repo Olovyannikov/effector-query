@@ -1,5 +1,19 @@
 # effector-query
 
+## 0.5.0
+
+### Minor Changes
+
+- 2dc9292: Solid binding — `useQuery` from `effector-refetch/solid` (via `effector-solid`), at parity with
+  the React/Vue bindings. Returns Solid accessors (`data()`, `status()`, `isPending()`, …) plus
+  scope-bound triggers (`start`/`refresh`/`refetch`/`reset`/`cancel`); scope-aware via
+  effector-solid's `<Provider>`. The binding contains no JSX, so it needs no extra build/test
+  plugin. `effector-solid` + `solid-js` are optional peers.
+- 15da7ee: React Suspense — `useSuspenseQuery` from `effector-refetch/react`. Returns the data directly
+  (never null): auto-starts the query, suspends the nearest `<Suspense>` while loading, throws to
+  the nearest Error Boundary on failure, and returns the data when done. Client-side (CSR): reads
+  and triggers are scope-aware, the settle signal is observed globally.
+
 ## 0.4.0
 
 ### Minor Changes
