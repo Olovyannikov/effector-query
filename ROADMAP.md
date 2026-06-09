@@ -90,8 +90,9 @@ queries, devtools, SSR via `fork`/`allSettled`, validation, declarative HTTP (`c
 What's missing, planned as effector-flavored features (post-1.0, order TBD):
 
 ### 1.1 — Automatic refetching
-- [ ] Polling: `refetchInterval` (number | `Store<number>` | fn), paused while disabled/offline
-- [ ] `refetchOnWindowFocus` / `refetchOnReconnect` — opt-in, tree-shakeable browser triggers
+- [x] Polling: `refetchInterval` (number | `Store<number>`), paused while disabled, stops on reset, fork-correct
+- [x] `refetchOnWindowFocus` / `refetchOnReconnect` — opt-in, tree-shakeable browser operators
+- [x] Recipe: composing with patronum (`interval` / `debounce` / `throttle`) since triggers are plain events
 - [ ] Refetch-stale-on-subscribe helper for the bindings (TanStack's `refetchOnMount`)
 
 ### 1.2 — Data UX

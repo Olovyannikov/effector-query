@@ -26,6 +26,7 @@ const query = createQuery({
 - **`retry`** — `number` или `{ times, delay?, filter?, suppressIntermediateErrors? }`. Каждый ретрай — реальный вызов эффекта. Хелперы: `linearDelay`, `exponentialDelay`.
 - **`cache`** — `true` или конфиг (см. [кэширование](#кэширование)).
 - **`enabled`** — гейт `Store<boolean>`; пока `false`, `start`/`refresh` пропускаются.
+- **`refetchInterval`** — поллинг каждые N мс (`number` или `Store<number>`, 0 = выкл). См. [Авто-рефетч и поллинг](/ru/recipes/auto-refetch).
 - **`mapData` / `mapError`** — нормализация результата / ошибки перед сторами.
 
 ## Операторы

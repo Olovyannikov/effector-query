@@ -82,6 +82,8 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
   cache?: boolean | CacheConfig<Params>;
   /** Inline accepts a reactive `Store<ConcurrencyStrategy>`. */
   concurrency?: ConcurrencyStrategy | Store<ConcurrencyStrategy>;
+  /** Poll: refetch every N ms after each settle, while enabled and started. `Store<number>` is reactive. 0 = off. */
+  refetchInterval?: number | Store<number>;
 
   /** Prefix for unit names (devtools). */
   name?: string;

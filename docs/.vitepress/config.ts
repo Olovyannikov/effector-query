@@ -32,6 +32,7 @@ const enSidebar = {
       text: 'Recipes',
       items: [
         { text: 'SSR & testing', link: '/recipes/ssr-and-testing' },
+        { text: 'Auto-refetch & polling', link: '/recipes/auto-refetch' },
         { text: 'Optimistic updates', link: '/recipes/optimistic' },
         { text: 'List updates', link: '/recipes/list-updates' },
         { text: 'Shared request factory', link: '/recipes/shared-factory' },
@@ -73,6 +74,7 @@ const ruSidebar = {
       text: 'Рецепты',
       items: [
         { text: 'SSR и тесты', link: '/ru/recipes/ssr-and-testing' },
+        { text: 'Авто-рефетч и поллинг', link: '/ru/recipes/auto-refetch' },
         { text: 'Оптимистичные апдейты', link: '/ru/recipes/optimistic' },
         { text: 'Апдейты списков', link: '/ru/recipes/list-updates' },
         { text: 'Общая фабрика запросов', link: '/ru/recipes/shared-factory' },

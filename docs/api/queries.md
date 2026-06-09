@@ -26,6 +26,7 @@ const query = createQuery({
 - **`retry`** — `number` or `{ times, delay?, filter?, suppressIntermediateErrors? }`. Each retry is a real effect call. Helpers: `linearDelay`, `exponentialDelay`.
 - **`cache`** — `true` or a config (see [caching](#caching)).
 - **`enabled`** — `Store<boolean>` gate; while `false`, `start`/`refresh` are skipped.
+- **`refetchInterval`** — poll every N ms (`number` or `Store<number>`, 0 = off). See [Auto-refetch & polling](/recipes/auto-refetch).
 - **`mapData` / `mapError`** — normalize result / error before the stores.
 
 ## Operators

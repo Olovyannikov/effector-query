@@ -16,6 +16,7 @@ export {
 } from './infinite-query';
 export { connectQuery } from './connect-query';
 export { concurrency, retry, cache } from './operators';
+export { refetchOnWindowFocus, refetchOnReconnect } from './browser';
 export { invalidate, type InvalidateConfig } from './invalidate';
 export {
   update,

@@ -3,6 +3,7 @@ import {
   createEffect,
   createEvent,
   createStore,
+  is,
   merge,
   sample,
   type Effect,
@@ -73,6 +74,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     sourced.strategy ?? createStore<ConcurrencyStrategy | null>(null);
   const $retryTimesSrc: Store<number | null> = sourced.retryTimes ?? createStore<number | null>(null);
   const $staleAfterSrc: Store<number | null> = sourced.staleAfter ?? createStore<number | null>(null);
+  const $intervalMs: Store<number> = is.store(config.refetchInterval)
+    ? (config.refetchInterval as Store<number>)
+    : createStore(typeof config.refetchInterval === 'number' ? config.refetchInterval : 0);
 
   let strategyConst: ConcurrencyStrategy = 'TAKE_LATEST';
   let retryTimesConst = 0;
@@ -440,6 +444,36 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
   sample({ clock: finishedDone, fn: ({ params }) => ({ params, status: 'done' as const }), target: finishedFinally });
   sample({ clock: finishedFail, fn: ({ params }) => ({ params, status: 'fail' as const }), target: finishedFinally });
+
+  // ---- polling (refetchInterval) ----
+  // After each settle, if interval > 0 and enabled, wait then refresh with last params.
+  // A token ($pollId) ensures a single live timer (no doubling) and lets reset stop it.
+  const $pollId = createStore(0);
+  const pollSleepFx = createEffect<
+    { ms: number; payload: { id: number; params: Params | null } },
+    { id: number; params: Params | null }
+  >(({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)));
+
+  const pollScheduled = sample({
+    clock: merge([finishedDone, finishedFail]),
+    source: { id: $pollId, ms: $intervalMs, en: $enabled, params: $params, status: $status },
+    filter: ({ ms, en, status }) => ms > 0 && en && status !== 'initial',
+    fn: ({ id, ms, params }) => ({ id: id + 1, ms, params }),
+  });
+  $pollId.on(pollScheduled, (_i, s) => s.id);
+  $pollId.on(reset, (i) => i + 1); // invalidate any pending poll
+  sample({
+    clock: pollScheduled,
+    fn: (s) => ({ ms: s.ms, payload: { id: s.id, params: s.params } }),
+    target: pollSleepFx,
+  });
+  sample({
+    clock: pollSleepFx.doneData,
+    source: { id: $pollId, en: $enabled, ms: $intervalMs },
+    filter: ({ id, en, ms }, p) => en && ms > 0 && p.id === id,
+    fn: (_s, p) => p.params as Params,
+    target: refresh,
+  });
 
   // ---- introspection (devtools / logger) ----
   const inspectStart = createEvent<{ params: Params }>(evName('inspect.start'));
