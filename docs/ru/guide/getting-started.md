@@ -15,16 +15,37 @@
 
 ## Установка
 
-```bash
+Пакет опубликован в npm как **`effector-refetch`** (`effector` — peer-зависимость):
+
+::: code-group
+
+```bash [pnpm]
 pnpm add effector-refetch effector
 ```
 
-Биндинги фреймворков — опциональные subpath-импорты:
-
-```bash
-pnpm add effector-react react       # для effector-refetch/react
-pnpm add effector-vue vue           # для effector-refetch/vue
+```bash [npm]
+npm install effector-refetch effector
 ```
+
+```bash [yarn]
+yarn add effector-refetch effector
+```
+
+:::
+
+Биндинги фреймворков — опциональные subpath-импорты; ставьте нужные peer-зависимости:
+
+::: code-group
+
+```bash [React]
+pnpm add effector-react react   # включает effector-refetch/react + /devtools
+```
+
+```bash [Vue]
+pnpm add effector-vue vue        # включает effector-refetch/vue
+```
+
+:::
 
 ## Первый запрос
 

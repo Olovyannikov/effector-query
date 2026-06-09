@@ -18,6 +18,11 @@ The handler receives an `AbortSignal`; the query owns the controller and fires i
 `cancel` / `reset` and on `TAKE_LATEST` supersede — so the request actually aborts.
 Errors are normalized to `RequestError` (`status`, `data`).
 
+It's just an effect, so anything works inside: multipart **FormData** uploads
+([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
+**GraphQL** (POST `{ query, variables }`, [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)),
+or streaming updates ([SSE & WebSocket](/recipes/streaming)).
+
 ## createJsonQuery
 
 Declarative endpoint over the global `fetch` (no HTTP-client dependency):

@@ -15,16 +15,37 @@ units composed for you.
 
 ## Install
 
-```bash
+The package is published on npm as **`effector-refetch`** (`effector` is a peer dependency):
+
+::: code-group
+
+```bash [pnpm]
 pnpm add effector-refetch effector
 ```
 
-Framework bindings are optional peer-scoped subpaths:
-
-```bash
-pnpm add effector-react react       # for effector-refetch/react
-pnpm add effector-vue vue           # for effector-refetch/vue
+```bash [npm]
+npm install effector-refetch effector
 ```
+
+```bash [yarn]
+yarn add effector-refetch effector
+```
+
+:::
+
+Framework bindings are optional peer-scoped subpaths — install the peers you use:
+
+::: code-group
+
+```bash [React]
+pnpm add effector-react react   # enables effector-refetch/react + /devtools
+```
+
+```bash [Vue]
+pnpm add effector-vue vue       # enables effector-refetch/vue
+```
+
+:::
 
 ## Your first query
 

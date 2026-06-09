@@ -6,6 +6,23 @@ A small, friendly query layer for [effector](https://effector.dev), built on **r
 
 The unit of work is your own `Effect<Params, Result, Error>` (including `attach`-built factory effects) — the query is just a thin reactive shell around it. `retry`, `cache` and `concurrency` are inline options on `createQuery`, not separate operators.
 
+## Install
+
+Published on npm as **`effector-refetch`** (`effector` is a peer dependency):
+
+```bash
+pnpm add effector-refetch effector
+# npm install effector-refetch effector
+# yarn add effector-refetch effector
+```
+
+Optional framework bindings — install the peers you use:
+
+```bash
+pnpm add effector-react react   # effector-refetch/react + /devtools
+pnpm add effector-vue vue       # effector-refetch/vue
+```
+
 ```ts
 import { createQuery, connectQuery } from 'effector-refetch';
 

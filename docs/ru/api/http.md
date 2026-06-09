@@ -18,6 +18,11 @@ const userQuery = createQuery({ effect: getUserFx, cache: true });
 `reset` и при вытеснении `TAKE_LATEST` — так запрос реально прерывается. Ошибки нормализуются
 в `RequestError` (`status`, `data`).
 
+Это просто эффект — внутри работает что угодно: multipart **FormData**-загрузки
+([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
+**GraphQL** (POST `{ query, variables }`, [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)),
+или стриминг ([SSE и WebSocket](/ru/recipes/streaming)).
+
 ## createJsonQuery
 
 Декларативный эндпоинт поверх глобального `fetch` (без зависимости от HTTP-клиента):
