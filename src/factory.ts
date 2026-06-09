@@ -1,4 +1,4 @@
-import type { Store } from 'effector';
+import { createEvent, sample, type EventCallable, type Store } from 'effector';
 import { createQuery } from './create-query';
 import { createMutation } from './create-mutation';
 import type {
@@ -26,9 +26,19 @@ export interface QueryFactoryDefaults {
   barrier?: Barrier;
 }
 
+/** Payload for a factory's group invalidation. */
+export interface InvalidatePayload {
+  /** Only refetch queries for which this returns true (receives the query object). */
+  predicate?: (query: Query<any, any, any, any>) => boolean;
+}
+
 export interface QueryFactory {
   createQuery: typeof createQuery;
   createMutation: typeof createMutation;
+  /** Refetch all queries this factory created (that have run); pass a `predicate` to narrow. */
+  invalidate: EventCallable<InvalidatePayload | void>;
+  /** Queries created by this factory. */
+  queries: ReadonlyArray<Query<any, any, any, any>>;
   defaults: QueryFactoryDefaults;
 }
 
@@ -49,12 +59,26 @@ export function createQueryFactory(defaults: QueryFactoryDefaults = {}): QueryFa
     barrier: defaults.barrier,
   };
 
+  const invalidate = createEvent<InvalidatePayload | void>();
+  const registry: Array<Query<any, any, any, any>> = [];
+
   function factoryQuery<Params, Result, Error = unknown, Mapped = Result>(
     config:
       | CreateQueryConfig<Params, Result, Error, Mapped>
       | CreateQueryHandlerConfig<Params, Result, Error, Mapped>,
   ): Query<Params, Result, Error, Mapped> {
-    return createQuery({ ...defaults, ...config } as never);
+    const query = createQuery({ ...defaults, ...config } as never) as Query<Params, Result, Error, Mapped>;
+    registry.push(query);
+    // group invalidation: refetch (with last params) if it has run and matches the predicate
+    sample({
+      clock: invalidate,
+      source: { params: query.$params, status: query.$status },
+      filter: ({ status }, payload) =>
+        status !== 'initial' && (payload && payload.predicate ? payload.predicate(query) : true),
+      fn: ({ params }) => params as Params,
+      target: query.refetch,
+    });
+    return query;
   }
 
   function factoryMutation<Params, Result, Error = unknown, Mapped = Result>(
@@ -68,6 +92,8 @@ export function createQueryFactory(defaults: QueryFactoryDefaults = {}): QueryFa
   return {
     createQuery: factoryQuery as typeof createQuery,
     createMutation: factoryMutation as typeof createMutation,
+    invalidate,
+    queries: registry,
     defaults,
   };
 }

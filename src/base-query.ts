@@ -452,10 +452,14 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const commitData = (prev: Mapped | null, value: Mapped): Mapped =>
     config.structuralSharing ? (replaceEqualDeep(prev, value) as Mapped) : value;
 
+  // imperative writes (setQueryData)
+  const setData = createEvent<Mapped | null>(evName('setData'));
+
   $data
     .on(acceptedDone, (prev, { params, result }) => commitData(prev, mapData({ result, params })))
     .on(cacheHit, (prev, { params, result }) => commitData(prev, mapData({ result, params })))
     .on(staleServe, (prev, { params, result }) => commitData(prev, mapData({ result, params })))
+    .on(setData, (_prev, value) => value)
     .reset(reset);
 
   $error
@@ -587,6 +591,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       effect: effectFx,
       runFx,
       purgeFx,
+      setData,
       inspect: {
         start: inspectStart,
         run: inspectRun,

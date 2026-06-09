@@ -4,7 +4,9 @@ export {
   createQueryFactory,
   type QueryFactory,
   type QueryFactoryDefaults,
+  type InvalidatePayload,
 } from './factory';
+export { getQueryData, setQueryData } from './cache-access';
 export {
   createJsonQuery,
   HTTP_METHODS,

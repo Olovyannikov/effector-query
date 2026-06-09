@@ -210,6 +210,8 @@ export interface Query<Params, Result, Error, Mapped = Result> {
     effect: QueryEffect<Params, Result, Error>;
     runFx: Effect<{ runId: number; params: Params }, any, Error>;
     inspect: QueryInspect<Params, Mapped, Error>;
+    /** Imperative write to `$data` (see `setQueryData`). */
+    setData: EventCallable<Mapped | null>;
   } & QueryEngine<Params, Error>;
 
   /**

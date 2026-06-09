@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "effector-storage": {
+      "source": "aiko-atami/effectorjs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/effector-storage/SKILL.md",
+      "computedHash": "17b39b783354bcd83002b7e72005529b457c047225ca3652ba6867749b9b91d2"
+    },
+    "effectorjs": {
+      "source": "aiko-atami/effectorjs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/effectorjs/SKILL.md",
+      "computedHash": "ef9db8af751d6636895fe6c30465d5d8433a4ffae58558f55f44fb62ab58d008"
+    },
+    "patronum": {
+      "source": "aiko-atami/effectorjs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/patronum/SKILL.md",
+      "computedHash": "5409960a1fe6bab81f35e8600d80ce5a644e578464e163824a318ee5d1a31c79"
+    }
+  }
+}

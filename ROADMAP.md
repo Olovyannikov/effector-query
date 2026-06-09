@@ -106,10 +106,10 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - [x] `createQueryFactory(defaults)` — bake shared policy (retry/cache/concurrency/refetchInterval/…) into `createQuery`/`createMutation`; the effector-flavored alternative to a global client
 
 ### 1.3 — Cache & client surface (effector-flavored, no global client)
-- [ ] Bulk invalidation by key/predicate over a lightweight query registry
-- [ ] Imperative cache read/write helpers (`getQueryData` / `setQueryData` analogues)
-- [ ] `gcTime`: drop cache entries with no subscribers after N ms
-- [ ] Dehydrate/hydrate the whole cache (beyond per-query storage adapters)
+- [x] Group invalidation via the factory: `factory.invalidate(predicate?)` (registers every query it builds; scope-correct event)
+- [x] Imperative cache read/write: `getQueryData` / `setQueryData` (+ `query.__.setData`)
+- [~] `gcTime` — closest is age-based eviction (`maxAge` / `maxEntries`); observer-based GC doesn't fit effector's model (documented)
+- [ ] Dehydrate/hydrate the whole cache (beyond per-query storage adapters) — effector `serialize`/`fork({values})` already covers store state; adapter cache hydration is the gap
 
 ### 1.4 — Lists & parallelism
 - [ ] Bidirectional infinite query: `fetchPreviousPage`, `getPreviousPageParam`, `maxPages`
