@@ -1024,6 +1024,125 @@ connectQuery({ source: { a, b }, fn, target, filter? }); // multiple (waits for 
 
 
 ================================================================================
+# API reference
+URL: https://olovyannikov.github.io/effector-query/api/reference.html
+================================================================================
+
+# API reference
+
+> Auto-generated from the public type entry points — always in sync with the build.
+> For prose and examples, see the [API](/api/queries) and [Recipes](/recipes/ssr-and-testing) sections.
+
+## `effector-refetch`
+
+| Export | Kind | Signature |
+| --- | --- | --- |
+| [`attachQueryLogger`](https://github.com/Olovyannikov/effector-query/blob/main/src/inspect.ts#L39) | function | `attachQueryLogger(query, options): () => void` |
+| [`cache`](https://github.com/Olovyannikov/effector-query/blob/main/src/operators.ts#L42) | function | `cache(query, opts): Q` |
+| [`combineQueries`](https://github.com/Olovyannikov/effector-query/blob/main/src/combine-queries.ts#L26) | function | `combineQueries(queries): CombinedQueries<Q>` |
+| [`concurrency`](https://github.com/Olovyannikov/effector-query/blob/main/src/operators.ts#L15) | function | `concurrency(query, opts): Q` |
+| [`connectQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/connect-query.ts#L34) | function | `connectQuery(config): void` |
+| [`createBarrier`](https://github.com/Olovyannikov/effector-query/blob/main/src/barrier.ts#L36) | function | `createBarrier(config): Barrier` |
+| [`createContract`](https://github.com/Olovyannikov/effector-query/blob/main/src/validation.ts#L27) | function | `createContract(c): Contract<Data>` |
+| [`createInfiniteQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/infinite-query.ts#L118) | function | `createInfiniteQuery(config): InfiniteQuery<Params, PageParam, Page, E…` |
+| [`createJsonQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/json-query.ts#L60) | function | `createJsonQuery(config): Query<Params, Response, RequestError, Re…` |
+| [`createMutation`](https://github.com/Olovyannikov/effector-query/blob/main/src/create-mutation.ts#L11) | function | `createMutation(config): Mutation<Params, Result, Error, Mapped>` |
+| [`createNetworkBarrier`](https://github.com/Olovyannikov/effector-query/blob/main/src/browser.ts#L57) | function | `createNetworkBarrier(): NetworkBarrier` |
+| [`createQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/create-query.ts#L12) | function | `createQuery(config): Query<Params, Result, Error, Mapped>` |
+| [`createQueryFactory`](https://github.com/Olovyannikov/effector-query/blob/main/src/factory.ts#L53) | function | `createQueryFactory(defaults): QueryFactory` |
+| [`createRequestFx`](https://github.com/Olovyannikov/effector-query/blob/main/src/request.ts#L61) | function | `createRequestFx(handler, options): AbortableEffect<Params, Response, Reques…` |
+| [`exponentialDelay`](https://github.com/Olovyannikov/effector-query/blob/main/src/retry.ts#L21) | function | `exponentialDelay(base, opts): DelayFn` |
+| [`getQueryData`](https://github.com/Olovyannikov/effector-query/blob/main/src/cache-access.ts#L7) | function | `getQueryData(query): Mapped | null` |
+| [`inMemoryCache`](https://github.com/Olovyannikov/effector-query/blob/main/src/cache.ts#L21) | function | `inMemoryCache(options): CacheAdapter` |
+| [`invalidate`](https://github.com/Olovyannikov/effector-query/blob/main/src/invalidate.ts#L34) | function | `invalidate(config): void` |
+| [`linearDelay`](https://github.com/Olovyannikov/effector-query/blob/main/src/retry.ts#L16) | function | `linearDelay(base, opts): DelayFn` |
+| [`localStorageCache`](https://github.com/Olovyannikov/effector-query/blob/main/src/cache.ts#L134) | function | `localStorageCache(options): CacheAdapter` |
+| [`normalizeRequestError`](https://github.com/Olovyannikov/effector-query/blob/main/src/request.ts#L28) | function | `normalizeRequestError(err): RequestError` |
+| [`optimisticUpdate`](https://github.com/Olovyannikov/effector-query/blob/main/src/update.ts#L85) | function | `optimisticUpdate(config): void` |
+| [`refetchOnReconnect`](https://github.com/Olovyannikov/effector-query/blob/main/src/browser.ts#L33) | function | `refetchOnReconnect(query): () => void` |
+| [`refetchOnWindowFocus`](https://github.com/Olovyannikov/effector-query/blob/main/src/browser.ts#L28) | function | `refetchOnWindowFocus(query): () => void` |
+| [`retry`](https://github.com/Olovyannikov/effector-query/blob/main/src/operators.ts#L25) | function | `retry(query, opts): Q` |
+| [`sessionStorageCache`](https://github.com/Olovyannikov/effector-query/blob/main/src/cache.ts#L138) | function | `sessionStorageCache(options): CacheAdapter` |
+| [`setQueryData`](https://github.com/Olovyannikov/effector-query/blob/main/src/cache-access.ts#L19) | function | `setQueryData(query, updater): void` |
+| [`stableStringify`](https://github.com/Olovyannikov/effector-query/blob/main/src/utils.ts#L37) | function | `stableStringify(value): string` |
+| [`standardSchemaContract`](https://github.com/Olovyannikov/effector-query/blob/main/src/validation.ts#L67) | function | `standardSchemaContract(schema): Contract<T>` |
+| [`update`](https://github.com/Olovyannikov/effector-query/blob/main/src/update.ts#L37) | function | `update(config): void` |
+| [`voidCache`](https://github.com/Olovyannikov/effector-query/blob/main/src/cache.ts#L143) | function | `voidCache(): CacheAdapter` |
+| [`zodContract`](https://github.com/Olovyannikov/effector-query/blob/main/src/validation.ts#L45) | function | `zodContract(schema): Contract<T>` |
+| [`HTTP_METHODS`](https://github.com/Olovyannikov/effector-query/blob/main/src/json-query.ts#L7) | const |  |
+| [`RequestError`](https://github.com/Olovyannikov/effector-query/blob/main/src/request.ts#L14) | class |  |
+| [`ValidationError`](https://github.com/Olovyannikov/effector-query/blob/main/src/validation.ts#L15) | class |  |
+| [`Barrier`](https://github.com/Olovyannikov/effector-query/blob/main/src/barrier.ts#L3) | interface |  |
+| [`CacheAdapter`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L44) | interface |  |
+| [`CacheConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L51) | interface |  |
+| [`CacheEntry`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L39) | interface |  |
+| [`CombinedQueries`](https://github.com/Olovyannikov/effector-query/blob/main/src/combine-queries.ts#L7) | interface |  |
+| [`ConcurrencyStrategy`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L7) | type |  |
+| [`Contract`](https://github.com/Olovyannikov/effector-query/blob/main/src/validation.ts#L6) | interface |  |
+| [`CreateBarrierConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/barrier.ts#L16) | interface |  |
+| [`CreateInfiniteQueryConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/infinite-query.ts#L40) | interface |  |
+| [`CreateInfiniteQueryHandlerConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/infinite-query.ts#L48) | interface |  |
+| [`CreateJsonQueryConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/json-query.ts#L26) | interface |  |
+| [`CreateMutationConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L229) | interface |  |
+| [`CreateMutationHandlerConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L244) | interface |  |
+| [`CreateQueryConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L66) | interface |  |
+| [`CreateQueryHandlerConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L109) | interface |  |
+| [`CreateRequestFxOptions`](https://github.com/Olovyannikov/effector-query/blob/main/src/request.ts#L43) | interface |  |
+| [`DelayFn`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L26) | type | `DelayFn(attempt): number` |
+| [`ErrorOf`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L293) | type |  |
+| [`GetNextPageParamCtx`](https://github.com/Olovyannikov/effector-query/blob/main/src/infinite-query.ts#L14) | interface |  |
+| [`GetPreviousPageParamCtx`](https://github.com/Olovyannikov/effector-query/blob/main/src/infinite-query.ts#L21) | interface |  |
+| [`HttpMethod`](https://github.com/Olovyannikov/effector-query/blob/main/src/json-query.ts#L14) | type |  |
+| [`InfiniteQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/infinite-query.ts#L56) | interface |  |
+| [`InvalidateConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/invalidate.ts#L17) | interface |  |
+| [`InvalidatePayload`](https://github.com/Olovyannikov/effector-query/blob/main/src/factory.ts#L30) | interface |  |
+| [`JsonRequest`](https://github.com/Olovyannikov/effector-query/blob/main/src/json-query.ts#L18) | interface |  |
+| [`Mutation`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L263) | interface |  |
+| [`MutationUnitShape`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L251) | type |  |
+| [`NetworkBarrier`](https://github.com/Olovyannikov/effector-query/blob/main/src/browser.ts#L37) | interface |  |
+| [`OptimisticUpdateConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/update.ts#L63) | interface |  |
+| [`ParamsOf`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L289) | type |  |
+| [`Patchable`](https://github.com/Olovyannikov/effector-query/blob/main/src/update.ts#L8) | type |  |
+| [`Query`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L182) | interface |  |
+| [`QueryFactory`](https://github.com/Olovyannikov/effector-query/blob/main/src/factory.ts#L35) | interface |  |
+| [`QueryFactoryDefaults`](https://github.com/Olovyannikov/effector-query/blob/main/src/factory.ts#L18) | interface |  |
+| [`QueryFinished`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L155) | interface |  |
+| [`QueryInspect`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L134) | interface |  |
+| [`QueryLogEntry`](https://github.com/Olovyannikov/effector-query/blob/main/src/inspect.ts#L13) | interface |  |
+| [`QueryLoggerOptions`](https://github.com/Olovyannikov/effector-query/blob/main/src/inspect.ts#L23) | interface |  |
+| [`QueryLogType`](https://github.com/Olovyannikov/effector-query/blob/main/src/inspect.ts#L3) | type |  |
+| [`QueryStatus`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L5) | type |  |
+| [`QueryUnitShape`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L166) | type |  |
+| [`RequestContext`](https://github.com/Olovyannikov/effector-query/blob/main/src/request.ts#L4) | interface |  |
+| [`ResultOf`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L291) | type |  |
+| [`RetryConfig`](https://github.com/Olovyannikov/effector-query/blob/main/src/types.ts#L28) | interface |  |
+| [`UpdateFromEvent`](https://github.com/Olovyannikov/effector-query/blob/main/src/update.ts#L24) | interface |  |
+| [`UpdateFromOperation`](https://github.com/Olovyannikov/effector-query/blob/main/src/update.ts#L15) | interface |  |
+
+## `effector-refetch/react`
+
+| Export | Kind | Signature |
+| --- | --- | --- |
+| [`useQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/react.ts#L34) | function | `useQuery(query): UseQueryResult<Params, Mapped, Error>` |
+| [`useSuspenseQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/react.ts#L81) | function | `useSuspenseQuery(query, args): Mapped` |
+| [`UseQueryResult`](https://github.com/Olovyannikov/effector-query/blob/main/src/react.ts#L6) | interface |  |
+
+## `effector-refetch/vue`
+
+| Export | Kind | Signature |
+| --- | --- | --- |
+| [`useQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/vue.ts#L28) | function | `useQuery(query): UseQueryVueResult<Params, Mapped, Error>` |
+| [`UseQueryVueResult`](https://github.com/Olovyannikov/effector-query/blob/main/src/vue.ts#L5) | interface |  |
+
+## `effector-refetch/solid`
+
+| Export | Kind | Signature |
+| --- | --- | --- |
+| [`useQuery`](https://github.com/Olovyannikov/effector-query/blob/main/src/solid.ts#L35) | function | `useQuery(query): UseQuerySolidResult<Params, Mapped, Erro…` |
+| [`UseQuerySolidResult`](https://github.com/Olovyannikov/effector-query/blob/main/src/solid.ts#L5) | interface |  |
+
+
+================================================================================
 # Auth & barrier (pause the environment)
 URL: https://olovyannikov.github.io/effector-query/recipes/auth-barrier.html
 ================================================================================

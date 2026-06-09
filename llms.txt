@@ -23,6 +23,7 @@ Full documentation as plain text: [llms-full.txt](https://olovyannikov.github.io
 - [Mutations & invalidation](https://olovyannikov.github.io/effector-query/api/mutations.html): A mutation is a write-flavored query: the same effect-first engine (status, retry, concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias. Concurrency defaults to `TAKE_EVERY` so i
 - [Pagination](https://olovyannikov.github.io/effector-query/api/pagination.html): Cursor/offset pagination that accumulates pages. `start` loads the first page (resetting), `fetchNext` appends the next — driven by `getNextPageParam`.
 - [Queries](https://olovyannikov.github.io/effector-query/api/queries.html): - **`effect`** — your `Effect<Params, Result, Error>`. `handler: async params => …` is sugar. - **`concurrency`** — how overlapping runs behave: - `TAKE_LATEST` (default) — new run supersedes & aborts
+- [API reference](https://olovyannikov.github.io/effector-query/api/reference.html): > Auto-generated from the public type entry points — always in sync with the build. > For prose and examples, see the [API](/api/queries) and [Recipes](/recipes/ssr-and-testing) sections.
 
 ## Recipes
 
