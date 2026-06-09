@@ -1,6 +1,11 @@
 export { createQuery } from './create-query';
 export { createMutation } from './create-mutation';
 export {
+  createQueryFactory,
+  type QueryFactory,
+  type QueryFactoryDefaults,
+} from './factory';
+export {
   createJsonQuery,
   HTTP_METHODS,
   type HttpMethod,

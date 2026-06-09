@@ -27,7 +27,16 @@ const query = createQuery({
 - **`cache`** — `true` or a config (see [caching](#caching)).
 - **`enabled`** — `Store<boolean>` gate; while `false`, `start`/`refresh` are skipped.
 - **`refetchInterval`** — poll every N ms (`number` or `Store<number>`, 0 = off). See [Auto-refetch & polling](/recipes/auto-refetch).
+- **`structuralSharing`** — preserve referential identity of unchanged parts of the result (fewer re-renders).
 - **`mapData` / `mapError`** — normalize result / error before the stores.
+
+::: tip keepPreviousData by default
+`$data` isn't cleared on a new `start` — it keeps the previous result until the new one
+arrives. So when params change, the old data stays visible while the new fetch runs
+(TanStack's `keepPreviousData`), out of the box. Use `reset()` to clear explicitly.
+:::
+
+Share these across many queries with a [factory](/recipes/defaults).
 
 ## Operators
 

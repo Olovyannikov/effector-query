@@ -96,10 +96,14 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - [ ] Refetch-stale-on-subscribe helper for the bindings (TanStack's `refetchOnMount`)
 
 ### 1.2 — Data UX
-- [ ] `keepPreviousData` / `placeholderData` — keep showing previous/placeholder data while a new params-set loads (great for search & pagination)
-- [ ] `prefetch(query, params)` — warm the cache without subscribing
-- [ ] Structural sharing — preserve referential identity of unchanged data
+- [x] `keepPreviousData` — already the default (`$data` survives a new `start`); documented
+- [x] Structural sharing (`structuralSharing: true`) — preserve referential identity of unchanged data
+- [ ] `placeholderData` (incl. `(prev) => …`) distinct from cached `initialData`
+- [ ] `prefetch(query, params)` — warm the cache without committing `$data`
 - [ ] `select`-style derived subscription (lighter than `mapData` for per-consumer slices)
+
+### 1.3a — Shared defaults
+- [x] `createQueryFactory(defaults)` — bake shared policy (retry/cache/concurrency/refetchInterval/…) into `createQuery`/`createMutation`; the effector-flavored alternative to a global client
 
 ### 1.3 — Cache & client surface (effector-flavored, no global client)
 - [ ] Bulk invalidation by key/predicate over a lightweight query registry

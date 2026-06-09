@@ -84,6 +84,8 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
   concurrency?: ConcurrencyStrategy | Store<ConcurrencyStrategy>;
   /** Poll: refetch every N ms after each settle, while enabled and started. `Store<number>` is reactive. 0 = off. */
   refetchInterval?: number | Store<number>;
+  /** Preserve referential identity of unchanged parts of the result (fewer re-renders). */
+  structuralSharing?: boolean;
 
   /** Prefix for unit names (devtools). */
   name?: string;

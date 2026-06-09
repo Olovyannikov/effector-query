@@ -22,6 +22,7 @@ import type {
   SourcedConfig,
 } from './types';
 import { ValidationError } from './validation';
+import { replaceEqualDeep } from './utils';
 
 interface Run<P> {
   runId: number;
@@ -406,10 +407,13 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     .on(finalFail, () => 'fail' as const)
     .reset(reset);
 
+  const commitData = (prev: Mapped | null, value: Mapped): Mapped =>
+    config.structuralSharing ? (replaceEqualDeep(prev, value) as Mapped) : value;
+
   $data
-    .on(acceptedDone, (_d, { params, result }) => mapData({ result, params }))
-    .on(cacheHit, (_d, { params, result }) => mapData({ result, params }))
-    .on(staleServe, (_d, { params, result }) => mapData({ result, params }))
+    .on(acceptedDone, (prev, { params, result }) => commitData(prev, mapData({ result, params })))
+    .on(cacheHit, (prev, { params, result }) => commitData(prev, mapData({ result, params })))
+    .on(staleServe, (prev, { params, result }) => commitData(prev, mapData({ result, params })))
     .reset(reset);
 
   $error
