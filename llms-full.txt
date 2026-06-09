@@ -185,11 +185,22 @@ pnpm add effector-vue vue       # enables effector-refetch/vue
 
 ## Your first query
 
-```ts
+Hover the identifiers below — these snippets are **type-checked** with [Twoslash](https://twoslash.netlify.app/)
+against the real types:
+
+```ts twoslash
 import { createEffect } from 'effector';
 import { createQuery } from 'effector-refetch';
 
-const fetchUserFx = createEffect((id: number) => fetch(`/api/users/${id}`).then((r) => r.json()));
+interface User {
+  id: number;
+  name: string;
+}
+
+// your effect — fetch / axios / ofetch, anything returning a Promise
+const fetchUserFx = createEffect(async (id: number): Promise<User> => {
+  return { id, name: 'Ada' };
+});
 
 const userQuery = createQuery({
   effect: fetchUserFx,
@@ -199,14 +210,25 @@ const userQuery = createQuery({
 });
 
 userQuery.start(1);
-// userQuery.$data / $error / $status / $pending update reactively
+// hover userQuery.$data → Store<User | null>, $status, $pending, … all typed
 ```
 
 ## Connecting queries
 
-```ts
-import { connectQuery } from 'effector-refetch';
+```ts twoslash
+import { createEffect } from 'effector';
+import { createQuery, connectQuery } from 'effector-refetch';
 
+interface Character {
+  origin: { url: string };
+}
+const characterQuery = createQuery({
+  effect: createEffect(async (id: number): Promise<Character> => ({ origin: { url: `/o/${id}` } })),
+});
+const originQuery = createQuery({
+  effect: createEffect(async (p: { url: string }): Promise<{ name: string }> => ({ name: 'Earth' })),
+});
+// ---cut---
 connectQuery({
   source: characterQuery,
   fn: ({ result: character }) => ({ params: { url: character.origin.url } }),
