@@ -1,0 +1,1879 @@
+# effector-refetch — full documentation
+
+Source: https://olovyannikov.github.io/effector-query • https://github.com/Olovyannikov/effector-query
+Generated from the English docs. Sections: guide, api, recipes.
+
+
+================================================================================
+# Core concepts
+URL: https://olovyannikov.github.io/effector-query/guide/concepts.html
+================================================================================
+
+# Core concepts
+
+## Effect-first
+
+A query wraps your **real effector `Effect`**. It is not a black box with an internal
+executor — your effect is a first-class unit: visible in devtools, composable with
+`attach`, and fork-friendly for SSR and tests.
+
+```ts
+const query = createQuery({ effect: myFx });
+query.__.effect === myFx; // the real effect
+```
+
+## Lifecycle & status
+
+`$status` moves through `'initial' → 'pending' → 'done' | 'fail'`. A query exposes:
+
+| store/event                    | meaning                                              |
+| ------------------------------ | ---------------------------------------------------- |
+| `$data`                        | latest (validated, mapped) result                    |
+| `$error`                       | latest error                                         |
+| `$status`                      | `initial \| pending \| done \| fail`                 |
+| `$pending`                     | request (or retry) in flight                         |
+| `$stale`                       | current data is past `staleAfter`                    |
+| `$params`                      | last params the query ran with                       |
+| `finished.{done,fail,finally}` | lifecycle events                                     |
+| `aborted`                      | a result was discarded (concurrency / cancel / skip) |
+
+## Triggers
+
+- `start(params)` — run, honoring cache / concurrency / enabled.
+- `refresh(params)` / `refetch(params)` — run, bypassing cache freshness.
+- `reset()` — back to initial, abort in-flight.
+- `cancel()` — abort in-flight, keep data.
+
+## The engine
+
+Internally the query is a graph of plain effector units (`createStore` / `createEvent`
+/ `sample`). All machinery (concurrency, retry, cache) lives in the engine and is
+configured by **operators**; the inline `createQuery` options are sugar over them.
+Config values can be constants or reactive `Store`s — see [sourced config](/api/queries#sourced-reactive-config).
+
+## SSR & tests
+
+Because it's plain effector, `fork()` + `allSettled()` work as usual — no special
+test utilities. See [SSR & testing](/recipes/ssr-and-testing).
+
+
+================================================================================
+# Local development
+URL: https://olovyannikov.github.io/effector-query/guide/contributing.html
+================================================================================
+
+# Local development
+
+Want to hack on **effector-refetch** itself (not just use it)? Here's how to get the repo running.
+
+## Prerequisites
+
+- **Node ≥ 22.13** (required by the pinned pnpm).
+- **pnpm 11.5.1** — the repo pins it via `packageManager`. The easiest way is Corepack:
+
+```bash
+corepack enable
+```
+
+## Clone & install
+
+```bash
+git clone https://github.com/Olovyannikov/effector-query.git
+cd effector-query
+pnpm install
+```
+
+## Scripts
+
+| script            | what it does                                         |
+| ----------------- | ---------------------------------------------------- |
+| `pnpm build`      | Build the library (`dist/`) — all entries + `.d.ts`  |
+| `pnpm typecheck`  | `tsc --noEmit`                                       |
+| `pnpm lint`       | ESLint (incl. `eslint-plugin-effector`)              |
+| `pnpm format`     | Prettier write (`format:check` to verify only)       |
+| `pnpm test`       | Run the Vitest suite once (`test:watch` for watch)   |
+| `pnpm size`       | Check bundle budgets (size-limit)                    |
+| `pnpm docs:dev`   | Run this documentation site locally                  |
+| `pnpm docs:build` | Build the docs (also checks for dead links)          |
+| `pnpm changeset`  | Record a changeset for your change (drives releases) |
+
+## Making a change
+
+1. Branch off `main`.
+2. Make the change with a test (the suite runs under `fork`/`allSettled` for scope-safety).
+3. Run the gate: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`.
+4. Add a changeset: `pnpm changeset` (pick `patch`/`minor`/`major` and write a line — it becomes
+   the changelog entry).
+5. Open a PR. On merge to `main`, CI opens a "Version Packages" PR; merging that publishes to npm.
+
+## Trying it against an app
+
+Run the examples directly from source (no build step) with [tsx](https://github.com/privatenumber/tsx):
+
+```bash
+npx tsx examples/graphql.ts
+```
+
+Or `pnpm build` and `pnpm pack` to get a tarball you can `pnpm add` into another project.
+
+## PR previews & canary builds
+
+Every pull request gets two automatic stands:
+
+- **Docs preview** — the site is built and published to `gh-pages` under
+  `…/pr-preview/pr-<N>/`; a bot comments the live URL on the PR (removed when it closes).
+- **Canary package** — [pkg.pr.new](https://pkg.pr.new) publishes a preview build you can install
+  straight from the PR: `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>` (no npm
+  pollution). The bot comments the exact command.
+
+So a reviewer can click the docs link and `npm i` the canary into a real app before merging.
+
+
+================================================================================
+# Getting started
+URL: https://olovyannikov.github.io/effector-query/guide/getting-started.html
+================================================================================
+
+# Getting started
+
+This page gets you from zero to a working query in a couple of minutes. For the _why_,
+read the [Introduction](/guide/introduction) first.
+
+`effector-refetch` is a small, friendly query layer for [effector](https://effector.dev),
+built on **real effects**. The unit of work is your own `Effect<Params, Result, Error>`
+(including `attach`-built factory effects) — the query is just a thin reactive shell.
+
+::: tip Prerequisites
+You'll want a basic feel for effector (`createEffect`, stores, `sample`). If you're new,
+skim the [effector docs](https://effector.dev) — everything here is just plain effector
+units composed for you.
+:::
+
+## Install
+
+The package is published on npm as **`effector-refetch`** (`effector` is a peer dependency):
+
+::: code-group
+
+```bash [pnpm]
+pnpm add effector-refetch effector
+```
+
+```bash [npm]
+npm install effector-refetch effector
+```
+
+```bash [yarn]
+yarn add effector-refetch effector
+```
+
+:::
+
+Framework bindings are optional peer-scoped subpaths — install the peers you use:
+
+::: code-group
+
+```bash [React]
+pnpm add effector-react react   # enables effector-refetch/react + /devtools
+```
+
+```bash [Vue]
+pnpm add effector-vue vue       # enables effector-refetch/vue
+```
+
+:::
+
+## Your first query
+
+```ts
+import { createEffect } from 'effector';
+import { createQuery } from 'effector-refetch';
+
+const fetchUserFx = createEffect((id: number) => fetch(`/api/users/${id}`).then((r) => r.json()));
+
+const userQuery = createQuery({
+  effect: fetchUserFx,
+  retry: 2,
+  cache: true,
+  concurrency: 'TAKE_LATEST',
+});
+
+userQuery.start(1);
+// userQuery.$data / $error / $status / $pending update reactively
+```
+
+## Connecting queries
+
+```ts
+import { connectQuery } from 'effector-refetch';
+
+connectQuery({
+  source: characterQuery,
+  fn: ({ result: character }) => ({ params: { url: character.origin.url } }),
+  target: originQuery,
+});
+```
+
+When `characterQuery` resolves, `originQuery` starts automatically with the derived params.
+
+## Next
+
+- [Core concepts](/guide/concepts) — the effect-first model and lifecycle.
+- [Queries API](/api/queries) — every option.
+- [vs. farfetched](/guide/vs-farfetched) — how this compares.
+
+
+================================================================================
+# Introduction
+URL: https://olovyannikov.github.io/effector-query/guide/introduction.html
+================================================================================
+
+# Introduction
+
+## The problem
+
+Almost every app does the same dance around data: kick off a request, track whether it's
+loading, catch the error, show the result. Then reality piles on — the user double-clicks,
+a second request races the first, the response is already stale, you want a retry, you'd
+like to not refetch what you just fetched, and ideally none of this lives inside a React
+component.
+
+Hand-rolled, that's a swamp of `useState`/`useEffect`, race conditions, and logic welded
+to the view. effector solves the _state_ part beautifully with events, stores and effects.
+**effector-refetch** owns the _data-fetching_ part on top of it.
+
+## The idea: build on real effects
+
+The core decision is simple: **your effect is the unit of work.**
+
+```ts
+const fetchUserFx = createEffect((id: number) => api.user(id));
+const userQuery = createQuery({ effect: fetchUserFx });
+```
+
+`userQuery` is a thin reactive shell around `fetchUserFx`. It adds `$data`, `$error`,
+`$status`, `$pending`, lifecycle events, retry, cache and concurrency — but the effect
+underneath is still your effect: visible in devtools, composable with `attach`, and
+fork-friendly for SSR and tests. Nothing is hidden in a private executor.
+
+That's the difference from a "black box" data layer: you keep effector's mental model
+(events flow through a graph of rules) and just get the querying conveniences declaratively.
+
+## What you get
+
+- **Status & lifecycle** — `$data / $error / $status / $pending`, `finished.{done,fail}`.
+- **Concurrency** — `TAKE_LATEST` (default), `TAKE_FIRST`, `TAKE_EVERY`; races just die.
+- **Retry** — graph-level, each attempt a real effect call.
+- **Caching** — staleAfter, SWR, GC, dedupe, persistence.
+- **Real cancellation** — abort the in-flight request, not just ignore it.
+- **Mutations & invalidation** — `createMutation`, `invalidate`, `update`, optimistic updates.
+- **Validation** — schema contracts (zod / Standard Schema) turn bad responses into errors.
+- **Declarative HTTP** — `createJsonQuery` over the global `fetch`.
+- **Pagination** — `createInfiniteQuery`.
+- **Bindings** — `useUnit(query)` in React and Vue.
+
+## Philosophy
+
+- **Friendly by default, powerful underneath.** Inline options cover the 90%; the same
+  features are standalone operators for the rest.
+- **No magic.** It's plain effector units (`createStore` / `sample` / `createEffect`) you
+  could have written — just composed for you.
+- **Honest.** We tell you when _not_ to use it, and how it compares to
+  [farfetched](/guide/vs-farfetched).
+
+Ready? [Get started →](/guide/getting-started)
+
+
+================================================================================
+# LLMs & AI agents
+URL: https://olovyannikov.github.io/effector-query/guide/llms.html
+================================================================================
+
+# LLMs & AI agents
+
+effector-refetch ships machine-readable docs and an installable agent skill, so AI coding agents
+write idiomatic, fork-correct code with the library.
+
+## Agent skill
+
+A [Claude Code skill](https://github.com/Olovyannikov/effector-query/tree/main/skills) teaching
+the effect-first API, the bindings, and the fork-correct idioms (plus a "common mistakes"
+checklist). It works with Claude Code and 70+ other agents (Cursor, Codex, OpenCode, …).
+
+### Install with the `skills` CLI (recommended)
+
+Using [vercel-labs/skills](https://github.com/vercel-labs/skills):
+
+```bash
+# add the effector-refetch skill to the agents in your project
+npx skills add Olovyannikov/effector-query
+
+# preview what's in the repo first
+npx skills add Olovyannikov/effector-query --list
+
+# target a specific agent, or install globally for all your projects
+npx skills add Olovyannikov/effector-query -a claude-code
+npx skills add Olovyannikov/effector-query -g
+```
+
+### Install manually
+
+```bash
+# from a project that already has the package installed
+cp -R node_modules/effector-refetch/skills/effector-refetch .claude/skills/
+```
+
+Or copy [`skills/effector-refetch/SKILL.md`](https://github.com/Olovyannikov/effector-query/blob/main/skills/effector-refetch/SKILL.md)
+into your project's `.claude/skills/` (or `~/.claude/skills/` for all projects). It's plain
+Markdown with YAML frontmatter — any agent/system-prompt loader can read it.
+
+## llms.txt
+
+Following the [llms.txt convention](https://llmstxt.org), the docs site exposes two plain-text
+files for LLM context:
+
+- **[`/llms.txt`](https://olovyannikov.github.io/effector-query/llms.txt)** — an index: title,
+  summary, and links to every documentation page.
+- **[`/llms-full.txt`](https://olovyannikov.github.io/effector-query/llms-full.txt)** — the full
+  text of the documentation in one file, ready to paste into a model's context.
+
+Point your tool at the URL, or download it:
+
+```bash
+curl -fsSL https://olovyannikov.github.io/effector-query/llms-full.txt -o effector-refetch-docs.txt
+```
+
+Both files are regenerated on every docs build from the English docs.
+
+
+================================================================================
+# Migration
+URL: https://olovyannikov.github.io/effector-query/guide/migration.html
+================================================================================
+
+# Migration
+
+## From farfetched
+
+The mental model is close, so most code maps directly. The main shift: **bring your own
+effect**, and inline options are available alongside operators.
+
+| farfetched                             | effector-refetch                                                     |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| `createQuery({ handler })`             | `createQuery({ effect })` (or `{ handler }`)                         |
+| `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                             |
+| `retry(query, { times, delay })`       | `retry(query, …)` **or** inline `createQuery({ retry })`             |
+| `cache(query, { ... })`                | `cache(query, …)` **or** inline `createQuery({ cache })`             |
+| `concurrency(query, { strategy })`     | `concurrency(query, …)` **or** inline `createQuery({ concurrency })` |
+| `connectQuery({ source, fn, target })` | identical                                                            |
+| `createMutation`                       | `createMutation` (+ `mutate` alias)                                  |
+| contracts                              | `zodContract` / `standardSchemaContract` / `createContract`          |
+| `$data / $error / $status / $pending`  | same names                                                           |
+
+Notable differences:
+
+- The query wraps a **real effect** (`query.__.effect`), visible in devtools.
+- Cancellation is real for `createRequestFx` effects (AbortSignal), not just discard.
+- Sourced config is available inline (a `Store` for `concurrency` / `retry.times` / `cache.staleAfter` / `enabled`).
+- `useUnit(query)` works directly in React and Vue via `@@unitShape`.
+
+What's not here yet (vs farfetched): a Solid binding, the full sourced surface on every
+field, and some JSON-contract conveniences. See the [roadmap](https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md).
+
+## Within 0.x
+
+Pre-1.0 the API may still change between minor versions; breaking changes are called out
+in the changelog. Notable so far:
+
+- Web-storage cache adapters take an **options object** now: `localStorageCache({ version, maxAge })` (previously a prefix string).
+
+
+================================================================================
+# vs. farfetched
+URL: https://olovyannikov.github.io/effector-query/guide/vs-farfetched.html
+================================================================================
+
+# vs. farfetched
+
+[farfetched](https://ff.effector.dev) is the most complete data-fetching tool for
+effector and the obvious reference point. It is **open-source and not archived** — but
+its cadence has slowed: it is still pre-1.0, the original "1.0 by end of 2024" target
+has slipped, and the issue backlog keeps growing. `effector-refetch` exists to be the
+**maintained, effect-first** option with a smaller, friendlier surface — not to claim
+farfetched is dead.
+
+|                             | farfetched                                | effector-refetch                                                                    |
+| --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| unit of work                | internal event-based executor             | your real `Effect` — first-class                                                    |
+| primary input               | `handler` (wrapped); `effect` is one path | `effect` is the main input; `handler` is sugar                                      |
+| retry / cache / concurrency | separate operators                        | inline options **and** standalone operators                                         |
+| sourced config              | sourced fields                            | reactive `Store` for `enabled` / `concurrency` / `retry.times` / `cache.staleAfter` |
+| validation                  | `contract`, `validate`                    | `contract` (zod / Standard Schema) + `validate`                                     |
+| declarative HTTP            | `createJsonQuery`                         | `createJsonQuery` (global `fetch`, zero deps)                                       |
+| pagination                  | —                                         | `createInfiniteQuery`                                                               |
+| cancellation                | abort + discard                           | real `AbortSignal` via `createRequestFx`                                            |
+| bindings                    | react / solid / vue                       | `useUnit(query)` (react + vue) + `useQuery` helpers                                 |
+
+**Honest trade-off.** farfetched still ships more in some areas (sourced everything,
+JSON contracts ecosystem, maturity). `effector-refetch` is simpler, closer to bare
+effector ("I already have an effect, wrap it"), and intends to reach a stable 1.0.
+If you need farfetched's full surface today, use it; if you want an effect-first API
+on a maintained project, use this.
+
+
+================================================================================
+# Framework bindings
+URL: https://olovyannikov.github.io/effector-query/api/bindings.html
+================================================================================
+
+# Framework bindings
+
+A query implements effector's `@@unitShape` protocol, so you can pass it straight to
+`useUnit` from **effector-react**, **effector-vue** or **effector-solid** — no wrapper needed.
+
+```tsx
+// React
+import { useUnit } from 'effector-react';
+
+function UserCard({ id }: { id: number }) {
+  const { data, pending, error, refetch } = useUnit(userQuery);
+  return pending ? <Spinner /> : <div onClick={() => refetch(id)}>{data?.name}</div>;
+}
+```
+
+```vue
+<!-- Vue -->
+<script setup lang="ts">
+import { useUnit } from 'effector-vue/composition';
+const { data, pending, refetch } = useUnit(userQuery);
+</script>
+```
+
+`useUnit(query)` yields `{ data, error, status, pending, stale, enabled, params, start,
+refetch, refresh, reset, cancel }`.
+
+## useQuery helpers
+
+Thin helpers that add derived booleans (`isInitial / isPending / isDone / isFail`):
+
+```tsx
+// React — effector-refetch/react
+import { useQuery } from 'effector-refetch/react';
+const { data, isPending, isFail, error, start } = useQuery(userQuery);
+useEffect(() => start(id), [id]); // queries never auto-start
+```
+
+```vue
+<!-- Vue — effector-refetch/vue (returns refs) -->
+<script setup lang="ts">
+import { useQuery } from 'effector-refetch/vue';
+const { data, isPending, isDone, start } = useQuery(userQuery);
+</script>
+```
+
+```tsx
+// Solid — effector-refetch/solid (returns accessors — call them)
+import { useQuery } from 'effector-refetch/solid';
+
+function UserCard(props: { id: number }) {
+  const { data, isPending, isFail, start } = useQuery(userQuery);
+  start(props.id); // queries never auto-start
+  return <div>{isPending() ? 'Loading…' : data()?.name}</div>;
+}
+```
+
+React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, Solid with
+effector-solid's `<Provider>` — all for SSR / `fork`. Bindings require the matching optional
+peers (`react`+`effector-react` / `vue`+`effector-vue` / `solid-js`+`effector-solid`).
+
+## Suspense (React)
+
+`useSuspenseQuery` returns the data directly (never `null`): it **auto-starts** the query,
+suspends the nearest `<Suspense>` while loading, throws to the nearest Error Boundary on failure,
+and returns the data when done.
+
+```tsx
+import { Suspense } from 'react';
+import { useSuspenseQuery } from 'effector-refetch/react';
+
+function UserName({ id }: { id: number }) {
+  const user = useSuspenseQuery(userQuery, id); // suspends until ready
+  return <span>{user.name}</span>;
+}
+
+function Page({ id }: { id: number }) {
+  return (
+    <ErrorBoundary fallback={<p>Failed to load</p>}>
+      <Suspense fallback={<Spinner />}>
+        <UserName id={id} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+```
+
+This is for **client-side** Suspense: reads and triggers are scope-aware, but the settle signal
+is observed globally, so use it with `fork` outside of concurrent SSR streaming.
+
+
+================================================================================
+# Devtools
+URL: https://olovyannikov.github.io/effector-query/api/devtools.html
+================================================================================
+
+# Devtools
+
+A floating devtools panel — like TanStack Query's — that lists your queries with live
+status, params, data, error and a per-query event log. Available for **React**
+(`effector-refetch/devtools`), **Vue** (`effector-refetch/devtools/vue`) and **Solid**
+(`effector-refetch/devtools/solid`) with the same props, and tree-shaken out of your core bundle.
+
+```tsx
+import { EffectorQueryDevtools } from 'effector-refetch/devtools';
+
+function App() {
+  return (
+    <>
+      <Routes />
+      {import.meta.env.DEV && <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />}
+    </>
+  );
+}
+```
+
+Pass the queries you want to inspect, keyed by display name. The panel is scope-aware via
+effector-react's `<Provider>` (so it works with SSR / `fork`).
+
+## Vue
+
+The same panel for Vue — identical props, scope-aware via effector-vue's `EffectorScopePlugin`:
+
+```vue
+<script setup>
+import { EffectorQueryDevtools } from 'effector-refetch/devtools/vue';
+import { userQuery, todosQuery } from './model';
+</script>
+
+<template>
+  <RouterView />
+  <EffectorQueryDevtools v-if="import.meta.env.DEV" :queries="{ user: userQuery, todos: todosQuery }" />
+</template>
+```
+
+## Solid
+
+Same panel for Solid — identical props, scope-aware via effector-solid's `<Provider>`:
+
+```tsx
+import { EffectorQueryDevtools } from 'effector-refetch/devtools/solid';
+
+function App() {
+  return (
+    <>
+      <Routes />
+      {import.meta.env.DEV && <EffectorQueryDevtools queries={{ user: userQuery, todos: todosQuery }} />}
+    </>
+  );
+}
+```
+
+## What it looks like
+
+```
+ ┌ effector-refetch · devtools ───────────────────── ✕ ┐
+ │ ● user        │  ● user   done                     │
+ │ ● todos  •••  │  PARAMS   7                         │
+ │               │  DATA     { "id": 7, "name": "…" }  │
+ │               │  LOG      start                     │
+ │               │           run #0                    │
+ │               │           done (42ms)               │
+ └───────────────┴────────────────────────────────────┘
+```
+
+## Try it live
+
+A real query wired to the library — click the buttons and watch status, data and the
+event log update (with retry on failure):
+
+<DevtoolsDemo />
+
+### Multiple queries
+
+The same panel, embedded inline (like TanStack's `DevtoolsPanel`), inspecting **several real
+queries at once**. Click **⚡ queries** to open it, pick a query in the left tab list, then
+drive it — each tab keeps its own status, params, data, error and log:
+
+<DevtoolsWidget />
+
+The widget also wires two relationships you can watch fire:
+
+- **`connectQuery`** — loading `users` cascades into `profile` (its params derived from the result),
+  so both tabs light up in sequence.
+- **`invalidate`** — _Invalidate all_ refetches every query that has already run, with its last
+  params, bypassing cache freshness.
+
+```ts
+import { connectQuery, invalidate } from 'effector-refetch';
+
+// a successful users load starts profile with derived params
+connectQuery({
+  source: usersQuery,
+  fn: ({ result }) => ({ params: { id: result[0].id } }),
+  target: profileQuery,
+});
+
+// one signal refetches everything that has run (e.g. after a mutation)
+invalidate({ on: dataChanged, refetch: [usersQuery, todosQuery, profileQuery] });
+```
+
+Collapsed, the floating panel is a small `⚡ queries (N)` pill in the corner; click to expand.
+
+- A colored dot per query: grey `initial`, amber `pending`, green `done`, red `fail`.
+- The detail pane shows **params**, **data** and **error** as JSON, plus a live **log**
+  (`start / run / done / fail / aborted / cache-hit / cache-miss / retry`) with per-run
+  duration — powered by the same [introspection stream](/api/introspection).
+
+## Props
+
+| prop            | type                              | default          |
+| --------------- | --------------------------------- | ---------------- |
+| `queries`       | `Record<string, Query>`           | —                |
+| `initialIsOpen` | `boolean`                         | `false`          |
+| `position`      | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` |
+
+::: tip
+Render it only in development (`import.meta.env.DEV`) and it won't ship to production.
+Prefer headless logging instead? Use [`attachQueryLogger`](/api/introspection#attachquerylogger).
+:::
+
+
+================================================================================
+# HTTP & validation
+URL: https://olovyannikov.github.io/effector-query/api/http.html
+================================================================================
+
+# HTTP & validation
+
+## createRequestFx
+
+Wrap any HTTP client into a typed, abort-aware effector effect with normalized errors:
+
+```ts
+import { ofetch } from 'ofetch';
+import { createRequestFx, createQuery } from 'effector-refetch';
+
+const getUserFx = createRequestFx<{ id: number }, User>(({ id }, { signal }) =>
+  ofetch(`/api/users/${id}`, { signal }),
+);
+const userQuery = createQuery({ effect: getUserFx, cache: true });
+```
+
+The handler receives an `AbortSignal`; the query owns the controller and fires it on
+`cancel` / `reset` and on `TAKE_LATEST` supersede — so the request actually aborts.
+Errors are normalized to `RequestError` (`status`, `data`).
+
+It's just an effect, so anything works inside: multipart **FormData** uploads
+([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
+**GraphQL** (POST `{ query, variables }` — see the [GraphQL recipe](/recipes/graphql)),
+or streaming updates ([SSE & WebSocket](/recipes/streaming)).
+
+## createJsonQuery
+
+Declarative endpoint over the global `fetch` (no HTTP-client dependency):
+
+```ts
+import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-refetch';
+
+export const getProductsQuery = createJsonQuery({
+  request: { url: 'https://api/products', query: ({ search }) => ({ search, limit: 20 }) },
+  response: { contract: zodContract(ProductList) },
+  concurrency: 'TAKE_LATEST',
+  cache: { staleAfter: 30_000 },
+});
+
+export const createUser = createJsonQuery<NewUser, User>({
+  request: { url: 'https://api/users', method: HTTP_METHODS.POST, body: (u) => u },
+});
+```
+
+`request`: `{ url, method?, query?, body?, headers? }` (each a function of params, except
+`url` which may be a string). Abort-aware, normalized `RequestError`, optional contract,
+plus all the usual query options.
+
+## Validation (contracts)
+
+Validate a response against a schema; a failure becomes a **retryable** `ValidationError`:
+
+```ts
+import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-refetch';
+
+createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
+createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
+createQuery({ effect: getUserFx, contract: createContract({ isData: isUser }) }); // manual
+createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['negative price'] });
+```
+
+Contracts are **structural** — the schema libraries are not imported; you pass your own
+schema. On failure, `$error` is a `ValidationError` with `.validationErrors`.
+
+
+================================================================================
+# Introspection
+URL: https://olovyannikov.github.io/effector-query/api/introspection.html
+================================================================================
+
+# Introspection
+
+## Devtools labelling
+
+Pass `name` to label the units in the effector inspector — **the public surface and every
+internal seam**, so the whole pipeline is readable, not just the entry points:
+
+```ts
+const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
+// public:   todos.start, todos.$data, todos.$status, todos.runFx, todos.inspect.*
+// internal: todos.requested, todos.proceed, todos.toExec, todos.lookupFx, todos.toRun,
+//           todos.rawDone, todos.acceptedDone, todos.scheduleRetry, todos.failed,
+//           todos.finalFail, todos.$runId, todos.$attempts, …
+```
+
+No `name`? Pass `debug: true` to label everything under a generic `query.*` namespace. Without
+either, internal units stay anonymous (zero inspector noise in production).
+
+## Lifecycle event stream
+
+Every query exposes `query.__.inspect` — effector events you can subscribe to:
+
+| event                    | payload                      |
+| ------------------------ | ---------------------------- |
+| `start`                  | `{ params }`                 |
+| `run`                    | `{ params, attempt }`        |
+| `done`                   | `{ params, result }`         |
+| `fail`                   | `{ params, error }`          |
+| `aborted`                | `{ params }`                 |
+| `cacheHit` / `cacheMiss` | `{ params }`                 |
+| `retry`                  | `{ params, attempt, error }` |
+
+## attachQueryLogger
+
+Turn the stream into structured, timed log entries:
+
+```ts
+import { attachQueryLogger } from 'effector-refetch';
+
+const stop = attachQueryLogger(todos, { name: 'todos' });
+// → { query: 'todos', type: 'run', params, attempt: 0 }
+//   { query: 'todos', type: 'done', params, durationMs: 42 }
+stop(); // unsubscribe
+```
+
+Pass a custom `handler` to forward entries into your own logger or the effector
+inspector. Entry types: `start | run | done | fail | aborted | cache-hit | cache-miss | retry`.
+
+
+================================================================================
+# Mutations & invalidation
+URL: https://olovyannikov.github.io/effector-query/api/mutations.html
+================================================================================
+
+# Mutations & invalidation
+
+## createMutation
+
+A mutation is a write-flavored query: the same effect-first engine (status, retry,
+concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias.
+Concurrency defaults to `TAKE_EVERY` so independent writes don't cancel each other.
+
+```ts
+import { createMutation } from 'effector-refetch';
+
+const addTodo = createMutation({ effect: addTodoFx, retry: 2 });
+addTodo.mutate({ text: 'Buy milk' });
+```
+
+Exposes `{ start, mutate, reset, cancel, $data, $error, $status, $pending, $params,
+finished, aborted }` and works with `useUnit(mutation)`.
+
+## invalidate
+
+Refetch queries when something succeeds:
+
+```ts
+import { invalidate } from 'effector-refetch';
+
+invalidate({ on: addTodo, refetch: todosQuery });
+```
+
+- **`on`** — a Mutation/Query (fires on success), an `Event`, or an `Effect`; or an array.
+- **`refetch`** — a query or array; each re-runs with its last params, only if it ran before (`status !== 'initial'`), bypassing cache freshness.
+- **`filter`** — optional gate on the trigger payload (e.g. `{ params, result }`).
+
+## update
+
+Patch a query's `$data` directly from a result — no refetch:
+
+```ts
+import { update } from 'effector-refetch';
+
+update({ query: todosQuery, on: addTodo, fn: ({ data, result }) => [...(data ?? []), result] });
+```
+
+## optimisticUpdate
+
+Apply immediately on `start`, roll back on failure, optionally reconcile on success:
+
+```ts
+import { optimisticUpdate } from 'effector-refetch';
+
+optimisticUpdate({
+  query: todosQuery,
+  on: addTodo,
+  update: ({ data, params }) => [{ id: -1, ...params }, ...(data ?? [])],
+  commit: ({ data, result }) => (data ?? []).map((t) => (t.id === -1 ? result : t)),
+});
+```
+
+Combine optimistic feedback with `invalidate` to reconcile against server truth.
+
+
+================================================================================
+# Pagination
+URL: https://olovyannikov.github.io/effector-query/api/pagination.html
+================================================================================
+
+# Pagination
+
+## createInfiniteQuery
+
+Cursor/offset pagination that accumulates pages. `start` loads the first page
+(resetting), `fetchNext` appends the next — driven by `getNextPageParam`.
+
+```ts
+import { createInfiniteQuery } from 'effector-refetch';
+
+const feed = createInfiniteQuery({
+  effect: fetchPageFx, // Effect<{ params, pageParam }, Page>
+  initialPageParam: 0,
+  getNextPageParam: ({ lastPage }) => lastPage.nextCursor ?? null, // null/undefined = done
+});
+
+feed.start({ tag: 'cats' });
+feed.fetchNext(); // appends; no-op when $hasNextPage is false or already loading
+```
+
+Exposes `$pages` (= `$data`), `$pageParams`, `$hasNextPage`, `$status`, `$pending`,
+`$error`, `finished.{done,fail}`, and `useUnit(feed)` support.
+
+`getNextPageParam` receives `{ lastPage, allPages, lastPageParam, allPageParams }` and
+returns the next page param, or `null`/`undefined` when there are no more pages.
+
+### Bidirectional + windowing
+
+Add `getPreviousPageParam` to enable `fetchPrevious` (prepends), and `maxPages` to cap the
+window (drops from the opposite end):
+
+```ts
+const feed = createInfiniteQuery({
+  effect: fetchPageFx,
+  initialPageParam: 10, // start in the middle
+  getNextPageParam: ({ lastPage }) => lastPage.next ?? null,
+  getPreviousPageParam: ({ firstPage }) => firstPage.prev ?? null,
+  maxPages: 3,
+});
+
+feed.fetchPrevious(); // prepend; gated by $hasPreviousPage
+```
+
+Exposes `$hasPreviousPage` alongside `$hasNextPage`.
+
+## Parallel queries — `combineQueries`
+
+Aggregate several independent queries into combined stores (the effector-flavored `useQueries`):
+
+```ts
+import { combineQueries } from 'effector-refetch';
+
+const { $data, $pending, $isSuccess, $isError, $statuses, $errors } = combineQueries([userQuery, postsQuery]);
+// $data: [User | null, Post[] | null]   $pending: any in flight   $isSuccess: all done
+```
+
+Start the queries as usual; `combineQueries` just reads their combined state.
+
+::: tip
+The page effect is a plain `Effect<{ params, pageParam }, Page>` — use a regular
+`createEffect`/`handler`, not an abort-aware `createRequestFx` effect (which has a
+different `{ params, signal }` calling convention).
+:::
+
+Built on `createQuery`, so the page fetch inherits concurrency and cancellation.
+
+
+================================================================================
+# Queries
+URL: https://olovyannikov.github.io/effector-query/api/queries.html
+================================================================================
+
+# Queries
+
+```ts
+import { createQuery } from 'effector-refetch';
+
+const query = createQuery({
+  effect, // Effect<Params, Result, Error> (or `handler`)
+  initialData,
+  enabled, // Store<boolean>
+  mapData,
+  mapError,
+  contract,
+  validate, // see HTTP & validation
+  retry, // number | { times, delay?, filter?, suppressIntermediateErrors? }
+  cache, // true | { adapter?, staleAfter?, key?, purge?, swr?, dedupe? }
+  concurrency, // 'TAKE_LATEST' (default) | 'TAKE_FIRST' | 'TAKE_EVERY'
+  name, // devtools label
+});
+```
+
+## Options
+
+- **`effect`** — your `Effect<Params, Result, Error>`. `handler: async params => …` is sugar.
+- **`concurrency`** — how overlapping runs behave:
+  - `TAKE_LATEST` (default) — new run supersedes & aborts the previous.
+  - `TAKE_FIRST` — ignore new runs while one is in flight.
+  - `TAKE_EVERY` — every run applies (last result wins `$data`).
+- **`retry`** — `number` or `{ times, delay?, filter?, suppressIntermediateErrors? }`. Each retry is a real effect call. Helpers: `linearDelay`, `exponentialDelay`.
+- **`cache`** — `true` or a config (see [caching](#caching)).
+- **`enabled`** — `Store<boolean>` gate; while `false`, `start`/`refresh` are skipped.
+- **`refetchInterval`** — poll every N ms (`number` or `Store<number>`, 0 = off). See [Auto-refetch & polling](/recipes/auto-refetch).
+- **`structuralSharing`** — preserve referential identity of unchanged parts of the result (fewer re-renders).
+- **`placeholderData`** — a value or `(prev) => …` shown while there's no real data; `$isPlaceholderData` is `true` until the first real result. Unlike `initialData`, it's not treated as cached.
+- **`mapData` / `mapError`** — normalize result / error before the stores.
+
+`query.prefetch(params)` warms the cache for `params` **without** touching `$data`/`$status`
+(no-op without a cache, skips when already fresh) — e.g. prefetch the next page on hover.
+
+::: tip keepPreviousData by default
+`$data` isn't cleared on a new `start` — it keeps the previous result until the new one
+arrives. So when params change, the old data stays visible while the new fetch runs
+(TanStack's `keepPreviousData`), out of the box. Use `reset()` to clear explicitly.
+:::
+
+Share these across many queries with a [factory](/recipes/defaults).
+
+## Operators
+
+`concurrency` / `retry` / `cache` are also standalone, composable operators — the inline
+options are sugar over them. Apply them directly, even after creation:
+
+```ts
+import { createQuery, concurrency, retry, cache } from 'effector-refetch';
+
+const search = createQuery({ effect: searchFx });
+concurrency(search, { strategy: 'TAKE_LATEST' });
+retry(search, { times: 3, delay: exponentialDelay(200) });
+cache(search, { staleAfter: 30_000, purge: loggedOut });
+```
+
+## Caching
+
+`cache: { adapter?, staleAfter?, key?, purge?, swr?, dedupe? }`
+
+- **`swr: true`** — serve a stale entry immediately, revalidate in the background (`$stale` flips `true` → `false`).
+- **`dedupe: true`** — coalesce identical in-flight requests (by key) into one effect run.
+- Adapters: `inMemoryCache({ maxAge?, maxEntries?, onHit?, onMiss?, onExpired?, onEvicted? })` (LRU GC + events), `localStorageCache({ version?, maxAge? })` / `sessionStorageCache(...)` (bump `version` to invalidate old data), `voidCache`.
+
+## Sourced (reactive) config
+
+Inline `concurrency`, `retry.times`, `cache.staleAfter` (and `enabled`) accept a `Store`
+instead of a constant — read reactively and **fork-correctly** (each scope sees its own value):
+
+```ts
+const $retries = createStore(0);
+createQuery({ effect: fx, retry: { times: $retries, delay: exponentialDelay(200) } });
+```
+
+## connectQuery
+
+```ts
+connectQuery({ source, fn, target, filter? });           // single source
+connectQuery({ source: { a, b }, fn, target, filter? }); // multiple (waits for all done)
+```
+
+`fn` receives `{ result, params }` per source and returns `{ params }` for the target.
+
+
+================================================================================
+# Auth & barrier (pause the environment)
+URL: https://olovyannikov.github.io/effector-query/recipes/auth-barrier.html
+================================================================================
+
+# Auth & barrier (pause the environment)
+
+Sometimes you need to **pause every request**, do something, then resume — the classic
+case being a `401`: pause, refresh the token, replay the queued requests.
+
+`createBarrier` is a mutex that queries wait on. While it's locked, any gated query that
+tries to run blocks; when it unlocks, the queued requests proceed.
+
+```ts
+import { sample } from 'effector';
+import { createBarrier, createQueryFactory } from 'effector-refetch';
+
+// the barrier runs the refresh when it locks, and unlocks when refresh settles
+const authBarrier = createBarrier({ perform: refreshTokenFx });
+
+// every query/mutation built here waits on the barrier
+const { createQuery, createMutation } = createQueryFactory({ barrier: authBarrier });
+
+const profile = createQuery({
+  effect: getProfileFx, // throws { status: 401 } when the token is stale
+  retry: { times: 1, filter: ({ error }) => error.status === 401 },
+});
+
+// on a 401, lock the barrier — this kicks off refreshTokenFx
+sample({
+  clock: getProfileFx.failData,
+  filter: (error) => error.status === 401,
+  target: authBarrier.lock,
+});
+```
+
+What happens on a stale token:
+
+1. `getProfileFx` fails with `401` → the barrier **locks** and `refreshTokenFx` runs.
+2. The `retry` schedules a re-run — but it **waits at the barrier**.
+3. Other queries started meanwhile also queue.
+4. `refreshTokenFx` settles → the barrier **unlocks** → the retry (and the queue) run with the fresh token.
+
+## API
+
+```ts
+const barrier = createBarrier({ perform?: Effect<void, any> });
+barrier.lock();        // close — gated queries wait
+barrier.unlock();      // open — queued queries proceed
+barrier.$locked;       // Store<boolean>
+```
+
+With `perform`, locking auto-runs the effect and unlocks when it settles (success **or**
+failure — no deadlock). Without it, drive `lock`/`unlock` yourself.
+
+Gate a single query without a factory:
+
+```ts
+const q = createQuery({ effect: fx, barrier: authBarrier });
+```
+
+::: warning Client-side
+The barrier reads the no-scope store, so it's meant for a single running app, not
+per-`fork` isolation. (Request pausing rarely applies during SSR.)
+:::
+
+
+================================================================================
+# Auto-refetch & polling
+URL: https://olovyannikov.github.io/effector-query/recipes/auto-refetch.html
+================================================================================
+
+# Auto-refetch & polling
+
+## Polling — `refetchInterval`
+
+Refetch on a timer while the query is started and enabled:
+
+```ts
+const stats = createQuery({ effect: fetchStatsFx, refetchInterval: 5000 }); // every 5s
+stats.start();
+```
+
+After each settle (success or failure) the query waits `refetchInterval` ms, then
+`refresh`es with the last params (bypassing cache). It's paused while `$enabled` is
+`false`, stops on `reset`, and is fork-correct (each scope polls independently). The
+interval can be reactive — pass a `Store<number>` and change it live (e.g. faster while
+a tab is active):
+
+```ts
+createQuery({ effect: fx, refetchInterval: $pollMs });
+```
+
+## On window focus / reconnect
+
+Opt-in, browser-only, tree-shakeable:
+
+```ts
+import { refetchOnWindowFocus, refetchOnReconnect } from 'effector-refetch';
+
+const stop1 = refetchOnWindowFocus(userQuery);
+const stop2 = refetchOnReconnect(userQuery);
+// call stop1() / stop2() to detach
+```
+
+Both refetch with the query's last params, only if it has run and is enabled. They read
+the no-scope store, so they're meant for a single-client app; for scoped apps, drive
+`query.refetch` yourself with `scopeBind`.
+
+## Offline / network mode
+
+`createNetworkBarrier()` is a [barrier](/recipes/auth-barrier) that **locks while the browser is
+offline** and unlocks on reconnect. Gate queries with it and their runs pause when the connection
+drops, then resume automatically when it returns — no per-query wiring:
+
+```ts
+import { createNetworkBarrier, refetchOnReconnect } from 'effector-refetch';
+
+const offline = createNetworkBarrier();
+
+const userQuery = createQuery({ effect: fetchUserFx, barrier: offline });
+// or apply it to a whole group: createQueryFactory({ barrier: offline })
+
+offline.$online; // Store<boolean> — drive an "offline" banner
+refetchOnReconnect(userQuery); // optional: also refresh already-loaded data
+offline.stop(); // detach the online/offline listeners on teardown
+```
+
+A run started while offline sits in `pending` (the effect body isn't entered) until the network
+returns. Browser-only — on the server the barrier stays open (online).
+
+## Compose with patronum
+
+A query's triggers are plain effector events, so you can drive them with any
+[patronum](https://patronum.effector.dev/operators/) operator — no special API needed:
+
+```ts
+import { interval, debounce, throttle } from 'patronum';
+
+// debounced search-as-you-type
+debounce({ source: queryChanged, timeout: 300, target: searchQuery.start });
+
+// custom polling with start/stop control
+const { tick } = interval({ timeout: 10_000, start: pageOpened, stop: pageClosed });
+sample({ clock: tick, source: searchQuery.$params, target: searchQuery.refetch });
+
+// throttle a refresh button
+throttle({ source: refreshClicked, timeout: 1000, target: dashboard.refresh });
+```
+
+Use the built-in `refetchInterval` for the common case; reach for patronum when you want
+explicit start/stop, debounce or throttle semantics.
+
+
+================================================================================
+# Shared defaults (query factory)
+URL: https://olovyannikov.github.io/effector-query/recipes/defaults.html
+================================================================================
+
+# Shared defaults (query factory)
+
+effector-refetch has no global `QueryClient`. Instead, bake shared policy into a factory
+with `createQueryFactory` — per-call options always override the defaults.
+
+```ts
+import { createQueryFactory } from 'effector-refetch';
+
+const { createQuery, createMutation } = createQueryFactory({
+  retry: 2,
+  cache: { staleAfter: 30_000 },
+  concurrency: 'TAKE_LATEST',
+});
+
+const todos = createQuery({ effect: fetchTodosFx }); // retry 2 + cache by default
+const search = createQuery({ effect: searchFx, retry: 0 }); // override: no retry
+```
+
+## Make every query poll
+
+The motivating case — one place to give all queries a polling interval:
+
+```ts
+const { createQuery } = createQueryFactory({ refetchInterval: 30_000 });
+
+const stats = createQuery({ effect: fetchStatsFx }); // polls every 30s
+const feed = createQuery({ effect: fetchFeedFx, refetchInterval: 5_000 }); // override to 5s
+```
+
+See the runnable [`examples/polling.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/polling.ts).
+
+## What a factory carries
+
+Query defaults: `retry`, `cache`, `concurrency`, `refetchInterval`, `structuralSharing`,
+`enabled`, `debug`. Mutations only inherit `retry`, `concurrency`, `debug` (cache /
+polling don't apply to writes).
+
+Need different policies per area (e.g. `shared/api` vs `internal/api`)? Just create
+multiple factories.
+
+::: tip Why not a global client?
+effector is decentralized — a god-object `QueryClient` fights that model. A factory gives
+you the same "defaults in one place" ergonomics while every query stays a plain, testable
+effector unit.
+:::
+
+
+================================================================================
+# Error handling
+URL: https://olovyannikov.github.io/effector-query/recipes/error-handling.html
+================================================================================
+
+# Error handling
+
+Errors are first-class: a failed effect drives `$error`, flips `$status` to `'fail'`, and emits
+`finished.fail` — all scope-safe. This recipe covers reading errors, normalizing them, deciding
+what to retry, and reacting globally.
+
+## Reading the error
+
+```ts
+const userQuery = createQuery({ effect: fetchUserFx });
+
+userQuery.$error; // Store<Error | null>
+userQuery.$status; // 'initial' | 'pending' | 'done' | 'fail'
+userQuery.finished.fail; // Event<{ params; error }>
+```
+
+In a component, the bindings expose it directly:
+
+```ts
+// React
+const { error, status } = useQuery(userQuery);
+// Vue
+const { error, isFail } = useQuery(userQuery);
+```
+
+## Normalizing errors with `mapError`
+
+Turn raw failures into a shape your UI understands before they ever reach `$error`:
+
+```ts
+const userQuery = createQuery({
+  effect: fetchUserFx,
+  mapError: ({ error, params }) => ({
+    code: (error as RequestError).status ?? 0,
+    message: error instanceof Error ? error.message : 'Unknown error',
+    userId: params,
+  }),
+});
+// userQuery.$error is now Store<{ code; message; userId } | null>
+```
+
+## Typed transport errors
+
+`createRequestFx` rejects with a [`RequestError`](/api/http) carrying `status` and `data`, so you
+can branch on the HTTP status. Wrapping a third-party client? `normalizeRequestError` coerces
+axios/ofetch-style errors into the same shape:
+
+```ts
+import { createRequestFx, RequestError, normalizeRequestError } from 'effector-refetch';
+
+const fetchUserFx = createRequestFx(async (id: number, { signal }) => {
+  const res = await fetch(`/api/users/${id}`, { signal });
+  if (!res.ok) throw new RequestError(`HTTP ${res.status}`, { status: res.status, data: await res.text() });
+  return res.json();
+});
+
+// from axios/ofetch:
+const fetchFx = createRequestFx(async (id: number) => {
+  try {
+    return (await api.get(`/users/${id}`)).data;
+  } catch (e) {
+    throw normalizeRequestError(e); // -> RequestError { status, data }
+  }
+});
+```
+
+## Deciding what to retry
+
+By default `retry` repeats on any failure. Use `filter` to retry only the transient ones (skip
+4xx), and `suppressIntermediateErrors` to keep `$error` clean until the final attempt:
+
+```ts
+const query = createQuery({
+  effect: fetchUserFx,
+  retry: {
+    times: 3,
+    delay: (attempt) => 2 ** attempt * 200, // backoff
+    filter: ({ error }) => {
+      const status = (error as RequestError).status ?? 0;
+      return status === 0 || status >= 500; // network / server only
+    },
+    suppressIntermediateErrors: true, // $error stays null while retrying
+  },
+});
+```
+
+A failed validation ([contracts](/api/http)) throws a `ValidationError`, which flows through
+the same path and **is retryable** — handy when a flaky upstream occasionally returns malformed
+data.
+
+## Reacting globally
+
+`finished.fail` is a plain effector event — `sample` it into a toast, a logger, or Sentry:
+
+```ts
+import { sample } from 'effector';
+
+sample({
+  clock: [userQuery.finished.fail, todosQuery.finished.fail],
+  fn: ({ error }) => (error instanceof Error ? error.message : 'Request failed'),
+  target: showToastFx,
+});
+```
+
+With a [shared factory](/recipes/defaults) you can wire this once for every query in a group via
+its `finished.fail` events, instead of repeating it per query.
+
+## 401 → refresh → replay
+
+For "the token expired, refresh it and replay the failed requests", don't handle it per query —
+pause the whole environment with a [barrier](/recipes/auth-barrier): on a 401 it locks, refreshes
+the token, then releases the queued requests.
+
+Runnable error shapes: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)
+(GraphQL `errors` → `RequestError`) and the [HTTP page](/api/http).
+
+
+================================================================================
+# GraphQL
+URL: https://olovyannikov.github.io/effector-query/recipes/graphql.html
+================================================================================
+
+# GraphQL
+
+GraphQL is just a `POST` with `{ query, variables }`, so it needs no special support — wrap one
+document in a [`createRequestFx`](/api/http) effect and hand it to `createQuery` /
+`createMutation`. A tiny factory keeps the endpoint, headers, abort signal, and error handling in
+one place.
+
+## A reusable client factory
+
+```ts
+import { createRequestFx, RequestError } from 'effector-refetch';
+
+const ENDPOINT = 'https://countries.trevorblades.com/graphql';
+
+interface GraphqlResponse<Data> {
+  data?: Data;
+  errors?: Array<{ message: string }>;
+}
+
+/** One GraphQL document -> an Abortable effect that takes its variables. */
+export function graphql<Data, Vars = Record<string, never>>(document: string) {
+  return createRequestFx<Vars, Data>(async (variables, { signal }) => {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: document, variables }),
+      signal,
+    });
+    const json = (await res.json()) as GraphqlResponse<Data>;
+    if (json.errors?.length) {
+      throw new RequestError(json.errors[0].message, { status: res.status, data: json.errors });
+    }
+    return json.data as Data;
+  });
+}
+```
+
+Turning GraphQL `errors` into a `RequestError` is the important bit: now `retry`, `$error`, and
+the inspector treat a GraphQL-level failure exactly like an HTTP one.
+
+## A query
+
+```ts
+import { createQuery } from 'effector-refetch';
+
+const getCountriesFx = graphql<{ countries: Country[] }, { continent: string }>(`
+  query Countries($continent: String!) {
+    countries(filter: { continent: { eq: $continent } }) {
+      code
+      name
+      emoji
+    }
+  }
+`);
+
+const countriesQuery = createQuery({ effect: getCountriesFx, cache: { staleAfter: 60_000 } });
+
+countriesQuery.start({ continent: 'EU' });
+```
+
+## A mutation
+
+The same factory powers writes — just pass the effect to `createMutation`:
+
+```ts
+import { createMutation } from 'effector-refetch';
+
+const addReviewFx = graphql<{ addReview: { id: string } }, { code: string; stars: number }>(`
+  mutation AddReview($code: ID!, $stars: Int!) {
+    addReview(code: $code, stars: $stars) {
+      id
+    }
+  }
+`);
+
+const addReviewMutation = createMutation({ effect: addReviewFx, retry: 1 });
+
+addReviewMutation.start({ code: 'EU', stars: 5 });
+```
+
+Because variables _are_ the effect's params, [`connectQuery`](/api/queries) and
+[`combineQueries`](/api/queries) compose GraphQL operations just like REST ones.
+
+Runnable: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts).
+
+
+================================================================================
+# Groups & cache access
+URL: https://olovyannikov.github.io/effector-query/recipes/groups-and-cache.html
+================================================================================
+
+# Groups & cache access
+
+## Invalidate a group of queries
+
+A [factory](/recipes/defaults) registers every query it creates, so you can refetch them
+together — the effector-flavored equivalent of `queryClient.invalidateQueries`:
+
+```ts
+import { createQueryFactory } from 'effector-refetch';
+
+const { createQuery, invalidate } = createQueryFactory();
+
+const todos = createQuery({ effect: fetchTodosFx });
+const profile = createQuery({ effect: fetchProfileFx });
+
+// refetch every query that has run
+invalidate();
+
+// or narrow with a predicate (receives the query object)
+invalidate({ predicate: (q) => q === todos });
+```
+
+`invalidate` is a plain event — scope-correct (`allSettled(invalidate, { scope })` for SSR/tests)
+and composable: `sample({ clock: loggedOut, target: invalidate })`. Only queries that have
+already run are refetched, with their last params.
+
+Need separate groups? Use multiple factories.
+
+## Read & write cache imperatively
+
+```ts
+import { getQueryData, setQueryData } from 'effector-refetch';
+
+const todos = getQueryData(todosQuery); // current $data
+setQueryData(todosQuery, (prev) => [...(prev ?? []), newTodo]); // value or (prev) => next
+```
+
+These read/write the no-scope store — for a single client app. In scoped code read
+`scope.getState(query.$data)`, and prefer the [`update`](/api/mutations#update) /
+[`optimisticUpdate`](/recipes/optimistic) operators (they're scope-correct).
+
+## gcTime?
+
+TanStack's `gcTime` evicts cache entries once they have no observers. effector-refetch
+doesn't track observers (queries are plain units, not subscriptions), so the closest knob
+is age-based eviction on the adapter: `inMemoryCache({ maxAge })` /
+`localStorageCache({ maxAge })`, plus `maxEntries` for an LRU cap.
+
+
+================================================================================
+# effector inspector & logging
+URL: https://olovyannikov.github.io/effector-query/recipes/inspector.html
+================================================================================
+
+# effector inspector & logging
+
+Beyond the [visual devtools](/api/devtools), effector-refetch plays well with the broader
+effector tooling — the inspector and any logger.
+
+## Name your queries
+
+Give each query a `name` (or `debug: true`) so its units show up labelled in the inspector:
+
+```ts
+const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
+// units: todos.start, todos.$data, todos.$status, todos.runFx, todos.inspect.*
+
+const adhoc = createQuery({ effect: fx, debug: true }); // labelled as query.* without a name
+```
+
+## @effector/inspector
+
+```ts
+import { inspect } from '@effector/inspector';
+
+inspect(); // renders the inspector; named query units are grouped and readable
+```
+
+## Custom logging with attachQueryLogger
+
+For headless logging (server logs, analytics, your own panel), subscribe to the
+lifecycle stream:
+
+```ts
+import { attachQueryLogger } from 'effector-refetch';
+
+attachQueryLogger(todos, {
+  name: 'todos',
+  handler: (entry) => logger.debug('query', entry),
+  // entry: { query, type, params?, attempt?, error?, durationMs? }
+});
+```
+
+`type` is one of `start | run | done | fail | aborted | cache-hit | cache-miss | retry`.
+Forward these into Sentry breadcrumbs, a custom timeline, or `console`.
+
+## Low-level stream
+
+If you need the raw effector events (e.g. to wire your own `sample`), use
+`query.__.inspect` — see [Introspection](/api/introspection).
+
+
+================================================================================
+# Normalized list updates
+URL: https://olovyannikov.github.io/effector-query/recipes/list-updates.html
+================================================================================
+
+# Normalized list updates
+
+When a mutation changes one item in a list query, you usually don't need a full refetch —
+patch the item in place with [`update`](/api/mutations#update) (or `optimisticUpdate`).
+
+## Patch an item by id
+
+```ts
+import { update } from 'effector-refetch';
+
+// todosQuery.$data: Todo[]
+update({
+  query: todosQuery,
+  on: toggleTodoMutation, // returns the updated Todo
+  fn: ({ data, result: updated }) => (data ?? []).map((todo) => (todo.id === updated.id ? updated : todo)),
+});
+```
+
+## Remove an item
+
+```ts
+update({
+  query: todosQuery,
+  on: deleteTodoMutation, // params: id
+  fn: ({ data, params: id }) => (data ?? []).filter((todo) => todo.id !== id),
+});
+```
+
+## Optimistic toggle with rollback
+
+```ts
+import { optimisticUpdate } from 'effector-refetch';
+
+optimisticUpdate({
+  query: todosQuery,
+  on: toggleTodoMutation,
+  update: ({ data, params: id }) => (data ?? []).map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+  // on success, reconcile with the server's version
+  commit: ({ data, result: updated }) => (data ?? []).map((t) => (t.id === updated.id ? updated : t)),
+});
+```
+
+For a paginated list (`createInfiniteQuery`), patch within `$pages` the same way —
+map over the page that contains the item.
+
+
+================================================================================
+# Optimistic updates
+URL: https://olovyannikov.github.io/effector-query/recipes/optimistic.html
+================================================================================
+
+# Optimistic updates
+
+Show a change instantly, roll back on failure, reconcile with the server on success —
+then optionally `invalidate` to confirm against server truth (the TanStack pattern).
+
+```ts
+import { createQuery, createMutation, optimisticUpdate, invalidate } from 'effector-refetch';
+
+const todosQuery = createQuery({ effect: fetchTodosFx });
+const addTodo = createMutation({ effect: addTodoFx });
+
+optimisticUpdate({
+  query: todosQuery,
+  on: addTodo,
+  // applied immediately on addTodo.mutate(...)
+  update: ({ data, params }) => [{ id: -1, text: params.text, pending: true }, ...(data ?? [])],
+  // reconcile the temp item with the server result on success
+  commit: ({ data, result }) => (data ?? []).map((t) => (t.id === -1 ? result : t)),
+  // rollbackOnFailure defaults to true
+});
+
+// reconcile against server truth as well
+invalidate({ on: addTodo, refetch: todosQuery });
+
+addTodo.mutate({ text: 'Buy milk' });
+```
+
+## How it works
+
+- On `addTodo` **start**, the previous `$data` is snapshotted and the optimistic value applied.
+- On **failure**, `$data` is rolled back to the snapshot.
+- On **success**, `commit` reconciles (or the optimistic value is kept if no `commit`).
+
+::: warning
+Optimistic updates assume effectively-serial mutations per query (the common case).
+Heavily interleaved concurrent mutations on the same query can clobber each other's
+rollback snapshot.
+:::
+
+
+================================================================================
+# Shared request factory
+URL: https://olovyannikov.github.io/effector-query/recipes/shared-factory.html
+================================================================================
+
+# Shared request factory
+
+Bake `baseURL` + headers/auth into a factory once, then declare endpoints in one line
+each — the FSD `shared/api` pattern.
+
+```ts
+import { ofetch } from 'ofetch';
+import { createRequestFx, createQuery, createMutation, concurrency, invalidate } from 'effector-refetch';
+
+const HTTP_METHODS = { GET: 'GET', POST: 'POST', PUT: 'PUT', DELETE: 'DELETE' } as const;
+
+function createRequestFactory(opts: { baseURL: string; headers?: () => Record<string, string> }) {
+  return <Params = void, Response = unknown>(
+    descriptor: (params: Params) => {
+      url: string;
+      method?: string;
+      params?: Record<string, unknown>;
+      body?: unknown;
+    },
+  ) =>
+    createRequestFx<Params, Response>((params, { signal }) => {
+      const { url, method = 'GET', params: query, body } = descriptor(params);
+      return ofetch<Response>(url, {
+        baseURL: opts.baseURL,
+        method,
+        query,
+        body,
+        headers: opts.headers?.(),
+        signal,
+      });
+    });
+}
+
+let apiKey = '';
+export const createCommonRequestFx = createRequestFactory({
+  baseURL: API_URL,
+  headers: () => ({ 'X-API-KEY': apiKey }),
+});
+export const createInternalRequestFx = createRequestFactory({
+  baseURL: API_URL,
+  headers: () => ({ Authorization: `Bearer ${token}` }),
+});
+```
+
+Endpoints:
+
+```ts
+export const getProductsQuery = createQuery({
+  effect: createCommonRequestFx<ProductsRequest, Product[]>((params) => ({ url: '/products', params })),
+  cache: { staleAfter: 30_000 },
+});
+concurrency(getProductsQuery, { strategy: 'TAKE_LATEST' });
+
+export const likeProductMutation = createMutation({
+  effect: createInternalRequestFx<number, Product>((id) => ({
+    url: `/products/${id}/likes`,
+    method: HTTP_METHODS.PUT,
+  })),
+});
+
+invalidate({ on: likeProductMutation, refetch: getProductsQuery });
+```
+
+Full runnable version: [`examples/shared-factory.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/shared-factory.ts).
+
+
+================================================================================
+# SSR & testing
+URL: https://olovyannikov.github.io/effector-query/recipes/ssr-and-testing.html
+================================================================================
+
+# SSR & testing
+
+Because a query is plain effector under the hood, `fork()` + `allSettled()` work as
+usual — no special test utilities.
+
+## Testing a query
+
+```ts
+import { fork, allSettled } from 'effector';
+
+const scope = fork();
+await allSettled(query.start, { scope, params: 1 });
+expect(scope.getState(query.$data)).toEqual(/* ... */);
+```
+
+## SSR
+
+```ts
+const scope = fork();
+await allSettled(query.start, { scope, params: req.params });
+const html = renderToString(/* app */, scope);
+const serialized = serialize(scope); // effector serialize
+```
+
+Bindings are scope-aware: React via `<Provider value={scope}>`, Vue via the
+`EffectorScopePlugin({ scope })`.
+
+## Notes
+
+- Sourced config (`Store` for `concurrency` / `retry.times` / `cache.staleAfter` / `enabled`)
+  is **fork-correct** — each scope sees its own value.
+- Cache adapters hold state outside the effector scope; for isolated SSR build queries
+  per request (as usual), or pass a fresh adapter.
+- In-flight `AbortController`s are tracked per query _instance_; avoid sharing one query
+  instance across concurrent SSR requests if you also call `cancel`.
+
+
+================================================================================
+# Streaming (SSE & WebSocket)
+URL: https://olovyannikov.github.io/effector-query/recipes/streaming.html
+================================================================================
+
+# Streaming (SSE & WebSocket)
+
+A query owns the **snapshot**; a stream keeps a live **view store** fresh. Load the initial
+data with a query, then fold stream events into a plain store seeded from the query's public
+`finished.done`. One raw stream message is fanned out into typed events with
+[patronum's `splitMap`](https://patronum.effector.dev/operators/split-map/) — no query
+internals, no refetch.
+
+::: tip Why a separate store?
+The query stays the single owner of fetching; the view store owns the _merged_ live state.
+This avoids reaching into private seams and keeps the stream logic plain effector you can test
+and compose.
+:::
+
+## Server-Sent Events
+
+```ts
+import { createEffect, createEvent, createStore, sample } from 'effector';
+import { splitMap } from 'patronum';
+import { createQuery } from 'effector-refetch';
+
+const noticesQuery = createQuery({ effect: fetchNoticesFx });
+
+// raw SSE message -> typed events
+const messageReceived = createEvent<Message>();
+const { created, deleted } = splitMap({
+  source: messageReceived,
+  cases: {
+    created: (m) => (m.event === 'created' ? m.notice : undefined),
+    deleted: (m) => (m.event === 'deleted' ? m.id : undefined),
+  },
+});
+
+// view store: seeded from the query, then patched by the stream
+const $notices = createStore<Notice[]>([])
+  .on(created, (list, notice) => [notice, ...list])
+  .on(deleted, (list, id) => list.filter((n) => n.id !== id));
+
+sample({ clock: noticesQuery.finished.done, fn: ({ result }) => result, target: $notices });
+
+const openStreamFx = createEffect((url: string) => {
+  const source = new EventSource(url);
+  source.addEventListener('message', (e) => messageReceived(JSON.parse(e.data)));
+  return source; // source.close() to stop
+});
+
+noticesQuery.start();
+openStreamFx('/api/notices/stream');
+```
+
+## WebSocket
+
+```ts
+const pricesQuery = createQuery({ effect: fetchPricesFx });
+
+const messageReceived = createEvent<{ type: string; payload: unknown }>();
+const { snapshot, tick } = splitMap({
+  source: messageReceived,
+  cases: {
+    snapshot: (m) => (m.type === 'snapshot' ? (m.payload as Prices) : undefined),
+    tick: (m) => (m.type === 'tick' ? (m.payload as Tick) : undefined),
+  },
+});
+
+const $prices = createStore<Prices>({})
+  .on(snapshot, (_prices, snap) => snap)
+  .on(tick, (prices, t) => ({ ...prices, [t.symbol]: t.value }));
+
+sample({ clock: pricesQuery.finished.done, fn: ({ result }) => result, target: $prices });
+// open a WebSocket, forward messages to messageReceived, track a $connected store…
+```
+
+Because the query is plain effector, the socket/SSE lifecycle is just effects and events —
+compose reconnect, backoff, or other [patronum](https://patronum.effector.dev/) operators freely.
+
+Runnable: [`examples/sse.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/sse.ts),
+[`examples/websocket.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/websocket.ts).
+
+
+================================================================================
+# index.md
+URL: https://olovyannikov.github.io/effector-query/
+================================================================================
+
+## A 30-second taste
+
+```ts
+import { createEffect } from 'effector';
+import { createQuery, createMutation, invalidate } from 'effector-refetch';
+
+const fetchTodosFx = createEffect(() => fetch('/api/todos').then((r) => r.json()));
+const addTodoFx = createEffect((text: string) =>
+  fetch('/api/todos', { method: 'POST', body: JSON.stringify({ text }) }).then((r) => r.json()),
+);
+
+export const todos = createQuery({ effect: fetchTodosFx, cache: true, retry: 2 });
+export const addTodo = createMutation({ effect: addTodoFx });
+
+// when a todo is added, refresh the list
+invalidate({ on: addTodo, refetch: todos });
+
+todos.start();
+addTodo.mutate('Buy milk'); // → todos refetches automatically
+```
+
+In a component, read it with one hook:
+
+```tsx
+const { data, pending } = useUnit(todos); // React or Vue
+```
+
+## Why not just use effects directly?
+
+You can — and you still are. effector-refetch doesn't replace your effects; it wires the
+boring, fiddly parts around them: loading/error status, retries, caching, request
+cancellation, deduplication, validation. Your effect stays a first-class effector unit
+you can see in devtools and test with `fork()`.
+
+If you've felt the pain of hand-rolling "is it loading, did it fail, is this response
+stale, did the user click twice, which request won the race" — that's the part this
+library owns, declaratively.
+
+## When it fits — and when it doesn't
+
+**Reach for it** when you have real async with races, caching needs, or many endpoints,
+and you want it testable without a renderer.
+
+**Skip it** for a tiny app with a couple of `useState` calls, or a throwaway prototype —
+plain effects (or even `fetch`) are honest there. We'd rather you under-use this than
+cargo-cult it. See the [honest comparison with farfetched](/guide/vs-farfetched).
+
+<div style="margin-top: 2rem; opacity: .7">
+
+Pre-1.0 and actively developed · MIT · [Roadmap](https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md)
+
+</div>

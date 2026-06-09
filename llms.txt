@@ -1,0 +1,44 @@
+# effector-refetch
+
+> Friendly, effect-first query layer for effector — createQuery/createMutation built on real effects, with caching, retries, concurrency, pagination, validation, React/Vue/Solid bindings, SSR via fork/allSettled, devtools and an offline/auth barrier.
+
+Full documentation as plain text: [llms-full.txt](https://olovyannikov.github.io/effector-query/llms-full.txt). Repo: https://github.com/Olovyannikov/effector-query
+
+## Guide
+
+- [Core concepts](https://olovyannikov.github.io/effector-query/guide/concepts.html): A query wraps your **real effector `Effect`**. It is not a black box with an internal executor — your effect is a first-class unit: visible in devtools, composable with `attach`, and fork-friendly for
+- [Local development](https://olovyannikov.github.io/effector-query/guide/contributing.html): Want to hack on **effector-refetch** itself (not just use it)? Here's how to get the repo running.
+- [Getting started](https://olovyannikov.github.io/effector-query/guide/getting-started.html): This page gets you from zero to a working query in a couple of minutes. For the _why_, read the [Introduction](/guide/introduction) first.
+- [Introduction](https://olovyannikov.github.io/effector-query/guide/introduction.html): Almost every app does the same dance around data: kick off a request, track whether it's loading, catch the error, show the result. Then reality piles on — the user double-clicks, a second request rac
+- [LLMs & AI agents](https://olovyannikov.github.io/effector-query/guide/llms.html): effector-refetch ships machine-readable docs and an installable agent skill, so AI coding agents write idiomatic, fork-correct code with the library.
+- [Migration](https://olovyannikov.github.io/effector-query/guide/migration.html): The mental model is close, so most code maps directly. The main shift: **bring your own effect**, and inline options are available alongside operators.
+- [vs. farfetched](https://olovyannikov.github.io/effector-query/guide/vs-farfetched.html): [farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is s
+
+## API
+
+- [Framework bindings](https://olovyannikov.github.io/effector-query/api/bindings.html): A query implements effector's `@@unitShape` protocol, so you can pass it straight to `useUnit` from **effector-react**, **effector-vue** or **effector-solid** — no wrapper needed.
+- [Devtools](https://olovyannikov.github.io/effector-query/api/devtools.html): A floating devtools panel — like TanStack Query's — that lists your queries with live status, params, data, error and a per-query event log. Available for **React** (`effector-refetch/devtools`), **Vu
+- [HTTP & validation](https://olovyannikov.github.io/effector-query/api/http.html): Wrap any HTTP client into a typed, abort-aware effector effect with normalized errors:
+- [Introspection](https://olovyannikov.github.io/effector-query/api/introspection.html): Pass `name` to label the units in the effector inspector — **the public surface and every internal seam**, so the whole pipeline is readable, not just the entry points:
+- [Mutations & invalidation](https://olovyannikov.github.io/effector-query/api/mutations.html): A mutation is a write-flavored query: the same effect-first engine (status, retry, concurrency, lifecycle) without cache/refresh/stale, plus a `mutate` alias. Concurrency defaults to `TAKE_EVERY` so i
+- [Pagination](https://olovyannikov.github.io/effector-query/api/pagination.html): Cursor/offset pagination that accumulates pages. `start` loads the first page (resetting), `fetchNext` appends the next — driven by `getNextPageParam`.
+- [Queries](https://olovyannikov.github.io/effector-query/api/queries.html): - **`effect`** — your `Effect<Params, Result, Error>`. `handler: async params => …` is sugar. - **`concurrency`** — how overlapping runs behave: - `TAKE_LATEST` (default) — new run supersedes & aborts
+
+## Recipes
+
+- [Auth & barrier (pause the environment)](https://olovyannikov.github.io/effector-query/recipes/auth-barrier.html): Sometimes you need to **pause every request**, do something, then resume — the classic case being a `401`: pause, refresh the token, replay the queued requests.
+- [Auto-refetch & polling](https://olovyannikov.github.io/effector-query/recipes/auto-refetch.html): Refetch on a timer while the query is started and enabled:
+- [Shared defaults (query factory)](https://olovyannikov.github.io/effector-query/recipes/defaults.html): effector-refetch has no global `QueryClient`. Instead, bake shared policy into a factory with `createQueryFactory` — per-call options always override the defaults.
+- [Error handling](https://olovyannikov.github.io/effector-query/recipes/error-handling.html): Errors are first-class: a failed effect drives `$error`, flips `$status` to `'fail'`, and emits `finished.fail` — all scope-safe. This recipe covers reading errors, normalizing them, deciding what to 
+- [GraphQL](https://olovyannikov.github.io/effector-query/recipes/graphql.html): GraphQL is just a `POST` with `{ query, variables }`, so it needs no special support — wrap one document in a [`createRequestFx`](/api/http) effect and hand it to `createQuery` / `createMutation`. A t
+- [Groups & cache access](https://olovyannikov.github.io/effector-query/recipes/groups-and-cache.html): A [factory](/recipes/defaults) registers every query it creates, so you can refetch them together — the effector-flavored equivalent of `queryClient.invalidateQueries`:
+- [effector inspector & logging](https://olovyannikov.github.io/effector-query/recipes/inspector.html): Beyond the [visual devtools](/api/devtools), effector-refetch plays well with the broader effector tooling — the inspector and any logger.
+- [Normalized list updates](https://olovyannikov.github.io/effector-query/recipes/list-updates.html): When a mutation changes one item in a list query, you usually don't need a full refetch — patch the item in place with [`update`](/api/mutations#update) (or `optimisticUpdate`).
+- [Optimistic updates](https://olovyannikov.github.io/effector-query/recipes/optimistic.html): Show a change instantly, roll back on failure, reconcile with the server on success — then optionally `invalidate` to confirm against server truth (the TanStack pattern).
+- [Shared request factory](https://olovyannikov.github.io/effector-query/recipes/shared-factory.html): Bake `baseURL` + headers/auth into a factory once, then declare endpoints in one line each — the FSD `shared/api` pattern.
+- [SSR & testing](https://olovyannikov.github.io/effector-query/recipes/ssr-and-testing.html): Because a query is plain effector under the hood, `fork()` + `allSettled()` work as usual — no special test utilities.
+- [Streaming (SSE & WebSocket)](https://olovyannikov.github.io/effector-query/recipes/streaming.html): A query owns the **snapshot**; a stream keeps a live **view store** fresh. Load the initial data with a query, then fold stream events into a plain store seeded from the query's public `finished.done`
+
+## Overview
+
+- [index.md](https://olovyannikov.github.io/effector-query/): In a component, read it with one hook:
