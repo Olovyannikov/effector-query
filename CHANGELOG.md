@@ -1,5 +1,28 @@
 # effector-query
 
+## 0.4.0
+
+### Minor Changes
+
+- c341b96: Vue devtools panel — `EffectorQueryDevtools` from `effector-refetch/devtools/vue`, a
+  TanStack-style floating inspector at parity with the React panel (live status, params, data,
+  error, per-query event log; scope-aware via effector-vue's `EffectorScopePlugin`). Same props
+  (`queries`, `initialIsOpen`, `position`). Built as render functions, tree-shaken out of the core
+  bundle.
+
+### Patch Changes
+
+- 10d91a1: Fix: `cancel` on an already-settled query is now a no-op. Previously it always re-derived
+  `$status` from `$data`, so cancelling after a failure (with stale data from an earlier success
+  still present) flipped the status from `fail` back to `done`. Cancel now only settles the status
+  while a request is actually in flight (`status === 'pending'`); a finished `done`/`fail` state is
+  left untouched.
+- d1d2fbb: Deep devtools labelling: `name` (or `debug: true`) now labels every internal seam in the
+  effector inspector — `requested`, `proceed`, `toExec`, `lookupFx`, `toRun`, `rawDone`,
+  `acceptedDone`, `scheduleRetry`, `failed`, `finalFail`, `$runId`, `$attempts`, the lifecycle
+  events, and the poll/prefetch effects — not just the public entry points. Without a name the
+  internal units stay anonymous, so production inspector output is unchanged.
+
 ## 0.3.0
 
 ### Minor Changes
