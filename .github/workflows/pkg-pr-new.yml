@@ -7,7 +7,8 @@ on:
 
 # Publishes a continuous-release canary of the package for every PR/commit via
 # pkg.pr.new — installable as `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>`.
-# Requires the pkg.pr.new GitHub App to be installed on the repo (no secrets).
+# Requires the pkg.pr.new GitHub App to be installed on the repo (no secrets):
+#   https://github.com/apps/pkg-pr-new  → Install → select this repo.
 permissions:
   contents: read
 
@@ -23,4 +24,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      # Non-blocking until the pkg.pr.new GitHub App is installed: without it the
+      # publish returns 404, which shouldn't red-X every PR. Remove once installed.
       - run: pnpm dlx pkg-pr-new publish --comment=update --packageManager=pnpm
+        continue-on-error: true

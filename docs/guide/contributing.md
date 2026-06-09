@@ -63,3 +63,31 @@ Every pull request gets two automatic stands:
   pollution). The bot comments the exact command.
 
 So a reviewer can click the docs link and `npm i` the canary into a real app before merging.
+
+## Continuous integration (GitHub Actions)
+
+Five workflows under `.github/workflows/`:
+
+| Workflow         | Trigger        | What it does                                                              |
+| ---------------- | -------------- | ------------------------------------------------------------------------- |
+| `ci.yml`         | push / PR      | typecheck · lint · test · build · size-limit                              |
+| `release.yml`    | push to `main` | changesets: opens a "Version Packages" PR; on its merge, publishes to npm |
+| `docs.yml`       | push to `main` | builds the docs and deploys them to the `gh-pages` branch (root)          |
+| `pr-preview.yml` | pull_request   | builds the PR docs to `gh-pages` `pr-preview/pr-<N>/` + comments the URL  |
+| `pkg-pr-new.yml` | push / PR      | publishes a canary via pkg.pr.new                                         |
+
+### Required repository setup
+
+These need to be enabled once by a maintainer (Actions can't configure them itself):
+
+1. **Pages** — Settings → Pages → Source: **Deploy from a branch** → `gh-pages` / `(root)`.
+   (`docs.yml` deploys to that branch with `clean-exclude: pr-preview` so PR previews survive.)
+2. **Workflow permissions** — Settings → Actions → General → **Read and write permissions**, and
+   **Allow GitHub Actions to create and approve pull requests** (for the Version Packages PR).
+3. **`NPM_TOKEN` secret** — a classic **Automation** token (bypasses 2FA) or a Granular token with
+   read+write on packages. Drives publishing in `release.yml`.
+4. **pkg.pr.new GitHub App** — install [`pkg-pr-new`](https://github.com/apps/pkg-pr-new) on the
+   repo so the canary workflow can publish (it's a no-op / non-blocking until then).
+
+The docs generators (`scripts/gen-api.mjs`, `scripts/gen-llms.mjs`) run inside `docs:build`, so
+both `docs.yml` and `pr-preview.yml` always ship a fresh API reference and `llms.txt`.
