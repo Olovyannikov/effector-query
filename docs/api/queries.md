@@ -28,7 +28,11 @@ const query = createQuery({
 - **`enabled`** — `Store<boolean>` gate; while `false`, `start`/`refresh` are skipped.
 - **`refetchInterval`** — poll every N ms (`number` or `Store<number>`, 0 = off). See [Auto-refetch & polling](/recipes/auto-refetch).
 - **`structuralSharing`** — preserve referential identity of unchanged parts of the result (fewer re-renders).
+- **`placeholderData`** — a value or `(prev) => …` shown while there's no real data; `$isPlaceholderData` is `true` until the first real result. Unlike `initialData`, it's not treated as cached.
 - **`mapData` / `mapError`** — normalize result / error before the stores.
+
+`query.prefetch(params)` warms the cache for `params` **without** touching `$data`/`$status`
+(no-op without a cache, skips when already fresh) — e.g. prefetch the next page on hover.
 
 ::: tip keepPreviousData by default
 `$data` isn't cleared on a new `start` — it keeps the previous result until the new one

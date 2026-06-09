@@ -103,11 +103,23 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   // ---- public units ----
   const start = createEvent<Params>(evName('start'));
   const refresh = createEvent<Params>(evName('refresh'));
+  const prefetch = createEvent<Params>(evName('prefetch'));
   const reset = createEvent<void>(evName('reset'));
   const cancel = createEvent<void>(evName('cancel'));
 
+  const resolvePlaceholder = (prev: Mapped | null): Mapped | null => {
+    const p = config.placeholderData;
+    if (p == null) return null;
+    return typeof p === 'function' ? (p as (prev: Mapped | null) => Mapped | null)(prev) : p;
+  };
+  const initialData = config.initialData ?? resolvePlaceholder(null);
+
   const $enabled = config.enabled ?? createStore(true);
-  const $data = createStore<Mapped | null>(config.initialData ?? null, nm('$data'));
+  const $data = createStore<Mapped | null>(initialData ?? null, nm('$data'));
+  const $isPlaceholderData = createStore(
+    config.placeholderData != null && config.initialData == null,
+    nm('$isPlaceholderData'),
+  );
   const $error = createStore<Error | null>(null, nm('$error'));
   const $status = createStore<QueryStatus>('initial', nm('$status'));
   const $stale = createStore(false, nm('$stale'));
@@ -248,6 +260,27 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     if (cfg) cfg.adapter.set(cfg.key(p.params), p.result, Date.now());
   });
   sample({ clock: acceptedDone, filter: () => !!cacheRef, target: setFx });
+
+  // prefetch: warm the cache without touching $data/$status (cache-only; skips if fresh)
+  const prefetchLookupFx = createEffect(async ({ params, staleAfter }: { params: Params; staleAfter: number }) => {
+    const cfg = cacheRef;
+    if (!cfg) return { params, fresh: false };
+    const entry = await cfg.adapter.get(cfg.key(params));
+    return { params, fresh: entry != null && Date.now() - entry.storedAt < staleAfter };
+  });
+  const prefetchRunFx = createEffect<Params, { params: Params; result: Result }, Error>(async (params) => ({
+    params,
+    result: await callEffect(params, new AbortController().signal),
+  }));
+  sample({
+    clock: prefetch,
+    source: $staleAfterSrc,
+    filter: () => !!cacheRef,
+    fn: (s, params) => ({ params, staleAfter: staleOf(s) }),
+    target: prefetchLookupFx,
+  });
+  sample({ clock: prefetchLookupFx.doneData, filter: ({ fresh }) => !fresh, fn: ({ params }) => params, target: prefetchRunFx });
+  sample({ clock: prefetchRunFx.doneData, target: setFx });
 
   const purgeFx = createEffect(() => {
     cacheRef?.adapter.purge();
@@ -426,6 +459,12 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     .on(acceptedDone, () => false)
     .on(cacheHit, () => false)
     .reset(reset);
+
+  $isPlaceholderData
+    .on(acceptedDone, () => false)
+    .on(cacheHit, () => false)
+    .on(staleServe, () => false)
+    .reset(reset);
   $params.on(staleServe, (_p, h) => h.params ?? null);
 
   const $pending = combine(runFx.pending, $retrying, (p, r) => p || r);
@@ -513,6 +552,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     start: start as EventCallable<Params>,
     refresh: refresh as EventCallable<Params>,
     refetch: refetch as EventCallable<Params>,
+    prefetch: prefetch as EventCallable<Params>,
     reset,
     cancel,
 
@@ -521,6 +561,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     $status,
     $pending,
     $stale,
+    $isPlaceholderData,
     $enabled,
     $params,
 
@@ -574,6 +615,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       stale: $stale,
       enabled: $enabled,
       params: $params,
+      isPlaceholderData: $isPlaceholderData,
       start: start as EventCallable<Params>,
       refetch: refetch as EventCallable<Params>,
       refresh: refresh as EventCallable<Params>,

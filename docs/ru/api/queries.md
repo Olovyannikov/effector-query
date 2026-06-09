@@ -28,7 +28,11 @@ const query = createQuery({
 - **`enabled`** — гейт `Store<boolean>`; пока `false`, `start`/`refresh` пропускаются.
 - **`refetchInterval`** — поллинг каждые N мс (`number` или `Store<number>`, 0 = выкл). См. [Авто-рефетч и поллинг](/ru/recipes/auto-refetch).
 - **`structuralSharing`** — сохранять ссылочную идентичность неизменённых частей результата (меньше ре-рендеров).
+- **`placeholderData`** — значение или `(prev) => …`, показываемое, пока нет реальных данных; `$isPlaceholderData` равно `true` до первого реального результата. В отличие от `initialData`, не считается закэшированным.
 - **`mapData` / `mapError`** — нормализация результата / ошибки перед сторами.
+
+`query.prefetch(params)` прогревает кэш под `params` **без** изменения `$data`/`$status`
+(no-op без кэша, пропускает свежие записи) — например, префетч следующей страницы по hover.
 
 ::: tip keepPreviousData по умолчанию
 `$data` не очищается на новый `start` — он держит предыдущий результат, пока не придёт

@@ -67,6 +67,8 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
   effect: QueryEffect<Params, Result, Error>;
   /** Initial $data value before the first success. */
   initialData?: Mapped;
+  /** Placeholder shown while there's no real data (value or `(prev) => …`); flagged via `$isPlaceholderData`. */
+  placeholderData?: Mapped | ((previousData: Mapped | null) => Mapped | null);
   /** Gate: while false, start/refresh are skipped. */
   enabled?: Store<boolean>;
   /** Map a successful result before writing it to $data. */
@@ -164,6 +166,7 @@ export type QueryUnitShape<Params, Mapped, Error> = {
   stale: Store<boolean>;
   enabled: Store<boolean>;
   params: Store<Params | null>;
+  isPlaceholderData: Store<boolean>;
   start: EventCallable<Params>;
   refetch: EventCallable<Params>;
   refresh: EventCallable<Params>;
@@ -178,6 +181,8 @@ export interface Query<Params, Result, Error, Mapped = Result> {
   refresh: EventCallable<Params>;
   /** Alias of `refresh`, for the familiar `refetch` name. */
   refetch: EventCallable<Params>;
+  /** Warm the cache for `params` without touching `$data`/`$status` (no-op without cache). */
+  prefetch: EventCallable<Params>;
   reset: EventCallable<void>;
   cancel: EventCallable<void>;
 
@@ -187,6 +192,8 @@ export interface Query<Params, Result, Error, Mapped = Result> {
   $status: Store<QueryStatus>;
   $pending: Store<boolean>;
   $stale: Store<boolean>;
+  /** True while `$data` is the configured placeholder (no real result yet). */
+  $isPlaceholderData: Store<boolean>;
   $enabled: Store<boolean>;
   /** Last params the query ran with (null before first run). */
   $params: Store<Params | null>;

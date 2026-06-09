@@ -98,9 +98,9 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 ### 1.2 — Data UX
 - [x] `keepPreviousData` — already the default (`$data` survives a new `start`); documented
 - [x] Structural sharing (`structuralSharing: true`) — preserve referential identity of unchanged data
-- [ ] `placeholderData` (incl. `(prev) => …`) distinct from cached `initialData`
-- [ ] `prefetch(query, params)` — warm the cache without committing `$data`
-- [ ] `select`-style derived subscription (lighter than `mapData` for per-consumer slices)
+- [x] `placeholderData` (value or `(prev) => …`) + `$isPlaceholderData`, distinct from cached `initialData`
+- [x] `query.prefetch(params)` — warm the cache without committing `$data`/`$status`
+- [ ] `select`-style derived subscription (lighter than `mapData` for per-consumer slices) — `mapData` covers most cases
 
 ### 1.3a — Shared defaults
 - [x] `createQueryFactory(defaults)` — bake shared policy (retry/cache/concurrency/refetchInterval/…) into `createQuery`/`createMutation`; the effector-flavored alternative to a global client
