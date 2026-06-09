@@ -1,4 +1,4 @@
-import { combine, merge, sample } from 'effector';
+import { combine, sample } from 'effector';
 import type { ParamsOf, Query, ResultOf } from './types';
 
 type SourceCtx<P, R> = { result: R; params: P | null };
@@ -43,13 +43,17 @@ export function connectQuery(config: any): void {
 
   if (isSingle) {
     const q = source as Query<any, any, any, any>;
-    const cfg: any = {
-      clock: q.finished.done,
-      fn: (clk: any) => (fn ? fn({ result: clk.result, params: clk.params }).params : undefined),
-      target: target.start,
-    };
-    if (filter) cfg.filter = (clk: any) => filter({ result: clk.result, params: clk.params });
-    sample(cfg);
+    const compute = (clk: any) => (fn ? fn({ result: clk.result, params: clk.params }).params : undefined);
+    if (filter) {
+      sample({
+        clock: q.finished.done,
+        filter: (clk: any) => filter({ result: clk.result, params: clk.params }),
+        fn: compute,
+        target: target.start as any,
+      });
+    } else {
+      sample({ clock: q.finished.done, fn: compute, target: target.start as any });
+    }
     return;
   }
 
@@ -69,7 +73,7 @@ export function connectQuery(config: any): void {
   );
 
   sample({
-    clock: merge(keys.map((k) => queries[k].finished.done)),
+    clock: keys.map((k) => queries[k].finished.done),
     source: { ctx: $ctx, allDone: $allDone },
     filter: ({ ctx, allDone }) => allDone && (filter ? filter(ctx) : true),
     fn: ({ ctx }) => (fn ? fn(ctx).params : undefined),

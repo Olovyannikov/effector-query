@@ -363,8 +363,9 @@ Uses **pnpm** and **vite**.
 ```bash
 pnpm install
 pnpm typecheck   # tsc --noEmit
+pnpm lint        # eslint + eslint-plugin-effector (typed rules)
 pnpm test        # vitest (node + happy-dom for React/Vue)
-pnpm build       # vite library build -> dist/{index,react}.{mjs,cjs} + d.ts
+pnpm build       # vite library build -> dist/{index,react,vue,devtools}.{mjs,cjs} + d.ts
 ```
 
 ## SSR / tests

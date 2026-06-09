@@ -134,3 +134,4 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - Inline option == thin sugar over a public operator, so power users are never boxed in.
 - No silent behavior: dropped/aborted runs surface via `aborted`; truncation/limits are observable.
 - Keep the core dependency-free; framework bindings are optional peer-scoped subpaths.
+- Lint with [eslint-plugin-effector](https://eslint.effector.dev/) (typed rules) in CI.

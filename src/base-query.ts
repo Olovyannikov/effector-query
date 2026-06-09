@@ -51,16 +51,16 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     | CreateQueryHandlerConfig<Params, Result, Error, Mapped>,
   sourced: SourcedConfig = {},
 ): Query<Params, Result, Error, Mapped> {
-  const effect =
+  const effectFx =
     'effect' in config
       ? config.effect
       : (createEffect(config.handler) as Effect<Params, Result, Error>);
 
-  const isAbortable = (effect as { __abortable?: boolean }).__abortable === true;
+  const isAbortable = (effectFx as { __abortable?: boolean }).__abortable === true;
   const callEffect = (params: Params, signal: AbortSignal): Promise<Result> =>
     isAbortable
-      ? (effect as (a: { params: Params; signal: AbortSignal }) => Promise<Result>)({ params, signal })
-      : (effect as (p: Params) => Promise<Result>)(params);
+      ? (effectFx as (a: { params: Params; signal: AbortSignal }) => Promise<Result>)({ params, signal })
+      : (effectFx as (p: Params) => Promise<Result>)(params);
 
   const mapData = config.mapData ?? (({ result }) => result as unknown as Mapped);
   const mapError = config.mapError ?? (({ error }) => error);
@@ -513,7 +513,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   >(({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)));
 
   const pollScheduled = sample({
-    clock: merge([finishedDone, finishedFail]),
+    clock: [finishedDone, finishedFail],
     source: { id: $pollId, ms: $intervalMs, en: $enabled, params: $params, status: $status },
     filter: ({ ms, en, status }) => ms > 0 && en && status !== 'initial',
     fn: ({ id, ms, params }) => ({ id: id + 1, ms, params }),
@@ -584,7 +584,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     aborted,
 
     __: {
-      effect,
+      effect: effectFx,
       runFx,
       purgeFx,
       inspect: {

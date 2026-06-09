@@ -64,7 +64,7 @@ export function createRequestFx<Params = void, Response = unknown>(
 ): AbortableEffect<Params, Response, RequestError> {
   const { normalizeErrors = true, name } = options;
   // The query supplies the AbortSignal per run, so cancellation is real.
-  const fx = createEffect<{ params: Params; signal: AbortSignal }, Response, RequestError>({
+  const requestFx = createEffect<{ params: Params; signal: AbortSignal }, Response, RequestError>({
     name,
     handler: async ({ params, signal }) => {
       try {
@@ -74,5 +74,5 @@ export function createRequestFx<Params = void, Response = unknown>(
       }
     },
   });
-  return Object.assign(fx, { __abortable: true as const });
+  return Object.assign(requestFx, { __abortable: true as const });
 }
