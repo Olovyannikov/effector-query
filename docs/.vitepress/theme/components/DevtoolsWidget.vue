@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
-import { createEffect } from 'effector';
+import { createEffect, createEvent } from 'effector';
 import { useUnit } from 'effector-vue/composition';
 // import straight from source so the demo needs no build step
-import { createQuery, attachQueryLogger, type QueryLogEntry } from '../../../../src';
+import {
+  createQuery,
+  connectQuery,
+  invalidate,
+  attachQueryLogger,
+  type QueryLogEntry,
+} from '../../../../src';
 
 // ---- fake APIs (resolve, or reject when params.fail) ----
 let seq = 0;
@@ -33,6 +39,15 @@ const usersQuery = createQuery({ effect: fetchUsersFx, name: 'users', retry: 1 }
 const todosQuery = createQuery({ effect: fetchTodosFx, name: 'todos', cache: true });
 const profileQuery = createQuery({ effect: fetchProfileFx, name: 'profile' });
 
+// connectQuery: a successful `users` load cascades into `profile` (watch both
+// tabs light up in sequence). profile's params are derived from the users result.
+connectQuery({ source: usersQuery, fn: () => ({ params: { fail: false } }), target: profileQuery });
+
+// invalidate: one event refetches every query that has already run, with its
+// last params (bypassing cache freshness) — the classic "data changed" signal.
+const invalidateAll = createEvent<void>();
+invalidate({ on: invalidateAll, refetch: [usersQuery, todosQuery, profileQuery] });
+
 const order = ['users', 'todos', 'profile'] as const;
 type Key = (typeof order)[number];
 
@@ -54,8 +69,10 @@ const triggers = useUnit({
   profileStart: profileQuery.start,
   profileCancel: profileQuery.cancel,
   profileReset: profileQuery.reset,
+  invalidateAll,
 }) as unknown as Record<string, (p?: unknown) => void>;
 
+const open = ref(false);
 const active = ref<Key>('users');
 
 const tabs = computed(() =>
@@ -113,71 +130,78 @@ const pretty = (v: unknown) => {
 
 <template>
   <div class="eqw">
-    <div class="eqw__bar">
-      <span class="eqw__bar-label">{{ active }}:</span>
-      <button class="eqw__btn eqw__btn--ok" @click="load(false)">Load</button>
-      <button class="eqw__btn eqw__btn--fail" @click="load(true)">Load (fail)</button>
-      <button class="eqw__btn" @click="cancel()">Cancel</button>
-      <button class="eqw__btn" @click="reset()">Reset</button>
-    </div>
+    <button v-if="!open" class="eqw__pill" @click="open = true">⚡ queries ({{ order.length }})</button>
 
-    <div class="eqw__panel">
-      <div class="eqw__head">
-        <strong style="color: #ffd8a8">effector-refetch</strong>
-        <span style="color: #868e96; margin-left: 6px">devtools</span>
+    <template v-else>
+      <div class="eqw__bar">
+        <span class="eqw__bar-label">{{ active }}:</span>
+        <button class="eqw__btn eqw__btn--ok" @click="load(false)">Load</button>
+        <button class="eqw__btn eqw__btn--fail" @click="load(true)">Load (fail)</button>
+        <button class="eqw__btn" @click="cancel()">Cancel</button>
+        <button class="eqw__btn" @click="reset()">Reset</button>
+        <span class="eqw__sep" />
+        <button class="eqw__btn" @click="triggers.invalidateAll()">Invalidate all</button>
       </div>
 
-      <div class="eqw__main">
-        <!-- tabs / sidebar -->
-        <div class="eqw__tabs">
-          <button
-            v-for="t in tabs"
-            :key="t.key"
-            class="eqw__tab"
-            :class="{ 'eqw__tab--active': t.key === active }"
-            @click="active = t.key"
-          >
-            <span class="eqw__dot" :style="{ background: COLOR[t.status] }" />
-            <span class="eqw__tab-name">{{ t.key }}</span>
-            <span v-if="t.pending" class="eqw__spin">•••</span>
-          </button>
+      <div class="eqw__panel">
+        <div class="eqw__head">
+          <strong style="color: #ffd8a8">effector-refetch</strong>
+          <span style="color: #868e96; margin-left: 6px">devtools</span>
+          <button class="eqw__close" title="Close" @click="open = false">✕</button>
         </div>
 
-        <!-- detail -->
-        <div class="eqw__detail">
-          <div class="eqw__row">
-            <span class="eqw__dot" :style="{ background: COLOR[detail.status] }" />
-            <strong>{{ active }}</strong>
-            <span :style="{ color: COLOR[detail.status], marginLeft: '8px' }">{{ detail.status }}</span>
+        <div class="eqw__main">
+          <!-- tabs / sidebar -->
+          <div class="eqw__tabs">
+            <button
+              v-for="t in tabs"
+              :key="t.key"
+              class="eqw__tab"
+              :class="{ 'eqw__tab--active': t.key === active }"
+              @click="active = t.key"
+            >
+              <span class="eqw__dot" :style="{ background: COLOR[t.status] }" />
+              <span class="eqw__tab-name">{{ t.key }}</span>
+              <span v-if="t.pending" class="eqw__spin">•••</span>
+            </button>
           </div>
 
-          <div class="eqw__section">PARAMS</div>
-          <pre class="eqw__pre">{{ pretty(detail.params) }}</pre>
+          <!-- detail -->
+          <div class="eqw__detail">
+            <div class="eqw__row">
+              <span class="eqw__dot" :style="{ background: COLOR[detail.status] }" />
+              <strong>{{ active }}</strong>
+              <span :style="{ color: COLOR[detail.status], marginLeft: '8px' }">{{ detail.status }}</span>
+            </div>
 
-          <div class="eqw__section">DATA</div>
-          <pre class="eqw__pre">{{ pretty(detail.data) }}</pre>
+            <div class="eqw__section">PARAMS</div>
+            <pre class="eqw__pre">{{ pretty(detail.params) }}</pre>
 
-          <template v-if="detail.error">
-            <div class="eqw__section">ERROR</div>
-            <pre class="eqw__pre" style="color: #ff8787">{{ detail.error.message }}</pre>
-          </template>
+            <div class="eqw__section">DATA</div>
+            <pre class="eqw__pre">{{ pretty(detail.data) }}</pre>
 
-          <div class="eqw__section">LOG</div>
-          <div class="eqw__pre eqw__log">
-            <span v-if="activeLog.length === 0" style="color: #5c5f66">no activity yet — click “Load”</span>
-            <div
-              v-for="(e, i) in activeLog"
-              :key="i"
-              :style="{ color: e.type === 'fail' ? '#ff8787' : '#c1c2c5' }"
-            >
-              <span style="color: #868e96">{{ e.type }}</span>
-              <template v-if="e.attempt != null"> #{{ e.attempt }}</template>
-              <template v-if="e.durationMs != null"> ({{ e.durationMs }}ms)</template>
+            <template v-if="detail.error">
+              <div class="eqw__section">ERROR</div>
+              <pre class="eqw__pre" style="color: #ff8787">{{ detail.error.message }}</pre>
+            </template>
+
+            <div class="eqw__section">LOG</div>
+            <div class="eqw__pre eqw__log">
+              <span v-if="activeLog.length === 0" style="color: #5c5f66">no activity yet — click “Load”</span>
+              <div
+                v-for="(e, i) in activeLog"
+                :key="i"
+                :style="{ color: e.type === 'fail' ? '#ff8787' : '#c1c2c5' }"
+              >
+                <span style="color: #868e96">{{ e.type }}</span>
+                <template v-if="e.attempt != null"> #{{ e.attempt }}</template>
+                <template v-if="e.durationMs != null"> ({{ e.durationMs }}ms)</template>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -188,6 +212,18 @@ const pretty = (v: unknown) => {
     SFMono-Regular,
     Menlo,
     monospace;
+}
+.eqw__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #1a1b1e;
+  color: #ffd8a8;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 .eqw__bar {
   display: flex;
@@ -216,6 +252,12 @@ const pretty = (v: unknown) => {
 .eqw__btn--fail {
   border-color: #e03131;
 }
+.eqw__sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--vp-c-divider);
+  margin: 0 2px;
+}
 .eqw__panel {
   background: #1a1b1e;
   color: #e9ecef;
@@ -224,8 +266,18 @@ const pretty = (v: unknown) => {
   overflow: hidden;
 }
 .eqw__head {
+  display: flex;
+  align-items: center;
   padding: 8px 12px;
   border-bottom: 1px solid #2b2c30;
+}
+.eqw__close {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #868e96;
+  cursor: pointer;
+  font: inherit;
 }
 .eqw__main {
   display: flex;

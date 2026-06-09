@@ -60,10 +60,31 @@ event log update (with retry on failure):
 ### Multiple queries
 
 The same panel, embedded inline (like TanStack's `DevtoolsPanel`), inspecting **several real
-queries at once**. Pick a query in the left tab list, then drive it — each tab keeps its own
-status, params, data, error and log:
+queries at once**. Click **⚡ queries** to open it, pick a query in the left tab list, then
+drive it — each tab keeps its own status, params, data, error and log:
 
 <DevtoolsWidget />
+
+The widget also wires two relationships you can watch fire:
+
+- **`connectQuery`** — loading `users` cascades into `profile` (its params derived from the result),
+  so both tabs light up in sequence.
+- **`invalidate`** — _Invalidate all_ refetches every query that has already run, with its last
+  params, bypassing cache freshness.
+
+```ts
+import { connectQuery, invalidate } from 'effector-refetch';
+
+// a successful users load starts profile with derived params
+connectQuery({
+  source: usersQuery,
+  fn: ({ result }) => ({ params: { id: result[0].id } }),
+  target: profileQuery,
+});
+
+// one signal refetches everything that has run (e.g. after a mutation)
+invalidate({ on: dataChanged, refetch: [usersQuery, todosQuery, profileQuery] });
+```
 
 Collapsed, the floating panel is a small `⚡ queries (N)` pill in the corner; click to expand.
 
