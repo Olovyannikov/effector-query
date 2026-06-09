@@ -80,7 +80,8 @@ This is not "clone farfetched". It is: keep the friendly, effect-first core, the
 - [x] i18n: English + Russian (`/ru/`) with a language switcher; warmer example-first home + Introduction; branded theme
 - [x] GitHub Pages deploy workflow (`.github/workflows/docs.yml`) + CI gate (`ci.yml`: typecheck/test/build)
 - [x] Type-checked snippets (Twoslash, `@shikijs/vitepress-twoslash`, `effector-refetch` mapped to local `src`) + embedded runnable examples (`DevtoolsDemo`/`DevtoolsWidget`)
-- [ ] Versioned docs from 0.x → 1.0; API docs generated/checked from `.d.ts`
+- [x] API docs generated from the types — `scripts/gen-api.mjs` emits `/api/reference` (every public export + signature + source link) on each docs build, so it can't drift from the build
+- [ ] Versioned docs (0.x → 1.0 snapshots) — deferred to the 1.0 cut; pre-1.0 the published docs track `main`
 
 ### 1.0 — Stabilize
 

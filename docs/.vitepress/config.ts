@@ -38,6 +38,7 @@ const enSidebar = {
         { text: 'Framework bindings', link: '/api/bindings' },
         { text: 'Introspection', link: '/api/introspection' },
         { text: 'Devtools', link: '/api/devtools' },
+        { text: 'API reference (generated)', link: '/api/reference' },
       ],
     },
   ],
