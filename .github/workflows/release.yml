@@ -35,4 +35,8 @@ jobs:
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # setup-node's registry-url writes .npmrc referencing ${NODE_AUTH_TOKEN};
+          # without it the token is substituted empty and npm replies E404 on publish.
+          # NPM_TOKEN is also kept for changesets/action's own auth handling.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
