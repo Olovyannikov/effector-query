@@ -125,7 +125,7 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - [x] Group invalidation via the factory: `factory.invalidate(predicate?)` (registers every query it builds; scope-correct event)
 - [x] Imperative cache read/write: `getQueryData` / `setQueryData` (+ `query.__.setData`)
 - [~] `gcTime` — closest is age-based eviction (`maxAge` / `maxEntries`); observer-based GC doesn't fit effector's model (documented)
-- [ ] Dehydrate/hydrate the whole cache (beyond per-query storage adapters) — effector `serialize`/`fork({values})` already covers store state; adapter cache hydration is the gap
+- [x] Dehydrate/hydrate the whole cache (beyond per-query storage adapters) — `dehydrate(adapter)` snapshots cache entries (via optional `dump`), `hydrate(adapter, snapshot)` restores them (storedAt preserved); pairs with effector `serialize`/`fork({values})`. SSR example + recipe
 
 ### 1.4 — Lists & parallelism
 

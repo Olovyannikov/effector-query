@@ -46,6 +46,12 @@ export interface CacheAdapter {
   set(key: string, value: unknown, storedAt: number): void | Promise<void>;
   remove(key: string): void | Promise<void>;
   purge(): void | Promise<void>;
+  /**
+   * Optional: list every stored entry for {@link dehydrate}. Adapters that can't
+   * enumerate (e.g. `voidCache`) omit it; web-storage adapters persist themselves
+   * so they don't need it.
+   */
+  dump?(): Array<CacheEntry & { key: string }>;
 }
 
 export interface CacheConfig<Params = unknown> {

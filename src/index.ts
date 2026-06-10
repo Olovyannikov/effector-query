@@ -51,7 +51,15 @@ export {
   type RequestContext,
   type CreateRequestFxOptions,
 } from './request';
-export { inMemoryCache, localStorageCache, sessionStorageCache, voidCache } from './cache';
+export {
+  inMemoryCache,
+  localStorageCache,
+  sessionStorageCache,
+  voidCache,
+  dehydrate,
+  hydrate,
+  type DehydratedEntry,
+} from './cache';
 export {
   ValidationError,
   createContract,

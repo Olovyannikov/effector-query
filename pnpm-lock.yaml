@@ -47,6 +47,9 @@ importers:
       effector-solid:
         specifier: ^0.23.0
         version: 0.23.0(effector@23.4.4)(solid-js@1.9.13)
+      effector-storage:
+        specifier: ^8.0.0
+        version: 8.0.0(effector@23.4.4)
       effector-vue:
         specifier: ^23.1.1
         version: 23.1.1(@vue/reactivity@3.5.35)(@vue/runtime-core@3.5.35)(effector@23.4.4)(vue@3.5.35(typescript@5.9.3))
@@ -1659,6 +1662,11 @@ packages:
     peerDependencies:
       effector: ^23.0.0
       solid-js: '>= 1.3.0'
+
+  effector-storage@8.0.0:
+    resolution: {integrity: sha512-sCR6umIVbfbK+ipd6WYWCxdv5iJdpzirSQLbaqauUmVXUPZTBr3VlQ3UMIFzRsojGABCxaBTVOmPjt8qph4i5w==}
+    peerDependencies:
+      effector: ^23.0.0
 
   effector-vue@23.1.1:
     resolution: {integrity: sha512-Y+NwlxpYzzaS6n0eL6ZIGqfTITG9lNb0lbQbLopiTT+19sd8GD3OhsuBOUgYvMid14fKXyfhiZXLx70DjrwpGw==}
@@ -4613,6 +4621,10 @@ snapshots:
     dependencies:
       effector: 23.4.4
       solid-js: 1.9.13
+
+  effector-storage@8.0.0(effector@23.4.4):
+    dependencies:
+      effector: 23.4.4
 
   effector-vue@23.1.1(@vue/reactivity@3.5.35)(@vue/runtime-core@3.5.35)(effector@23.4.4)(vue@3.5.35(typescript@5.9.3)):
     dependencies:

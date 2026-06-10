@@ -61,7 +61,34 @@ export function inMemoryCache(options: InMemoryCacheOptions = {}): CacheAdapter 
     purge: () => {
       store.clear();
     },
+    dump: () => Array.from(store, ([key, entry]) => ({ key, value: entry.value, storedAt: entry.storedAt })),
   };
+}
+
+/** A serializable cache entry produced by {@link dehydrate}. */
+export interface DehydratedEntry {
+  key: string;
+  value: unknown;
+  storedAt: number;
+}
+
+/**
+ * Snapshot a cache adapter into a JSON-serializable array — typically on the
+ * server after queries have run, to embed alongside effector's `serialize(scope)`.
+ * Only adapters that implement `dump` (e.g. `inMemoryCache`) can be dehydrated;
+ * others return `[]` (web-storage adapters already persist themselves).
+ */
+export function dehydrate(cache: CacheAdapter): DehydratedEntry[] {
+  return typeof cache.dump === 'function' ? cache.dump() : [];
+}
+
+/**
+ * Restore entries (from {@link dehydrate}) into a cache adapter — typically on the
+ * client before the app starts, so cached keys hit instead of refetching. The
+ * original `storedAt` is preserved, so `staleAfter` ages from the server's fetch time.
+ */
+export function hydrate(cache: CacheAdapter, entries: readonly DehydratedEntry[]): void {
+  for (const e of entries) cache.set(e.key, e.value, e.storedAt);
 }
 
 interface StoredRecord extends CacheEntry {
