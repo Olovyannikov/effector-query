@@ -1,6 +1,8 @@
 import { useUnit } from 'effector-solid';
-import type { Accessor } from 'solid-js';
-import type { Query, QueryStatus } from './types';
+import { onMount, type Accessor } from 'solid-js';
+import type { Query, QueryStatus, UseQueryOptions } from './types';
+
+export type { UseQueryOptions };
 
 export interface UseQuerySolidResult<Params, Mapped, Error> {
   data: Accessor<Mapped | null>;
@@ -34,6 +36,7 @@ export interface UseQuerySolidResult<Params, Mapped, Error> {
  */
 export function useQuery<Params, Result, Error, Mapped>(
   query: Query<Params, Result, Error, Mapped>,
+  options?: UseQueryOptions,
 ): UseQuerySolidResult<Params, Mapped, Error> {
   const state = useUnit({
     data: query.$data,
@@ -51,6 +54,13 @@ export function useQuery<Params, Result, Error, Mapped>(
     refetch: query.refetch,
     reset: query.reset,
     cancel: query.cancel,
+  });
+
+  // refetch-stale-on-mount (with the last params), opt-in
+  onMount(() => {
+    const mode = options?.refetchOnMount;
+    if (!mode || state.status() === 'initial' || !state.enabled() || state.params() == null) return;
+    if (mode === 'always' || state.stale()) triggers.refetch(state.params() as Params);
   });
 
   return {

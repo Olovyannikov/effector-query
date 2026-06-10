@@ -58,6 +58,20 @@ React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`,
 effector-solid's `<Provider>` — all for SSR / `fork`. Bindings require the matching optional
 peers (`react`+`effector-react` / `vue`+`effector-vue` / `solid-js`+`effector-solid`).
 
+## Refetch on mount
+
+`useQuery` (all three frameworks) takes an options object — `refetchOnMount` refetches the query
+**with its last params** when the component subscribes:
+
+```ts
+useQuery(userQuery, { refetchOnMount: true }); // refetch only if data is stale
+useQuery(userQuery, { refetchOnMount: 'always' }); // refetch every mount
+```
+
+It's a no-op until the query has run at least once (`status !== 'initial'`) and is enabled —
+it never starts a query that has no params yet. `true` needs a `cache.staleAfter` to have a notion
+of staleness; `'always'` ignores it.
+
 ## Suspense (React)
 
 `useSuspenseQuery` returns the data directly (never `null`): it **auto-starts** the query,

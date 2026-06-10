@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import { useUnit } from 'effector-react';
-import type { Query, QueryStatus } from './types';
+import type { Query, QueryStatus, UseQueryOptions } from './types';
+
+export type { UseQueryOptions };
 
 type AnyQuery = Query<any, any, any, any>;
 
@@ -33,6 +36,7 @@ export interface UseQueryResult<Params, Mapped, Error> {
  */
 export function useQuery<Params, Result, Error, Mapped>(
   query: Query<Params, Result, Error, Mapped>,
+  options?: UseQueryOptions,
 ): UseQueryResult<Params, Mapped, Error> {
   const state = useUnit({
     data: query.$data,
@@ -51,6 +55,14 @@ export function useQuery<Params, Result, Error, Mapped>(
     reset: query.reset,
     cancel: query.cancel,
   });
+
+  // refetch-stale-on-mount (with the last params), opt-in
+  useEffect(() => {
+    const mode = options?.refetchOnMount;
+    if (!mode || state.status === 'initial' || !state.enabled || state.params == null) return;
+    if (mode === 'always' || state.stale) triggers.refetch(state.params as Params);
+    // mount-only: read the values as they are when the component first subscribes
+  }, []);
 
   return {
     ...state,

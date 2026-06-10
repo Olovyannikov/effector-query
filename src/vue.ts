@@ -1,6 +1,8 @@
-import { computed, type Ref } from 'vue';
+import { computed, onMounted, type Ref } from 'vue';
 import { useUnit } from 'effector-vue/composition';
-import type { Query, QueryStatus } from './types';
+import type { Query, QueryStatus, UseQueryOptions } from './types';
+
+export type { UseQueryOptions };
 
 export interface UseQueryVueResult<Params, Mapped, Error> {
   data: Ref<Mapped | null>;
@@ -27,6 +29,7 @@ export interface UseQueryVueResult<Params, Mapped, Error> {
  */
 export function useQuery<Params, Result, Error, Mapped>(
   query: Query<Params, Result, Error, Mapped>,
+  options?: UseQueryOptions,
 ): UseQueryVueResult<Params, Mapped, Error> {
   const u = useUnit(query) as unknown as {
     data: Ref<Mapped | null>;
@@ -42,6 +45,13 @@ export function useQuery<Params, Result, Error, Mapped>(
     reset: () => void;
     cancel: () => void;
   };
+
+  // refetch-stale-on-mount (with the last params), opt-in
+  onMounted(() => {
+    const mode = options?.refetchOnMount;
+    if (!mode || u.status.value === 'initial' || !u.enabled.value || u.params.value == null) return;
+    if (mode === 'always' || u.stale.value) u.refetch(u.params.value as Params);
+  });
 
   return {
     data: u.data,

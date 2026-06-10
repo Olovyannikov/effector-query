@@ -292,3 +292,14 @@ export type ResultOf<Q> =
   Q extends Query<any, any, any, infer M> ? M : Q extends Mutation<any, any, any, infer M> ? M : never;
 export type ErrorOf<Q> =
   Q extends Query<any, any, infer E, any> ? E : Q extends Mutation<any, any, infer E, any> ? E : never;
+
+/** Options for the `useQuery` binding helpers (React / Vue / Solid). */
+export interface UseQueryOptions {
+  /**
+   * Refetch on subscribe/mount with the query's last params:
+   *  - `true` — only if the data is stale (`$stale`);
+   *  - `'always'` — every mount.
+   * No-op until the query has run at least once (`status !== 'initial'`) and is enabled.
+   */
+  refetchOnMount?: boolean | 'always';
+}

@@ -59,6 +59,20 @@ React работает с `<Provider value={scope}>`, Vue — с `EffectorScopeP
 опциональных peer-зависимостей (`react`+`effector-react` / `vue`+`effector-vue` /
 `solid-js`+`effector-solid`).
 
+## Рефетч на маунте
+
+`useQuery` (во всех трёх фреймворках) принимает объект опций — `refetchOnMount` перезапрашивает
+запрос **с его последними параметрами**, когда компонент подписывается:
+
+```ts
+useQuery(userQuery, { refetchOnMount: true }); // рефетч только если данные устарели
+useQuery(userQuery, { refetchOnMount: 'always' }); // рефетч на каждом маунте
+```
+
+No-op, пока запрос не запускался хотя бы раз (`status !== 'initial'`) и включён — он никогда не
+стартует запрос без параметров. `true` требует `cache.staleAfter`, чтобы было понятие
+устаревания; `'always'` его игнорирует.
+
 ## Suspense (React)
 
 `useSuspenseQuery` возвращает данные напрямую (никогда не `null`): он **сам стартует** запрос,
