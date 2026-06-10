@@ -10,34 +10,30 @@ A slice is **per-consumer**: each component derives its own view without touchin
 Reach for `mapData` when the shape is global, for a slice when it's local.
 :::
 
-## React / Solid — `useStoreMap`
+## In a component — `useStoreMap`
 
-`useStoreMap` subscribes to a derived value and only re-renders when it actually changes:
+Every binding ships `useStoreMap`: it subscribes to a derived value and only updates when that
+value actually changes.
 
 ```ts
 // React — effector-react
 import { useStoreMap } from 'effector-react';
 const name = useStoreMap(userQuery.$data, (u) => u?.name ?? '');
 
-// Solid — effector-solid (returns an accessor)
+// Solid — effector-solid (returns an accessor — call it: name())
 import { useStoreMap } from 'effector-solid';
 const name = useStoreMap(userQuery.$data, (u) => u?.name ?? '');
-// use name()
 ```
-
-Need params in the selector key? Use the full form: `useStoreMap({ store, keys: [id], fn })`.
-
-## Vue — `computed`
-
-effector-vue has no `useStoreMap`, but `computed` over the bound ref is equivalent:
 
 ```ts
-import { useUnit } from 'effector-vue/composition';
-import { computed } from 'vue';
-
-const data = useUnit(userQuery.$data);
-const name = computed(() => data.value?.name ?? '');
+// Vue — effector-vue/composition (config form; returns a ComputedRef — name.value)
+import { useStoreMap } from 'effector-vue/composition';
+const name = useStoreMap({ store: userQuery.$data, fn: (u) => u?.name ?? '' });
 ```
+
+Need params in the selector key (e.g. pick one item by id)? Pass `keys`:
+`useStoreMap({ store, keys: [id], fn: (list, [id]) => list.find((x) => x.id === id) })`
+(React/Solid take the short `useStoreMap(store, fn)` form too).
 
 ## Headless / model code
 

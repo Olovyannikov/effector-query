@@ -10,35 +10,30 @@
 `mapData`, когда форма глобальна, и срез — когда локальна.
 :::
 
-## React / Solid — `useStoreMap`
+## В компоненте — `useStoreMap`
 
-`useStoreMap` подписывается на производное значение и ре-рендерит только при его реальном
-изменении:
+`useStoreMap` есть у каждого биндинга: он подписывается на производное значение и обновляется
+только при его реальном изменении.
 
 ```ts
 // React — effector-react
 import { useStoreMap } from 'effector-react';
 const name = useStoreMap(userQuery.$data, (u) => u?.name ?? '');
 
-// Solid — effector-solid (возвращает accessor)
+// Solid — effector-solid (возвращает accessor — вызывайте: name())
 import { useStoreMap } from 'effector-solid';
 const name = useStoreMap(userQuery.$data, (u) => u?.name ?? '');
-// используйте name()
 ```
-
-Нужны параметры в ключе селектора? Полная форма: `useStoreMap({ store, keys: [id], fn })`.
-
-## Vue — `computed`
-
-В effector-vue нет `useStoreMap`, но `computed` поверх привязанного ref эквивалентен:
 
 ```ts
-import { useUnit } from 'effector-vue/composition';
-import { computed } from 'vue';
-
-const data = useUnit(userQuery.$data);
-const name = computed(() => data.value?.name ?? '');
+// Vue — effector-vue/composition (форма с конфигом; возвращает ComputedRef — name.value)
+import { useStoreMap } from 'effector-vue/composition';
+const name = useStoreMap({ store: userQuery.$data, fn: (u) => u?.name ?? '' });
 ```
+
+Нужны параметры в ключе селектора (например, взять элемент по id)? Передайте `keys`:
+`useStoreMap({ store, keys: [id], fn: (list, [id]) => list.find((x) => x.id === id) })`
+(React/Solid принимают и короткую форму `useStoreMap(store, fn)`).
 
 ## Headless / код модели
 
