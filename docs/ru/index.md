@@ -30,12 +30,34 @@ features:
     title: Всё в комплекте
     details: Мутации, инвалидация, оптимистичные апдейты, контракты валидации, createJsonQuery, пагинация, SWR, сборка мусора в кэше и дедупликация.
   - icon: 🧩
-    title: React и Vue
-    details: useUnit(query) работает напрямую через @@unitShape — плюс тонкие хелперы useQuery. Solid — в планах.
+    title: React, Vue и Solid
+    details: useUnit(query) работает напрямую через @@unitShape — плюс тонкие хелперы useQuery для всех трёх и useSuspenseQuery для React.
   - icon: 🔍
     title: Наблюдаемость
     details: Поток событий жизненного цикла и attachQueryLogger делают каждый прогон видимым для devtools и логирования.
 ---
+
+## Установка
+
+::: code-group
+
+```bash [pnpm]
+pnpm add effector-refetch effector
+```
+
+```bash [npm]
+npm install effector-refetch effector
+```
+
+```bash [yarn]
+yarn add effector-refetch effector
+```
+
+:::
+
+Биндинги фреймворков — опциональные peer-зависимости; ставьте нужные: `effector-react` + `react`,
+`effector-vue` + `vue` или `effector-solid` + `solid-js`. Полный разбор — в
+[Быстром старте](/ru/guide/getting-started).
 
 ## За 30 секунд
 
@@ -61,7 +83,7 @@ addTodo.mutate('Купить молоко'); // → todos автоматичес
 В компоненте читаем одним хуком:
 
 ```tsx
-const { data, pending } = useUnit(todos); // React или Vue
+const { data, pending } = useUnit(todos); // React / Vue / Solid
 ```
 
 ## Почему не «просто эффекты»?
