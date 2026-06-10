@@ -56,38 +56,42 @@ Or `pnpm build` and `pnpm pack` to get a tarball you can `pnpm add` into another
 
 Every pull request gets two automatic stands:
 
-- **Docs preview** — the site is built and published to `gh-pages` under
-  `…/pr-preview/pr-<N>/`; a bot comments the live URL on the PR (removed when it closes).
+- **Docs preview** — the site is built and uploaded as a downloadable workflow **artifact**
+  (`docs-preview-pr-<N>`). _(The production docs own the single GitHub Pages source, so previews
+  aren't a live URL; for that, deploy previews to an external host — see below.)_
 - **Canary package** — [pkg.pr.new](https://pkg.pr.new) publishes a preview build you can install
   straight from the PR: `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>` (no npm
   pollution). The bot comments the exact command.
 
-So a reviewer can click the docs link and `npm i` the canary into a real app before merging.
-
 ## Continuous integration (GitHub Actions)
 
-Five workflows under `.github/workflows/`:
+Workflows under `.github/workflows/`:
 
-| Workflow         | Trigger        | What it does                                                              |
-| ---------------- | -------------- | ------------------------------------------------------------------------- |
-| `ci.yml`         | push / PR      | typecheck · lint · test · build · size-limit                              |
-| `release.yml`    | push to `main` | changesets: opens a "Version Packages" PR; on its merge, publishes to npm |
-| `docs.yml`       | push to `main` | builds the docs and deploys them to the `gh-pages` branch (root)          |
-| `pr-preview.yml` | pull_request   | builds the PR docs to `gh-pages` `pr-preview/pr-<N>/` + comments the URL  |
-| `pkg-pr-new.yml` | push / PR      | publishes a canary via pkg.pr.new                                         |
+| Workflow              | Trigger         | What it does                                                              |
+| --------------------- | --------------- | ------------------------------------------------------------------------- |
+| `ci.yml`              | push / PR       | typecheck · lint · test · build · size-limit                              |
+| `release.yml`         | push to `main`  | changesets: opens a "Version Packages" PR; on its merge, publishes to npm |
+| `docs.yml`            | push to `main`  | builds the docs and deploys them to GitHub Pages (Actions artifact)       |
+| `pr-preview.yml`      | pull_request    | builds the PR docs and uploads them as a downloadable artifact            |
+| `pkg-pr-new.yml`      | push / PR       | publishes a canary via pkg.pr.new                                         |
+| `release-codemod.yml` | manual dispatch | publishes the `effector-refetch-codemod` package (in `codemod/`) to npm   |
 
 ### Required repository setup
 
 These need to be enabled once by a maintainer (Actions can't configure them itself):
 
-1. **Pages** — Settings → Pages → Source: **Deploy from a branch** → `gh-pages` / `(root)`.
-   (`docs.yml` deploys to that branch with `clean-exclude: pr-preview` so PR previews survive.)
+1. **Pages** — Settings → Pages → Source: **GitHub Actions**. (`docs.yml` deploys the built site
+   via the Pages artifact.)
 2. **Workflow permissions** — Settings → Actions → General → **Read and write permissions**, and
    **Allow GitHub Actions to create and approve pull requests** (for the Version Packages PR).
 3. **`NPM_TOKEN` secret** — a classic **Automation** token (bypasses 2FA) or a Granular token with
-   read+write on packages. Drives publishing in `release.yml`.
+   read+write on packages. Drives `release.yml` and `release-codemod.yml`.
 4. **pkg.pr.new GitHub App** — install [`pkg-pr-new`](https://github.com/apps/pkg-pr-new) on the
    repo so the canary workflow can publish (it's a no-op / non-blocking until then).
+
+Want **live** per-PR doc URLs? Point `pr-preview.yml` at an external host (Cloudflare Pages,
+Netlify, Vercel) — that needs an account and a token secret, but leaves the production Pages
+deploy untouched.
 
 The docs generators (`scripts/gen-api.mjs`, `scripts/gen-llms.mjs`) run inside `docs:build`, so
 both `docs.yml` and `pr-preview.yml` always ship a fresh API reference and `llms.txt`.

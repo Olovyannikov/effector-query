@@ -56,38 +56,41 @@ npx tsx examples/graphql.ts
 
 На каждый pull request автоматически поднимаются два стенда:
 
-- **Превью доки** — сайт собирается и публикуется в `gh-pages` под `…/pr-preview/pr-<N>/`;
-  бот комментирует живой URL в PR (удаляется при закрытии).
+- **Превью доки** — сайт собирается и грузится как скачиваемый **артефакт** воркфлоу
+  (`docs-preview-pr-<N>`). _(Прод-дока занимает единственный источник GitHub Pages, поэтому превью
+  не живой URL; для живого — внешний хост, см. ниже.)_
 - **Канарейка пакета** — [pkg.pr.new](https://pkg.pr.new) публикует превью-сборку, которую можно
   поставить прямо из PR: `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>` (без
   засорения npm). Бот комментирует точную команду.
 
-Так ревьюер может открыть ссылку на доку и `npm i` канарейку в реальное приложение до мержа.
-
 ## Continuous integration (GitHub Actions)
 
-Пять воркфлоу в `.github/workflows/`:
+Воркфлоу в `.github/workflows/`:
 
-| Воркфлоу         | Триггер       | Что делает                                                                 |
-| ---------------- | ------------- | -------------------------------------------------------------------------- |
-| `ci.yml`         | push / PR     | typecheck · lint · test · build · size-limit                               |
-| `release.yml`    | push в `main` | changesets: открывает PR «Version Packages»; при его мерже публикует в npm |
-| `docs.yml`       | push в `main` | собирает доку и деплоит её в ветку `gh-pages` (root)                       |
-| `pr-preview.yml` | pull_request  | собирает доку PR в `gh-pages` `pr-preview/pr-<N>/` + комментит URL         |
-| `pkg-pr-new.yml` | push / PR     | публикует канарейку через pkg.pr.new                                       |
+| Воркфлоу              | Триггер       | Что делает                                                                 |
+| --------------------- | ------------- | -------------------------------------------------------------------------- |
+| `ci.yml`              | push / PR     | typecheck · lint · test · build · size-limit                               |
+| `release.yml`         | push в `main` | changesets: открывает PR «Version Packages»; при его мерже публикует в npm |
+| `docs.yml`            | push в `main` | собирает доку и деплоит на GitHub Pages (через Actions-артефакт)           |
+| `pr-preview.yml`      | pull_request  | собирает доку PR и грузит её скачиваемым артефактом                        |
+| `pkg-pr-new.yml`      | push / PR     | публикует канарейку через pkg.pr.new                                       |
+| `release-codemod.yml` | ручной запуск | публикует пакет `effector-refetch-codemod` (из `codemod/`) в npm           |
 
 ### Что нужно включить в репозитории один раз
 
 Эти настройки включает мейнтейнер вручную (Actions сам их не настроит):
 
-1. **Pages** — Settings → Pages → Source: **Deploy from a branch** → `gh-pages` / `(root)`.
-   (`docs.yml` деплоит туда с `clean-exclude: pr-preview`, чтобы превью PR не затирались.)
+1. **Pages** — Settings → Pages → Source: **GitHub Actions**. (`docs.yml` деплоит собранный сайт
+   через Pages-артефакт.)
 2. **Права воркфлоу** — Settings → Actions → General → **Read and write permissions** и
    **Allow GitHub Actions to create and approve pull requests** (для PR «Version Packages»).
 3. **Секрет `NPM_TOKEN`** — классический **Automation**-токен (обходит 2FA) или Granular с
-   правом read+write на пакеты. Управляет публикацией в `release.yml`.
+   правом read+write на пакеты. Управляет `release.yml` и `release-codemod.yml`.
 4. **GitHub App pkg.pr.new** — установите [`pkg-pr-new`](https://github.com/apps/pkg-pr-new) на
    репозиторий, чтобы канарейка публиковалась (до этого шаг — no-op / non-blocking).
+
+Нужны **живые** URL превью на каждый PR? Направьте `pr-preview.yml` на внешний хост (Cloudflare
+Pages, Netlify, Vercel) — нужен аккаунт и токен-секрет, зато прод-деплой Pages не затрагивается.
 
 Генераторы доки (`scripts/gen-api.mjs`, `scripts/gen-llms.mjs`) запускаются внутри `docs:build`,
 поэтому и `docs.yml`, и `pr-preview.yml` всегда отдают свежий API-референс и `llms.txt`.
