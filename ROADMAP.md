@@ -114,7 +114,7 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 - [x] Structural sharing (`structuralSharing: true`) — preserve referential identity of unchanged data
 - [x] `placeholderData` (value or `(prev) => …`) + `$isPlaceholderData`, distinct from cached `initialData`
 - [x] `query.prefetch(params)` — warm the cache without committing `$data`/`$status`
-- [ ] `select`-style derived subscription (lighter than `mapData` for per-consumer slices) — `mapData` covers most cases
+- [x] `select`-style derived subscription (lighter than `mapData` for per-consumer slices) — served natively by effector's `useStoreMap` (React/Solid) / `computed` (Vue) / `$data.map` (headless); documented in the "Selecting slices" recipe rather than adding redundant API
 
 ### 1.3a — Shared defaults
 
