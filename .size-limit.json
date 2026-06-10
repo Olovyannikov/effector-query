@@ -1,6 +1,6 @@
 [
   {
-    "name": "core (effector-query)",
+    "name": "core (effector-refetch)",
     "path": "dist/index.mjs",
     "limit": "10 kB",
     "ignore": ["effector"]

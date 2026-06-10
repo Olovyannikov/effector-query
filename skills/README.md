@@ -10,10 +10,10 @@ Using [vercel-labs/skills](https://github.com/vercel-labs/skills) (works with Cl
 other agents):
 
 ```bash
-npx skills add Olovyannikov/effector-query            # add to your project's agents
-npx skills add Olovyannikov/effector-query --list     # preview first
-npx skills add Olovyannikov/effector-query -a claude-code  # a specific agent
-npx skills add Olovyannikov/effector-query -g         # global (all your projects)
+npx skills add Olovyannikov/effector-refetch            # add to your project's agents
+npx skills add Olovyannikov/effector-refetch --list     # preview first
+npx skills add Olovyannikov/effector-refetch -a claude-code  # a specific agent
+npx skills add Olovyannikov/effector-refetch -g         # global (all your projects)
 ```
 
 ## Install manually
@@ -26,7 +26,7 @@ cp -R node_modules/effector-refetch/skills/effector-refetch .claude/skills/
 
 # or fetch it straight from the repo
 mkdir -p .claude/skills
-curl -fsSL https://raw.githubusercontent.com/Olovyannikov/effector-query/main/skills/effector-refetch/SKILL.md \
+curl -fsSL https://raw.githubusercontent.com/Olovyannikov/effector-refetch/main/skills/effector-refetch/SKILL.md \
   -o .claude/skills/effector-refetch/SKILL.md
 ```
 

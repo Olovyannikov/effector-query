@@ -1,7 +1,7 @@
 # effector-refetch-codemod
 
 Migrate [farfetched](https://ff.effector.dev) (`@farfetched/core`) usage to
-[effector-refetch](https://github.com/Olovyannikov/effector-query).
+[effector-refetch](https://github.com/Olovyannikov/effector-refetch).
 
 ```bash
 npx effector-refetch-codemod "src/**/*.{ts,tsx}"

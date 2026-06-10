@@ -1,4 +1,4 @@
-# effector-query
+# effector-refetch
 
 ## 0.8.0
 

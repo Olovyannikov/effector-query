@@ -1,6 +1,6 @@
 # effector-refetch
 
-📖 **Docs:** https://olovyannikov.github.io/effector-query/ · 🗺️ [Roadmap](./ROADMAP.md)
+📖 **Docs:** https://olovyannikov.github.io/effector-refetch/ · 🗺️ [Roadmap](./ROADMAP.md)
 
 A small, friendly query layer for [effector](https://effector.dev), built on **real effects**.
 

@@ -14,7 +14,7 @@ hero:
       link: /ru/guide/introduction
     - theme: alt
       text: GitHub
-      link: https://github.com/Olovyannikov/effector-query
+      link: https://github.com/Olovyannikov/effector-refetch
 
 features:
   - icon: ⚡
@@ -108,6 +108,6 @@ devtools и который тестируется через `fork()`.
 
 <div style="margin-top: 2rem; opacity: .7">
 
-Pre-1.0, в активной разработке · MIT · [Roadmap](https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md)
+Pre-1.0, в активной разработке · MIT · [Roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md)
 
 </div>

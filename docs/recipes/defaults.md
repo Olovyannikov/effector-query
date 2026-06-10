@@ -27,7 +27,7 @@ const stats = createQuery({ effect: fetchStatsFx }); // polls every 30s
 const feed = createQuery({ effect: fetchFeedFx, refetchInterval: 5_000 }); // override to 5s
 ```
 
-See the runnable [`examples/polling.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/polling.ts).
+See the runnable [`examples/polling.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/polling.ts).
 
 ## What a factory carries
 

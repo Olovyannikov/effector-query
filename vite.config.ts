@@ -3,8 +3,8 @@ import dts from 'vite-plugin-dts';
 
 /**
  * Library build. Two entry points:
- *   - effector-query        -> dist/index.{mjs,cjs}
- *   - effector-query/react  -> dist/react.{mjs,cjs}
+ *   - effector-refetch        -> dist/index.{mjs,cjs}
+ *   - effector-refetch/react  -> dist/react.{mjs,cjs}
  * Peer deps are left external so consumers dedupe their own copies.
  */
 export default defineConfig({

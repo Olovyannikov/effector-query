@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 const DOCS = 'docs';
 const PUBLIC = join(DOCS, 'public');
-const BASE = 'https://olovyannikov.github.io/effector-query';
+const BASE = 'https://olovyannikov.github.io/effector-refetch';
 const SKIP_DIRS = new Set(['.vitepress', 'public', 'ru']);
 // top-level sections in display order
 const ORDER = ['guide', 'api', 'recipes'];
@@ -80,7 +80,7 @@ const sectionTitles = { guide: 'Guide', api: 'API', recipes: 'Recipes', root: 'O
 // ---- llms.txt (index) ----
 let index = `# effector-refetch\n\n`;
 index += `> Friendly, effect-first query layer for effector — createQuery/createMutation built on real effects, with caching, retries, concurrency, pagination, validation, React/Vue/Solid bindings, SSR via fork/allSettled, devtools and an offline/auth barrier.\n\n`;
-index += `Full documentation as plain text: [llms-full.txt](${BASE}/llms-full.txt). Repo: https://github.com/Olovyannikov/effector-query\n`;
+index += `Full documentation as plain text: [llms-full.txt](${BASE}/llms-full.txt). Repo: https://github.com/Olovyannikov/effector-refetch\n`;
 
 let lastSection = '';
 for (const f of files) {
@@ -93,7 +93,7 @@ for (const f of files) {
 
 // ---- llms-full.txt (full text) ----
 let full = `# effector-refetch — full documentation\n\n`;
-full += `Source: ${BASE} • https://github.com/Olovyannikov/effector-query\n`;
+full += `Source: ${BASE} • https://github.com/Olovyannikov/effector-refetch\n`;
 full += `Generated from the English docs. Sections: guide, api, recipes.\n`;
 for (const f of files) {
   full += `\n\n${'='.repeat(80)}\n# ${f.title}\nURL: ${f.url}\n${'='.repeat(80)}\n\n${f.body}\n`;

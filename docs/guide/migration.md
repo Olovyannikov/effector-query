@@ -39,8 +39,8 @@ Notable differences:
 - Sourced config is available inline (a `Store` for `concurrency` / `retry.times` / `cache.staleAfter` / `enabled`).
 - `useUnit(query)` works directly in React and Vue via `@@unitShape`.
 
-What's not here yet (vs farfetched): a Solid binding, the full sourced surface on every
-field, and some JSON-contract conveniences. See the [roadmap](https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md).
+What's not here yet (vs farfetched): the full sourced surface on every field,
+`createJsonMutation`, and a few more validation adapters. See the [roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md).
 
 ## Within 0.x
 

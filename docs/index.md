@@ -14,7 +14,7 @@ hero:
       link: /guide/introduction
     - theme: alt
       text: GitHub
-      link: https://github.com/Olovyannikov/effector-query
+      link: https://github.com/Olovyannikov/effector-refetch
 
 features:
   - icon: ⚡
@@ -108,6 +108,6 @@ cargo-cult it. See the [honest comparison with farfetched](/guide/vs-farfetched)
 
 <div style="margin-top: 2rem; opacity: .7">
 
-Pre-1.0 and actively developed · MIT · [Roadmap](https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md)
+Pre-1.0 and actively developed · MIT · [Roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md)
 
 </div>

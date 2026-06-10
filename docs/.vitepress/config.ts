@@ -117,8 +117,8 @@ export default defineConfig({
   title: 'effector-refetch',
   description: 'Friendly query layer for effector, built on real effects',
   // Overridable for per-PR previews (gh-pages subfolder): the preview workflow
-  // sets DOCS_BASE=/effector-query/pr-preview/pr-N/ so assets resolve correctly.
-  base: process.env.DOCS_BASE || '/effector-query/',
+  // sets DOCS_BASE=/effector-refetch/pr-preview/pr-N/ so assets resolve correctly.
+  base: process.env.DOCS_BASE || '/effector-refetch/',
   lastUpdated: true,
   cleanUrls: true,
   markdown: {
@@ -134,7 +134,7 @@ export default defineConfig({
     ],
   },
   themeConfig: {
-    socialLinks: [{ icon: 'github', link: 'https://github.com/Olovyannikov/effector-query' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/Olovyannikov/effector-refetch' }],
     search: { provider: 'local' },
   },
   locales: {
@@ -146,11 +146,11 @@ export default defineConfig({
           { text: 'Guide', link: '/guide/introduction' },
           { text: 'API', link: '/api/queries' },
           { text: 'Recipes', link: '/recipes/ssr-and-testing' },
-          { text: 'Roadmap', link: 'https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md' },
+          { text: 'Roadmap', link: 'https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md' },
         ],
         sidebar: enSidebar,
         editLink: {
-          pattern: 'https://github.com/Olovyannikov/effector-query/edit/main/docs/:path',
+          pattern: 'https://github.com/Olovyannikov/effector-refetch/edit/main/docs/:path',
         },
         footer: { message: 'MIT Licensed', copyright: '© 2026 Ilya Olovyannikov' },
       },
@@ -164,11 +164,11 @@ export default defineConfig({
           { text: 'Руководство', link: '/ru/guide/introduction' },
           { text: 'API', link: '/ru/api/queries' },
           { text: 'Рецепты', link: '/ru/recipes/ssr-and-testing' },
-          { text: 'Roadmap', link: 'https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md' },
+          { text: 'Roadmap', link: 'https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md' },
         ],
         sidebar: ruSidebar,
         editLink: {
-          pattern: 'https://github.com/Olovyannikov/effector-query/edit/main/docs/:path',
+          pattern: 'https://github.com/Olovyannikov/effector-refetch/edit/main/docs/:path',
           text: 'Редактировать эту страницу на GitHub',
         },
         docFooter: { prev: 'Назад', next: 'Далее' },

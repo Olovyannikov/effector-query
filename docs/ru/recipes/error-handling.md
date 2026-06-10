@@ -110,5 +110,5 @@ sample({
 запросе — поставьте всё окружение на паузу через [barrier](/ru/recipes/auth-barrier): на 401 он
 блокируется, обновляет токен и затем отпускает очередь запросов.
 
-Рабочие формы ошибок: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)
+Рабочие формы ошибок: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/graphql.ts)
 (GraphQL `errors` → `RequestError`) и [страница HTTP](/ru/api/http).

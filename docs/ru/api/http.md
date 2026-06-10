@@ -19,7 +19,7 @@ const userQuery = createQuery({ effect: getUserFx, cache: true });
 в `RequestError` (`status`, `data`).
 
 Это просто эффект — внутри работает что угодно: multipart **FormData**-загрузки
-([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
+([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/form-data.ts)),
 **GraphQL** (POST `{ query, variables }` — см. [рецепт GraphQL](/ru/recipes/graphql)),
 или стриминг ([SSE и WebSocket](/ru/recipes/streaming)).
 

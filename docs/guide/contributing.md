@@ -14,8 +14,8 @@ corepack enable
 ## Clone & install
 
 ```bash
-git clone https://github.com/Olovyannikov/effector-query.git
-cd effector-query
+git clone https://github.com/Olovyannikov/effector-refetch.git
+cd effector-refetch
 pnpm install
 ```
 
@@ -60,7 +60,7 @@ Every pull request gets two automatic stands:
   (`docs-preview-pr-<N>`). _(The production docs own the single GitHub Pages source, so previews
   aren't a live URL; for that, deploy previews to an external host — see below.)_
 - **Canary package** — [pkg.pr.new](https://pkg.pr.new) publishes a preview build you can install
-  straight from the PR: `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>` (no npm
+  straight from the PR: `npm i https://pkg.pr.new/Olovyannikov/effector-refetch@<sha>` (no npm
   pollution). The bot comments the exact command.
 
 ## Continuous integration (GitHub Actions)

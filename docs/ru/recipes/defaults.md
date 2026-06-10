@@ -27,7 +27,7 @@ const stats = createQuery({ effect: fetchStatsFx }); // поллит кажды�
 const feed = createQuery({ effect: fetchFeedFx, refetchInterval: 5_000 }); // переопределили на 5с
 ```
 
-См. рабочий пример [`examples/polling.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/polling.ts).
+См. рабочий пример [`examples/polling.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/polling.ts).
 
 ## Что несёт фабрика
 

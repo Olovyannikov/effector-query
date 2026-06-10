@@ -111,5 +111,5 @@ For "the token expired, refresh it and replay the failed requests", don't handle
 pause the whole environment with a [barrier](/recipes/auth-barrier): on a 401 it locks, refreshes
 the token, then releases the queued requests.
 
-Runnable error shapes: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts)
+Runnable error shapes: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/graphql.ts)
 (GraphQL `errors` → `RequestError`) and the [HTTP page](/api/http).

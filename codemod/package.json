@@ -10,10 +10,10 @@
     "migration",
     "ts-morph"
   ],
-  "homepage": "https://olovyannikov.github.io/effector-query/guide/migration",
+  "homepage": "https://olovyannikov.github.io/effector-refetch/guide/migration",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Olovyannikov/effector-query.git",
+    "url": "git+https://github.com/Olovyannikov/effector-refetch.git",
     "directory": "codemod"
   },
   "license": "MIT",

@@ -14,7 +14,7 @@ A small, effect-first query layer for [effector](https://effector.dev). The unit
 real `Effect<Params, Result, Error>`; a query is a thin reactive wrapper around it. Like
 farfetched/TanStack Query, but built on real effects with a friendly inline-config API.
 
-Published on npm as **`effector-refetch`**. Docs: https://olovyannikov.github.io/effector-query/
+Published on npm as **`effector-refetch`**. Docs: https://olovyannikov.github.io/effector-refetch/
 
 ## Install
 

@@ -81,4 +81,4 @@ addReviewMutation.start({ code: 'EU', stars: 5 });
 Because variables _are_ the effect's params, [`connectQuery`](/api/queries) and
 [`combineQueries`](/api/queries) compose GraphQL operations just like REST ones.
 
-Runnable: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts).
+Runnable: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/graphql.ts).

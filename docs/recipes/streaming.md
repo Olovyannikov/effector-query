@@ -73,5 +73,5 @@ sample({ clock: pricesQuery.finished.done, fn: ({ result }) => result, target: $
 Because the query is plain effector, the socket/SSE lifecycle is just effects and events —
 compose reconnect, backoff, or other [patronum](https://patronum.effector.dev/) operators freely.
 
-Runnable: [`examples/sse.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/sse.ts),
-[`examples/websocket.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/websocket.ts).
+Runnable: [`examples/sse.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/sse.ts),
+[`examples/websocket.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/websocket.ts).

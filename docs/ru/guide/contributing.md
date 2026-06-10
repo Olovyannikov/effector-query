@@ -14,8 +14,8 @@ corepack enable
 ## Клонирование и установка
 
 ```bash
-git clone https://github.com/Olovyannikov/effector-query.git
-cd effector-query
+git clone https://github.com/Olovyannikov/effector-refetch.git
+cd effector-refetch
 pnpm install
 ```
 
@@ -60,7 +60,7 @@ npx tsx examples/graphql.ts
   (`docs-preview-pr-<N>`). _(Прод-дока занимает единственный источник GitHub Pages, поэтому превью
   не живой URL; для живого — внешний хост, см. ниже.)_
 - **Канарейка пакета** — [pkg.pr.new](https://pkg.pr.new) публикует превью-сборку, которую можно
-  поставить прямо из PR: `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>` (без
+  поставить прямо из PR: `npm i https://pkg.pr.new/Olovyannikov/effector-refetch@<sha>` (без
   засорения npm). Бот комментирует точную команду.
 
 ## Continuous integration (GitHub Actions)

@@ -5,7 +5,7 @@ import { Project, SyntaxKind } from 'ts-morph';
 import { writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
-const REPO = 'https://github.com/Olovyannikov/effector-query/blob/main';
+const REPO = 'https://github.com/Olovyannikov/effector-refetch/blob/main';
 const cwd = process.cwd();
 
 const entries = [

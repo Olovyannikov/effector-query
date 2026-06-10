@@ -14,12 +14,12 @@
     "vue",
     "ssr"
   ],
-  "homepage": "https://olovyannikov.github.io/effector-query/",
+  "homepage": "https://olovyannikov.github.io/effector-refetch/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Olovyannikov/effector-query.git"
+    "url": "git+https://github.com/Olovyannikov/effector-refetch.git"
   },
-  "bugs": "https://github.com/Olovyannikov/effector-query/issues",
+  "bugs": "https://github.com/Olovyannikov/effector-refetch/issues",
   "author": "Ilya Olovyannikov",
   "publishConfig": {
     "access": "public"

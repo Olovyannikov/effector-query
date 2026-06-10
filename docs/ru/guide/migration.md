@@ -39,9 +39,9 @@ npx effector-refetch-codemod "src/**/*.ts" --dry   # только предпро
 - Sourced-конфиг доступен inline (`Store` для `concurrency` / `retry.times` / `cache.staleAfter` / `enabled`).
 - `useUnit(query)` работает напрямую в React и Vue через `@@unitShape`.
 
-Чего пока нет (в сравнении с farfetched): биндинг Solid, полная sourced-поверхность на
-каждом поле и часть удобств JSON-контрактов. См.
-[roadmap](https://github.com/Olovyannikov/effector-query/blob/main/ROADMAP.md).
+Чего пока нет (в сравнении с farfetched): полная sourced-поверхность на каждом поле,
+`createJsonMutation` и ещё несколько адаптеров валидации. См.
+[roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md).
 
 ## Внутри 0.x
 

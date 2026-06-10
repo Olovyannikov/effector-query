@@ -6,7 +6,7 @@ on:
   pull_request:
 
 # Publishes a continuous-release canary of the package for every PR/commit via
-# pkg.pr.new — installable as `npm i https://pkg.pr.new/Olovyannikov/effector-query@<sha>`.
+# pkg.pr.new — installable as `npm i https://pkg.pr.new/Olovyannikov/effector-refetch@<sha>`.
 # Requires the pkg.pr.new GitHub App to be installed on the repo (no secrets):
 #   https://github.com/apps/pkg-pr-new  → Install → select this repo.
 permissions:

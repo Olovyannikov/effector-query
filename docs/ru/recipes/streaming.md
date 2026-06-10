@@ -74,5 +74,5 @@ sample({ clock: pricesQuery.finished.done, fn: ({ result }) => result, target: $
 события: свободно собирайте reconnect, backoff или другие операторы
 [patronum](https://patronum.effector.dev/).
 
-Рабочие примеры: [`examples/sse.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/sse.ts),
-[`examples/websocket.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/websocket.ts).
+Рабочие примеры: [`examples/sse.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/sse.ts),
+[`examples/websocket.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/websocket.ts).

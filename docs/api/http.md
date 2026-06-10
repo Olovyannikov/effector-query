@@ -19,7 +19,7 @@ The handler receives an `AbortSignal`; the query owns the controller and fires i
 Errors are normalized to `RequestError` (`status`, `data`).
 
 It's just an effect, so anything works inside: multipart **FormData** uploads
-([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/form-data.ts)),
+([`examples/form-data.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/form-data.ts)),
 **GraphQL** (POST `{ query, variables }` — see the [GraphQL recipe](/recipes/graphql)),
 or streaming updates ([SSE & WebSocket](/recipes/streaming)).
 

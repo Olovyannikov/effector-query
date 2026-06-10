@@ -81,4 +81,4 @@ addReviewMutation.start({ code: 'EU', stars: 5 });
 Поскольку переменные _и есть_ параметры эффекта, [`connectQuery`](/ru/api/queries) и
 [`combineQueries`](/ru/api/queries) композируют GraphQL-операции так же, как REST.
 
-Рабочий пример: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/graphql.ts).
+Рабочий пример: [`examples/graphql.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/graphql.ts).

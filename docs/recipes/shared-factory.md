@@ -61,4 +61,4 @@ export const likeProductMutation = createMutation({
 invalidate({ on: likeProductMutation, refetch: getProductsQuery });
 ```
 
-Full runnable version: [`examples/shared-factory.ts`](https://github.com/Olovyannikov/effector-query/blob/main/examples/shared-factory.ts).
+Full runnable version: [`examples/shared-factory.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/shared-factory.ts).
