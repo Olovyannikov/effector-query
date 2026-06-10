@@ -75,3 +75,51 @@ export function standardSchemaContract<T>(schema: StandardSchemaV1<T>): Contract
     getErrorMessages: (raw) => (run(raw).issues ?? []).map((i) => i.message),
   };
 }
+
+// ---- runtypes ----
+
+interface RuntypeLike<T> {
+  validate: (raw: unknown) => { success: true; value: T } | { success: false; message: string };
+}
+
+/** Contract from a runtypes `Runtype` (structural — runtypes is not imported). */
+export function runtypesContract<T>(rt: RuntypeLike<T>): Contract<T> {
+  return {
+    isData: (raw) => rt.validate(raw).success,
+    getErrorMessages: (raw) => {
+      const r = rt.validate(raw);
+      return r.success ? [] : [r.message];
+    },
+  };
+}
+
+// ---- io-ts ----
+
+interface IoTsLike<T> {
+  decode: (
+    raw: unknown,
+  ) =>
+    | { _tag: 'Right'; right: T }
+    | { _tag: 'Left'; left: ReadonlyArray<{ message?: string; context?: ReadonlyArray<{ key: string }> }> };
+}
+
+/** Contract from an io-ts codec (structural — reads the Either, no fp-ts import). */
+export function ioTsContract<T>(codec: IoTsLike<T>): Contract<T> {
+  return {
+    isData: (raw) => codec.decode(raw)._tag === 'Right',
+    getErrorMessages: (raw) => {
+      const r = codec.decode(raw);
+      if (r._tag === 'Right') return [];
+      return r.left.map(
+        (e) =>
+          e.message ??
+          `Invalid value at ${
+            (e.context ?? [])
+              .map((c) => c.key)
+              .filter(Boolean)
+              .join('.') || '(root)'
+          }`,
+      );
+    },
+  };
+}

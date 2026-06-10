@@ -90,13 +90,34 @@ createUser.mutate({ name: 'Ada' });
 Validate a response against a schema; a failure becomes a **retryable** `ValidationError`:
 
 ```ts
-import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-refetch';
+import {
+  createQuery,
+  zodContract,
+  standardSchemaContract,
+  runtypesContract,
+  ioTsContract,
+  createContract,
+} from 'effector-refetch';
 
 createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
-createQuery({ effect: getUserFx, contract: createContract({ isData: isUser }) }); // manual
+createQuery({ effect: getUserFx, contract: runtypesContract(User) }); // runtypes
+createQuery({ effect: getUserFx, contract: ioTsContract(User) }); // io-ts codec
+createQuery({ effect: getUserFx, contract: createContract({ isData: isUser }) }); // manual / any lib
 createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['negative price'] });
 ```
 
 Contracts are **structural** — the schema libraries are not imported; you pass your own
-schema. On failure, `$error` is a `ValidationError` with `.validationErrors`.
+schema/validator. On failure, `$error` is a `ValidationError` with `.validationErrors`.
+
+::: tip Any other library
+Anything is one `createContract` away — superstruct, typed-contracts, a hand-written guard:
+
+```ts
+import { is } from 'superstruct';
+createContract({ isData: (raw) => is(raw, UserStruct) });
+```
+
+`standardSchemaContract` already covers every [Standard Schema](https://standardschema.dev) library
+(valibot, arktype, zod ≥3.24).
+:::

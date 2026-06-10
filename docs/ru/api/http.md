@@ -91,13 +91,34 @@ createUser.mutate({ name: 'Ada' });
 Проверяет ответ по схеме; провал превращается в **ретраябельную** `ValidationError`:
 
 ```ts
-import { createQuery, zodContract, standardSchemaContract, createContract } from 'effector-refetch';
+import {
+  createQuery,
+  zodContract,
+  standardSchemaContract,
+  runtypesContract,
+  ioTsContract,
+  createContract,
+} from 'effector-refetch';
 
 createQuery({ effect: getUserFx, contract: zodContract(UserSchema) }); // zod
 createQuery({ effect: getUserFx, contract: standardSchemaContract(UserSchema) }); // valibot / zod 3.24+ / arktype
-createQuery({ effect: getUserFx, contract: createContract({ isData: isUser }) }); // вручную
+createQuery({ effect: getUserFx, contract: runtypesContract(User) }); // runtypes
+createQuery({ effect: getUserFx, contract: ioTsContract(User) }); // io-ts codec
+createQuery({ effect: getUserFx, contract: createContract({ isData: isUser }) }); // вручную / любая либа
 createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['отрицательная цена'] });
 ```
 
-Контракты **структурные** — сами библиотеки схем не импортируются, вы передаёте свою схему.
-При провале `$error` — это `ValidationError` с `.validationErrors`.
+Контракты **структурные** — сами библиотеки схем не импортируются, вы передаёте свою
+схему/валидатор. При провале `$error` — это `ValidationError` с `.validationErrors`.
+
+::: tip Любая другая библиотека
+Что угодно — в одну строку через `createContract` (superstruct, typed-contracts, ручной guard):
+
+```ts
+import { is } from 'superstruct';
+createContract({ isData: (raw) => is(raw, UserStruct) });
+```
+
+`standardSchemaContract` уже покрывает любую [Standard Schema](https://standardschema.dev) либу
+(valibot, arktype, zod ≥3.24).
+:::

@@ -157,8 +157,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
       `createJsonQuery` accept a `Store` or `{ source, fn }` (alongside `(params) => …`), wired via
       `attach` so each `fork`/SSR scope reads its own value.
 - [x] **`createJsonMutation`** — declarative HTTP for writes (mirrors `createJsonQuery`, defaults to POST, returns a `Mutation`; shares the sourced request builder)
-- [ ] **More validation adapters** — `runtypes`, `io-ts`, `superstruct`, `typed-contracts` (today:
-      zod, Standard Schema, `createContract`).
+- [x] **More validation adapters** — structural `runtypesContract` + `ioTsContract` added (alongside zod, Standard Schema). superstruct/typed-contracts/any other are a one-line `createContract` (documented).
 - [ ] **Router integration** — an `@farfetched/atomic-router`-style helper (start/reset queries on
       route enter/leave).
 - [x] **`timeout`** — per-attempt deadline (`createQuery({ timeout })` option + standalone `timeout(query, ms)` operator); aborts the in-flight request and fails the run (retryable). Sourced `Store<number>` via the inline option.

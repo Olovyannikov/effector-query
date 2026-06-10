@@ -68,6 +68,8 @@ export {
   createContract,
   zodContract,
   standardSchemaContract,
+  runtypesContract,
+  ioTsContract,
   type Contract,
 } from './validation';
 export { attachQueryLogger, type QueryLogEntry, type QueryLogType, type QueryLoggerOptions } from './inspect';

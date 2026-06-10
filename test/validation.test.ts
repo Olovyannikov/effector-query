@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { allSettled, createEffect, fork } from 'effector';
-import { createContract, createQuery, standardSchemaContract, ValidationError, zodContract } from '../src';
+import {
+  createContract,
+  createQuery,
+  ioTsContract,
+  runtypesContract,
+  standardSchemaContract,
+  ValidationError,
+  zodContract,
+} from '../src';
 
 describe('validation', () => {
   it('contract: valid response passes through', async () => {
@@ -86,6 +94,42 @@ describe('validation', () => {
 
     await allSettled(q.start, { scope, params: false });
     expect((scope.getState(q.$error) as ValidationError).validationErrors).toEqual(['not a number']);
+  });
+
+  it('runtypesContract works with a runtypes-shaped validator', async () => {
+    const rt = {
+      validate: (raw: unknown) =>
+        typeof (raw as { id?: unknown })?.id === 'number'
+          ? { success: true as const, value: raw as { id: number } }
+          : { success: false as const, message: 'Expected id: number' },
+    };
+    const q = createQuery({
+      effect: createEffect(async (ok: boolean) => (ok ? { id: 1 } : { id: 'x' }) as any),
+      contract: runtypesContract(rt),
+    });
+    const scope = fork();
+    await allSettled(q.start, { scope, params: true });
+    expect(scope.getState(q.$data)).toEqual({ id: 1 });
+    await allSettled(q.start, { scope, params: false });
+    expect((scope.getState(q.$error) as ValidationError).validationErrors).toEqual(['Expected id: number']);
+  });
+
+  it('ioTsContract works with an io-ts-shaped codec (Either)', async () => {
+    const codec = {
+      decode: (raw: unknown) =>
+        typeof (raw as { id?: unknown })?.id === 'number'
+          ? { _tag: 'Right' as const, right: raw as { id: number } }
+          : { _tag: 'Left' as const, left: [{ context: [{ key: '' }, { key: 'id' }] }] },
+    };
+    const q = createQuery({
+      effect: createEffect(async (ok: boolean) => (ok ? { id: 1 } : {}) as any),
+      contract: ioTsContract(codec),
+    });
+    const scope = fork();
+    await allSettled(q.start, { scope, params: true });
+    expect(scope.getState(q.$data)).toEqual({ id: 1 });
+    await allSettled(q.start, { scope, params: false });
+    expect((scope.getState(q.$error) as ValidationError).validationErrors).toEqual(['Invalid value at id']);
   });
 
   it('validation failures are retryable', async () => {
