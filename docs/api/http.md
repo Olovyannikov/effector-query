@@ -65,6 +65,26 @@ const userQuery = createJsonQuery<{ id: number }>({
 A field is `(params) => T`, a `Store<T>`, or `{ source: Store, fn: (value, params) => T }`.
 Stores are resolved per scope at request time — no global mutable client.
 
+## createJsonMutation
+
+The write-side mirror of `createJsonQuery`: same `request` shape (sourced fields included),
+defaults to `POST`, returns a `Mutation` (no cache / refresh / stale).
+
+```ts
+import { createJsonMutation, invalidate } from 'effector-refetch';
+
+const createUser = createJsonMutation<NewUser, User>({
+  request: { url: 'https://api/users', body: (u) => u }, // method defaults to POST
+});
+
+const deleteUser = createJsonMutation<number>({
+  request: { url: (id) => `https://api/users/${id}`, method: HTTP_METHODS.DELETE },
+});
+
+invalidate({ on: createUser, refetch: usersQuery }); // refetch the list on success
+createUser.mutate({ name: 'Ada' });
+```
+
 ## Validation (contracts)
 
 Validate a response against a schema; a failure becomes a **retryable** `ValidationError`:

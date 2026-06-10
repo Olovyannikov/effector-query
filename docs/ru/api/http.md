@@ -66,6 +66,26 @@ const userQuery = createJsonQuery<{ id: number }>({
 Поле — это `(params) => T`, `Store<T>` или `{ source: Store, fn: (value, params) => T }`.
 Сторы резолвятся на момент запроса в рамках scope — без глобального мутабельного клиента.
 
+## createJsonMutation
+
+Зеркало `createJsonQuery` для записей: та же форма `request` (включая sourced-поля), по умолчанию
+`POST`, возвращает `Mutation` (без cache / refresh / stale).
+
+```ts
+import { createJsonMutation, invalidate } from 'effector-refetch';
+
+const createUser = createJsonMutation<NewUser, User>({
+  request: { url: 'https://api/users', body: (u) => u }, // метод по умолчанию POST
+});
+
+const deleteUser = createJsonMutation<number>({
+  request: { url: (id) => `https://api/users/${id}`, method: HTTP_METHODS.DELETE },
+});
+
+invalidate({ on: createUser, refetch: usersQuery }); // рефетч списка при успехе
+createUser.mutate({ name: 'Ada' });
+```
+
 ## Валидация (контракты)
 
 Проверяет ответ по схеме; провал превращается в **ретраябельную** `ValidationError`:

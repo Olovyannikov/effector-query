@@ -156,7 +156,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
 - [x] **Sourced parameters for declarative HTTP** — `url` / `headers` / `body` / `query` in
       `createJsonQuery` accept a `Store` or `{ source, fn }` (alongside `(params) => …`), wired via
       `attach` so each `fork`/SSR scope reads its own value.
-- [ ] **`createJsonMutation`** — declarative HTTP for writes (we only have `createJsonQuery`).
+- [x] **`createJsonMutation`** — declarative HTTP for writes (mirrors `createJsonQuery`, defaults to POST, returns a `Mutation`; shares the sourced request builder)
 - [ ] **More validation adapters** — `runtypes`, `io-ts`, `superstruct`, `typed-contracts` (today:
       zod, Standard Schema, `createContract`).
 - [ ] **Router integration** — an `@farfetched/atomic-router`-style helper (start/reset queries on

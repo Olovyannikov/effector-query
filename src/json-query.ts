@@ -1,7 +1,15 @@
 import { attach, createEffect, is, type Store } from 'effector';
 import { createRequestFx, RequestError, normalizeRequestError } from './request';
 import { createQuery } from './create-query';
-import type { AbortableEffect, CacheConfig, ConcurrencyStrategy, Query, RetryConfig } from './types';
+import { createMutation } from './create-mutation';
+import type {
+  AbortableEffect,
+  CacheConfig,
+  ConcurrencyStrategy,
+  Mutation,
+  Query,
+  RetryConfig,
+} from './types';
 import type { Contract } from './validation';
 
 export const HTTP_METHODS = {
@@ -74,30 +82,21 @@ function resolveField<T, P>(field: unknown, params: P, srcValue: unknown): T | u
 const FIELDS = ['url', 'query', 'body', 'headers'] as const;
 
 /**
- * Declarative JSON query over the global `fetch` (no HTTP-client dependency).
- * Builds an abort-aware request effect + a validated query in one call. Each
- * request field may be sourced from a `Store` (fork-correct):
- *
- *   const usersQuery = createJsonQuery({
- *     request: {
- *       url: ({ id }) => `/api/users/${id}`,
- *       headers: { source: $token, fn: (token) => ({ authorization: `Bearer ${token}` }) },
- *     },
- *     response: { contract: zodContract(UserSchema) },
- *   });
+ * Build an abort-aware request effect from a declarative `request` config. Each
+ * field may be sourced from a `Store` (resolved fork-correctly via `attach`).
+ * Shared by `createJsonQuery` and `createJsonMutation`.
  */
-export function createJsonQuery<Params = void, Response = unknown>(
-  config: CreateJsonQueryConfig<Params, Response>,
-): Query<Params, Response, RequestError, Response> {
-  const { request } = config;
-  const method = request.method ?? 'GET';
-
+function buildRequestEffect<Params, Response>(
+  request: JsonRequest<Params>,
+  method: HttpMethod,
+  name?: string,
+): AbortableEffect<Params, Response, RequestError> {
   // collect the Store dependencies referenced by the request fields
   const sources: Record<string, Store<unknown>> = {};
-  for (const name of FIELDS) {
-    const f = request[name] as unknown;
-    if (is.store(f)) sources[name] = f;
-    else if (isSourcedObj(f)) sources[name] = (f as SourcedObj<Params>).source;
+  for (const fieldName of FIELDS) {
+    const f = request[fieldName] as unknown;
+    if (is.store(f)) sources[fieldName] = f;
+    else if (isSourcedObj(f)) sources[fieldName] = (f as SourcedObj<Params>).source;
   }
   const hasSources = Object.keys(sources).length > 0;
 
@@ -139,42 +138,59 @@ export function createJsonQuery<Params = void, Response = unknown>(
     return (await res.json()) as Response;
   };
 
-  let effectFx: AbortableEffect<Params, Response, RequestError>;
   if (!hasSources) {
-    effectFx = createRequestFx<Params, Response>((params, { signal }) => run(params, {}, signal), {
-      name: config.name,
-    });
-  } else {
-    // attach injects the scoped source values at call time → fork-correct
-    const baseFx = createEffect<
-      { params: Params; signal: AbortSignal; src: Record<string, unknown> },
-      Response,
-      RequestError
-    >({
-      name: config.name,
-      handler: async ({ params, signal, src }) => {
-        try {
-          return await run(params, src, signal);
-        } catch (err) {
-          throw normalizeRequestError(err);
-        }
-      },
-    });
-    const attachedFx = attach({
-      source: sources,
-      mapParams: (p: { params: Params; signal: AbortSignal }, src: Record<string, unknown>) => ({
-        params: p.params,
-        signal: p.signal,
-        src,
-      }),
-      effect: baseFx,
-    });
-    effectFx = Object.assign(attachedFx, { __abortable: true as const }) as unknown as AbortableEffect<
-      Params,
-      Response,
-      RequestError
-    >;
+    return createRequestFx<Params, Response>((params, { signal }) => run(params, {}, signal), { name });
   }
+
+  // attach injects the scoped source values at call time → fork-correct
+  const baseFx = createEffect<
+    { params: Params; signal: AbortSignal; src: Record<string, unknown> },
+    Response,
+    RequestError
+  >({
+    name,
+    handler: async ({ params, signal, src }) => {
+      try {
+        return await run(params, src, signal);
+      } catch (err) {
+        throw normalizeRequestError(err);
+      }
+    },
+  });
+  const attachedFx = attach({
+    source: sources,
+    mapParams: (p: { params: Params; signal: AbortSignal }, src: Record<string, unknown>) => ({
+      params: p.params,
+      signal: p.signal,
+      src,
+    }),
+    effect: baseFx,
+  });
+  return Object.assign(attachedFx, { __abortable: true as const }) as unknown as AbortableEffect<
+    Params,
+    Response,
+    RequestError
+  >;
+}
+
+/**
+ * Declarative JSON query over the global `fetch` (no HTTP-client dependency).
+ * Builds an abort-aware request effect + a validated query in one call. Each
+ * request field may be sourced from a `Store` (fork-correct):
+ *
+ *   const usersQuery = createJsonQuery({
+ *     request: {
+ *       url: ({ id }) => `/api/users/${id}`,
+ *       headers: { source: $token, fn: (token) => ({ authorization: `Bearer ${token}` }) },
+ *     },
+ *     response: { contract: zodContract(UserSchema) },
+ *   });
+ */
+export function createJsonQuery<Params = void, Response = unknown>(
+  config: CreateJsonQueryConfig<Params, Response>,
+): Query<Params, Response, RequestError, Response> {
+  const method = config.request.method ?? 'GET';
+  const effectFx = buildRequestEffect<Params, Response>(config.request, method, config.name);
 
   return createQuery<Params, Response, RequestError, Response>({
     effect: effectFx,
@@ -186,4 +202,37 @@ export function createJsonQuery<Params = void, Response = unknown>(
     initialData: config.initialData,
     name: config.name,
   });
+}
+
+export interface CreateJsonMutationConfig<Params, Response> {
+  request: JsonRequest<Params>;
+  response?: { contract?: Contract<Response> };
+  concurrency?: ConcurrencyStrategy | Store<ConcurrencyStrategy>;
+  retry?: number | RetryConfig<RequestError>;
+  name?: string;
+}
+
+/**
+ * Declarative JSON mutation — the write-side mirror of `createJsonQuery`. Same
+ * `request` shape (sourced fields included), defaults to `POST`, returns a
+ * `Mutation` (no cache / refresh / stale).
+ *
+ *   const createUser = createJsonMutation<NewUser, User>({
+ *     request: { url: 'https://api/users', body: (u) => u },
+ *   });
+ *   invalidate({ on: createUser, refetch: usersQuery });
+ */
+export function createJsonMutation<Params = void, Response = unknown>(
+  config: CreateJsonMutationConfig<Params, Response>,
+): Mutation<Params, Response, RequestError, Response> {
+  const method = config.request.method ?? 'POST';
+  const effectFx = buildRequestEffect<Params, Response>(config.request, method, config.name);
+
+  return createMutation<Params, Response, RequestError, Response>({
+    effect: effectFx,
+    contract: config.response?.contract,
+    concurrency: config.concurrency,
+    retry: config.retry,
+    name: config.name,
+  } as never);
 }

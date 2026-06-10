@@ -9,11 +9,13 @@ export {
 export { getQueryData, setQueryData } from './cache-access';
 export {
   createJsonQuery,
+  createJsonMutation,
   HTTP_METHODS,
   type HttpMethod,
   type JsonRequest,
   type Sourced,
   type CreateJsonQueryConfig,
+  type CreateJsonMutationConfig,
 } from './json-query';
 export {
   createInfiniteQuery,
