@@ -41,3 +41,27 @@ const router = createBrowserRouter([
 Та же схема работает с `loader` у TanStack Router и любым фреймворком, который грузит данные до рендера.
 
 Рабочий пример: [`examples/react-router.tsx`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/react-router.tsx).
+
+## atomic-router
+
+Для нативного роутера effector склейка — `attachToRoute`: стартует запрос, когда маршрут
+**открывается** (с его параметрами), и сбрасывает, когда **закрывается** — без эффекта в компоненте.
+
+```ts
+import { createRoute } from 'atomic-router';
+import { attachToRoute } from 'effector-refetch';
+
+const userRoute = createRoute<{ id: string }>();
+
+attachToRoute({
+  route: userRoute,
+  query: userQuery,
+  mapParams: ({ params }) => Number(params.id), // параметры маршрута → параметры запроса
+  // resetOnClose: true (по умолчанию)
+});
+```
+
+Структурно (atomic-router не импортируется — подойдёт любой объект с `opened`/`closed`) и на
+чистом `sample`, поэтому scope-корректно для SSR. `mapParams` опционален, если параметры маршрута
+уже совпадают с параметрами запроса. Рабочий пример:
+[`examples/atomic-router.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/atomic-router.ts).

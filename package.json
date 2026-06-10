@@ -130,6 +130,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/test-utils": "^2.4.11",
+    "atomic-router": "^0.12.0",
     "axios": "^1.17.0",
     "effector": "^23.2.2",
     "effector-react": "^23.3.0",

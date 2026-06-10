@@ -41,3 +41,27 @@ const router = createBrowserRouter([
 The same shape works for TanStack Router's `loader`, or any framework that fetches before render.
 
 Runnable: [`examples/react-router.tsx`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/react-router.tsx).
+
+## atomic-router
+
+For effector's own router, `attachToRoute` is the glue: start the query when the route **opens**
+(with its params) and reset it when the route **closes** — no component effect.
+
+```ts
+import { createRoute } from 'atomic-router';
+import { attachToRoute } from 'effector-refetch';
+
+const userRoute = createRoute<{ id: string }>();
+
+attachToRoute({
+  route: userRoute,
+  query: userQuery,
+  mapParams: ({ params }) => Number(params.id), // route params → query params
+  // resetOnClose: true (default)
+});
+```
+
+It's structural (atomic-router isn't imported — any object with `opened`/`closed` works) and pure
+`sample` under the hood, so it's scope-correct for SSR. `mapParams` is optional when the route
+params already match the query's. Runnable:
+[`examples/atomic-router.ts`](https://github.com/Olovyannikov/effector-refetch/blob/main/examples/atomic-router.ts).

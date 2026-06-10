@@ -158,8 +158,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
       `attach` so each `fork`/SSR scope reads its own value.
 - [x] **`createJsonMutation`** — declarative HTTP for writes (mirrors `createJsonQuery`, defaults to POST, returns a `Mutation`; shares the sourced request builder)
 - [x] **More validation adapters** — structural `runtypesContract` + `ioTsContract` added (alongside zod, Standard Schema). superstruct/typed-contracts/any other are a one-line `createContract` (documented).
-- [ ] **Router integration** — an `@farfetched/atomic-router`-style helper (start/reset queries on
-      route enter/leave).
+- [x] **Router integration** — `attachToRoute({ route, query, mapParams?, resetOnClose? })` starts a query when a route opens (with its params) and resets it on close; structural (atomic-router not imported).
 - [x] **`timeout`** — per-attempt deadline (`createQuery({ timeout })` option + standalone `timeout(query, ms)` operator); aborts the in-flight request and fails the run (retryable). Sourced `Store<number>` via the inline option.
 - [x] **`keepFresh`** — `keepFresh(query, { source })` refetches a query (with its last params) when a source `Store` changes; no-op until it has run / while disabled.
 - [x] **`applyBarrier` operator** — `applyBarrier(query, barrier)` attaches (or `null` detaches) a barrier on an existing query/mutation, not only via the `barrier` config option.
