@@ -49,12 +49,35 @@ timeout(reportQuery, 5000); // give up a single attempt after 5s
 
 ## `keepFresh`
 
-Refetch the query with its **last params** whenever a `source` store changes — dependency-based
-freshness (filters, locale, viewer). No-op until it has run and while disabled.
+Refetch the query with its **last params** whenever a `source` store changes **or** a `@@trigger`
+fires — dependency-based freshness (filters, locale, viewer, a write succeeding, a websocket ping).
+No-op until it has run and while disabled.
 
 ```ts
 keepFresh(productsQuery, { source: $filters }); // or source: [$filters, $locale]
+
+// triggers: anything implementing the @@trigger protocol, or a plain effector Event
+keepFresh(productsQuery, { triggers: [createProductMutation, tabFocused] });
 ```
+
+`triggers` accepts our own queries/mutations (they implement `@@trigger` — `fired` = `finished.done`),
+[withease](https://withease.effector.dev/) web-API triggers, farfetched-compatible triggers, or a
+raw `Event`. Each trigger's `setup` is fired once when wired and stays active for the app's lifetime.
+
+## `@@trigger` protocol
+
+Every query and mutation **is** a [`@@trigger`](https://withease.effector.dev/protocols/trigger.html):
+`query['@@trigger']()` returns `{ fired, setup, teardown }` where `fired` is `finished.done`. So a
+query can drive **farfetched's** `keepFresh({ triggers })` (and vice-versa), or any protocol consumer:
+
+```ts
+import { keepFresh } from '@farfetched/core';
+
+keepFresh(someFarfetchedQuery, { triggers: [ourQuery] }); // ourQuery succeeds → farfetched refetches
+```
+
+`isTrigger(x)` narrows to the protocol. Our units are always-on triggers: `setup`/`teardown` exist
+for protocol compatibility but don't gate firing (the query runs on its own scoped lifecycle).
 
 ## `applyBarrier`
 

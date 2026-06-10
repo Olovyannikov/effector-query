@@ -233,6 +233,16 @@ export interface Query<Params, Result, Error, Mapped = Result> {
    * Works with both effector-react and effector-vue.
    */
   '@@unitShape': () => QueryUnitShape<Params, Mapped, Error>;
+
+  /**
+   * `@@trigger` protocol — the query as a reactive trigger (`fired` = `finished.done`),
+   * usable in farfetched's `keepFresh({ triggers })` and our own {@link keepFresh}.
+   */
+  '@@trigger': () => {
+    fired: Event<{ params: Params; result: Mapped }>;
+    setup: EventCallable<void>;
+    teardown: EventCallable<void>;
+  };
 }
 
 // ---- mutations ----
@@ -293,6 +303,16 @@ export interface Mutation<Params, Result, Error, Mapped = Result> {
   };
 
   '@@unitShape': () => MutationUnitShape<Params, Mapped, Error>;
+
+  /**
+   * `@@trigger` protocol — the mutation as a reactive trigger (`fired` = `finished.done`),
+   * e.g. to refresh a query whenever a write succeeds.
+   */
+  '@@trigger': () => {
+    fired: Event<{ params: Params; result: Mapped }>;
+    setup: EventCallable<void>;
+    teardown: EventCallable<void>;
+  };
 }
 
 // ---- type-level helpers ----

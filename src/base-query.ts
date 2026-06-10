@@ -24,6 +24,7 @@ import type {
 import { ValidationError } from './validation';
 import { RequestError } from './request';
 import { replaceEqualDeep } from './utils';
+import { makeTrigger } from './trigger';
 
 interface Run<P> {
   runId: number;
@@ -742,5 +743,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       reset,
       cancel,
     }),
+
+    '@@trigger': makeTrigger(finishedDone, evName('asTrigger')),
   };
 }

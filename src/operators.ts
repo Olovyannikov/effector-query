@@ -1,6 +1,7 @@
-import { is, merge, sample, type Store } from 'effector';
+import { is, merge, sample, type Event, type Unit, type Store } from 'effector';
 import { inMemoryCache } from './cache';
 import { stableStringify } from './utils';
+import { isTrigger, type Trigger } from './trigger';
 import type { Barrier } from './barrier';
 import type { CacheConfig, ConcurrencyStrategy, DelayFn, Query, RetryConfig } from './types';
 
@@ -74,19 +75,47 @@ export function timeout<Q extends AnyQuery>(query: Q, ms: number | Store<number>
 }
 
 /**
- * Refetch the query (with its last params) whenever a `source` store changes —
- * keeps the data fresh relative to external state (filters, locale, viewer, …):
+ * Refetch the query (with its last params) whenever a `source` store changes or
+ * a `@@trigger` fires — keeps the data fresh relative to external state (filters,
+ * locale, viewer, a websocket ping, another query/mutation succeeding, …):
  *
  *   keepFresh(productsQuery, { source: $filters });
+ *   keepFresh(productsQuery, { triggers: [createProductMutation, visibilityTrigger] });
+ *
+ * `triggers` accepts anything implementing the `@@trigger` protocol (our own
+ * queries/mutations, farfetched-compatible triggers, withease's web-API triggers)
+ * or a plain effector `Event`. Each trigger's `setup` is fired once when wired
+ * (it stays active for the app's lifetime — no teardown).
  *
  * No-op until the query has run (`status !== 'initial'`) and while disabled.
  */
 export function keepFresh<Q extends AnyQuery>(
   query: Q,
-  config: { source: Store<unknown> | ReadonlyArray<Store<unknown>> },
+  config: {
+    source?: Store<unknown> | ReadonlyArray<Store<unknown>>;
+    triggers?: ReadonlyArray<Trigger | Event<unknown>>;
+  },
 ): Q {
-  const sources = Array.isArray(config.source) ? config.source : [config.source as Store<unknown>];
-  const clock = sources.length === 1 ? sources[0] : merge(sources);
+  const clocks: Array<Unit<unknown>> = [];
+
+  if (config.source != null) {
+    const sources = Array.isArray(config.source) ? config.source : [config.source as Store<unknown>];
+    clocks.push(...sources);
+  }
+
+  for (const t of config.triggers ?? []) {
+    if (isTrigger(t)) {
+      const { fired, setup } = t['@@trigger']();
+      clocks.push(fired);
+      setup(); // activate the trigger (no teardown — wiring is permanent)
+    } else {
+      clocks.push(t);
+    }
+  }
+
+  if (clocks.length === 0) return query;
+  const clock = clocks.length === 1 ? clocks[0] : merge(clocks);
+
   type Snapshot = { params: unknown; status: string; enabled: boolean };
   sample({
     clock,

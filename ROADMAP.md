@@ -163,8 +163,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
 - [x] **`keepFresh`** — `keepFresh(query, { source })` refetches a query (with its last params) when a source `Store` changes; no-op until it has run / while disabled.
 - [x] **`applyBarrier` operator** — `applyBarrier(query, barrier)` attaches (or `null` detaches) a barrier on an existing query/mutation, not only via the `barrier` config option.
 - [x] **Richer Fetch/request builder** — `createJsonRequestFx(request)` exposes the declarative request **effect** (url/query/body/headers + sourced fields) behind `createJsonQuery`/`createJsonMutation`, reusable in `createQuery`/`createInfiniteQuery`/etc.
-- [ ] **`@@trigger` protocol** — interop so effector-refetch queries plug into farfetched-style
-      trigger APIs (and vice-versa).
+- [x] **`@@trigger` protocol** — every query/mutation implements `@@trigger` (`fired` = `finished.done`, scoped/fork-correct), so it plugs into farfetched's `keepFresh({ triggers })` and any protocol consumer; our `keepFresh` accepts `triggers` (any `@@trigger` or a plain `Event`) in return. `isTrigger` exported.
 
 Already ahead of farfetched (no action needed): effect-first unit, real `AbortSignal`
 cancellation, built-in bidirectional `createInfiniteQuery`, `createNetworkBarrier` (offline),

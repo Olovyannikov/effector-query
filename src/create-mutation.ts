@@ -54,5 +54,7 @@ export function createMutation<Params, Result, Error = unknown, Mapped = Result>
       reset: query.reset,
       cancel: query.cancel,
     }),
+
+    '@@trigger': query['@@trigger'],
   };
 }

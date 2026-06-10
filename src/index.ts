@@ -38,6 +38,7 @@ export {
 export { createBarrier, type Barrier, type CreateBarrierConfig } from './barrier';
 export { invalidate, type InvalidateConfig } from './invalidate';
 export { attachToRoute, type RouteLike, type AttachToRouteConfig } from './router';
+export { isTrigger, type Trigger } from './trigger';
 export {
   update,
   optimisticUpdate,
