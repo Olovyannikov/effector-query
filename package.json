@@ -84,7 +84,7 @@
     "prepublishOnly": "pnpm run build",
     "size": "size-limit",
     "changeset": "changeset",
-    "release": "pnpm run build && pnpm publish --no-git-checks",
+    "release": "pnpm run build && node scripts/release.mjs",
     "docs:llms": "node scripts/gen-llms.mjs",
     "docs:gen": "node scripts/gen-api.mjs && node scripts/gen-llms.mjs",
     "docs:dev": "pnpm docs:gen && vitepress dev docs",
