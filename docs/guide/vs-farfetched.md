@@ -55,24 +55,24 @@ Be aware of these before switching:
 
 ## Side by side
 
-|                      | farfetched                                       | effector-refetch                                                            |
-| -------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
-| unit of work         | internal event-based executor                    | your real `Effect` — first-class                                            |
-| API style            | operators                                        | inline options **and** operators                                            |
-| operators            | `retry`/`cache`/`concurrency`/`timeout`/`keepFresh`/`barrier` | same set — inline **and** standalone                            |
-| sourced config       | sourced **everything**                           | HTTP fields (`url`/`query`/`body`/`headers`) + curated config               |
-| validation           | runtypes / io-ts / superstruct / typed-contracts / zod | runtypes / io-ts / zod / Standard Schema / `createContract`           |
-| declarative HTTP     | `createJsonQuery` + `createJsonMutation`         | `createJsonQuery` + `createJsonMutation` (over `createJsonRequestFx`)        |
-| pagination           | —                                                | `createInfiniteQuery` (bidirectional)                                       |
-| cancellation         | abort + discard                                  | real `AbortSignal` via `createRequestFx`                                     |
-| barrier / mutex      | `createBarrier` + `applyBarrier` operator        | `createBarrier` + `applyBarrier` operator                                   |
-| offline mode         | build it on a barrier                            | built-in `createNetworkBarrier`                                             |
-| `@@trigger` protocol | implements + consumes (`keepFresh` triggers)     | implements (every query/mutation) + consumes (`keepFresh` triggers)         |
-| router               | `@farfetched/atomic-router`                      | `attachToRoute` (structural — no router import)                             |
-| devtools             | `@farfetched/dev-tools`                          | visual panels (React/Vue/Solid) + introspection stream                      |
-| bindings             | `@farfetched/solid` + `useUnit`                  | react / vue / solid + `useQuery` + `useSuspenseQuery`                        |
-| SSR                  | `fork` / `allSettled`                            | `fork` / `allSettled`                                                       |
-| maturity / ecosystem | **larger, battle-tested**                        | young, actively developed                                                   |
+|                      | farfetched                                                    | effector-refetch                                                      |
+| -------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------- |
+| unit of work         | internal event-based executor                                 | your real `Effect` — first-class                                      |
+| API style            | operators                                                     | inline options **and** operators                                      |
+| operators            | `retry`/`cache`/`concurrency`/`timeout`/`keepFresh`/`barrier` | same set — inline **and** standalone                                  |
+| sourced config       | sourced **everything**                                        | HTTP fields (`url`/`query`/`body`/`headers`) + curated config         |
+| validation           | runtypes / io-ts / superstruct / typed-contracts / zod        | runtypes / io-ts / zod / Standard Schema / `createContract`           |
+| declarative HTTP     | `createJsonQuery` + `createJsonMutation`                      | `createJsonQuery` + `createJsonMutation` (over `createJsonRequestFx`) |
+| pagination           | —                                                             | `createInfiniteQuery` (bidirectional)                                 |
+| cancellation         | abort + discard                                               | real `AbortSignal` via `createRequestFx`                              |
+| barrier / mutex      | `createBarrier` + `applyBarrier` operator                     | `createBarrier` + `applyBarrier` operator                             |
+| offline mode         | build it on a barrier                                         | built-in `createNetworkBarrier`                                       |
+| `@@trigger` protocol | implements + consumes (`keepFresh` triggers)                  | implements (every query/mutation) + consumes (`keepFresh` triggers)   |
+| router               | `@farfetched/atomic-router`                                   | `attachToRoute` (structural — no router import)                       |
+| devtools             | `@farfetched/dev-tools`                                       | visual panels (React/Vue/Solid) + introspection stream                |
+| bindings             | `@farfetched/solid` + `useUnit`                               | react / vue / solid + `useQuery` + `useSuspenseQuery`                 |
+| SSR                  | `fork` / `allSettled`                                         | `fork` / `allSettled`                                                 |
+| maturity / ecosystem | **larger, battle-tested**                                     | young, actively developed                                             |
 
 ## Which should you use?
 

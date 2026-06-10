@@ -20,23 +20,23 @@ npx effector-refetch-codemod "src/**/*.ts" --dry   # только предпро
 Модель близка, поэтому большая часть кода переносится напрямую. Главный сдвиг: **приносите
 свой эффект**, а inline-опции доступны наравне с операторами.
 
-| farfetched                             | effector-refetch                                                      |
-| -------------------------------------- | --------------------------------------------------------------------- |
-| `createQuery({ handler })`             | `createQuery({ effect })` (или `{ handler }`)                         |
-| `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                              |
-| `createJsonMutation({ ... })`          | `createJsonMutation({ request, response })`                           |
-| `retry(query, { times, delay })`       | `retry(query, …)` **или** inline `createQuery({ retry })`             |
-| `cache(query, { ... })`                | `cache(query, …)` **или** inline `createQuery({ cache })`             |
-| `concurrency(query, { strategy })`     | `concurrency(query, …)` **или** inline `createQuery({ concurrency })` |
-| `timeout(query, ms)`                   | `timeout(query, ms)` **или** inline `createQuery({ timeout })`        |
-| `keepFresh(query, { triggers })`       | `keepFresh(query, { source, triggers })`                             |
-| `connectQuery({ source, fn, target })` | идентично                                                             |
-| `createMutation`                       | `createMutation` (+ алиас `mutate`)                                   |
-| `createBarrier` / `applyBarrier`       | `createBarrier` / `applyBarrier` (или inline `createQuery({ barrier })`) |
-| `@farfetched/atomic-router`            | `attachToRoute({ route, query })` (структурно)                       |
-| потребители / источники `@@trigger`    | каждый query/mutation реализует `@@trigger`; `keepFresh` его потребляет |
+| farfetched                             | effector-refetch                                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `createQuery({ handler })`             | `createQuery({ effect })` (или `{ handler }`)                                                     |
+| `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                                                          |
+| `createJsonMutation({ ... })`          | `createJsonMutation({ request, response })`                                                       |
+| `retry(query, { times, delay })`       | `retry(query, …)` **или** inline `createQuery({ retry })`                                         |
+| `cache(query, { ... })`                | `cache(query, …)` **или** inline `createQuery({ cache })`                                         |
+| `concurrency(query, { strategy })`     | `concurrency(query, …)` **или** inline `createQuery({ concurrency })`                             |
+| `timeout(query, ms)`                   | `timeout(query, ms)` **или** inline `createQuery({ timeout })`                                    |
+| `keepFresh(query, { triggers })`       | `keepFresh(query, { source, triggers })`                                                          |
+| `connectQuery({ source, fn, target })` | идентично                                                                                         |
+| `createMutation`                       | `createMutation` (+ алиас `mutate`)                                                               |
+| `createBarrier` / `applyBarrier`       | `createBarrier` / `applyBarrier` (или inline `createQuery({ barrier })`)                          |
+| `@farfetched/atomic-router`            | `attachToRoute({ route, query })` (структурно)                                                    |
+| потребители / источники `@@trigger`    | каждый query/mutation реализует `@@trigger`; `keepFresh` его потребляет                           |
 | контракты                              | `zodContract` / `runtypesContract` / `ioTsContract` / `standardSchemaContract` / `createContract` |
-| `$data / $error / $status / $pending`  | те же имена                                                           |
+| `$data / $error / $status / $pending`  | те же имена                                                                                       |
 
 Заметные отличия:
 
