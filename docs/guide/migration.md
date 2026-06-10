@@ -24,23 +24,30 @@ effect**, and inline options are available alongside operators.
 | -------------------------------------- | -------------------------------------------------------------------- |
 | `createQuery({ handler })`             | `createQuery({ effect })` (or `{ handler }`)                         |
 | `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                             |
+| `createJsonMutation({ ... })`          | `createJsonMutation({ request, response })`                          |
 | `retry(query, { times, delay })`       | `retry(query, …)` **or** inline `createQuery({ retry })`             |
 | `cache(query, { ... })`                | `cache(query, …)` **or** inline `createQuery({ cache })`             |
 | `concurrency(query, { strategy })`     | `concurrency(query, …)` **or** inline `createQuery({ concurrency })` |
+| `timeout(query, ms)`                   | `timeout(query, ms)` **or** inline `createQuery({ timeout })`        |
+| `keepFresh(query, { triggers })`       | `keepFresh(query, { source, triggers })`                            |
 | `connectQuery({ source, fn, target })` | identical                                                            |
 | `createMutation`                       | `createMutation` (+ `mutate` alias)                                  |
-| contracts                              | `zodContract` / `standardSchemaContract` / `createContract`          |
+| `createBarrier` / `applyBarrier`       | `createBarrier` / `applyBarrier` (or inline `createQuery({ barrier })`) |
+| `@farfetched/atomic-router`            | `attachToRoute({ route, query })` (structural)                      |
+| `@@trigger` consumers / producers      | every query/mutation implements `@@trigger`; `keepFresh` consumes it |
+| contracts                              | `zodContract` / `runtypesContract` / `ioTsContract` / `standardSchemaContract` / `createContract` |
 | `$data / $error / $status / $pending`  | same names                                                           |
 
 Notable differences:
 
 - The query wraps a **real effect** (`query.__.effect`), visible in devtools.
 - Cancellation is real for `createRequestFx` effects (AbortSignal), not just discard.
-- Sourced config is available inline (a `Store` for `concurrency` / `retry.times` / `cache.staleAfter` / `enabled`).
+- Sourced config is available inline (a `Store` for `concurrency` / `retry.times` / `cache.staleAfter` / `enabled` / `timeout`), and `createJsonQuery`/`createJsonMutation` source `url` / `query` / `body` / `headers`.
 - `useUnit(query)` works directly in React and Vue via `@@unitShape`.
 
-What's not here yet (vs farfetched): the full sourced surface on every field,
-`createJsonMutation`, and a few more validation adapters. See the [roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md).
+What's not here yet (vs farfetched): the full sourced surface on _every_ field (we source the
+declarative-HTTP fields + a curated config set), and the superstruct / typed-contracts validation
+adapters specifically. See the [roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md).
 
 ## Within 0.x
 

@@ -13,35 +13,40 @@ exposes friendly inline config. Different philosophy, lots of overlap.
 
 Be aware of these before switching:
 
-- **Maturity.** Years in production, a larger community, more accumulated recipes and edge-case
-  fixes. effector-refetch is young (0.x) by comparison.
-- **Sourced parameters everywhere.** In farfetched almost every field (url, headers, body, params)
-  can be a `Store`/source. effector-refetch only sources a curated set — `enabled`, `concurrency`,
-  `retry.times`, `cache.staleAfter`, `refetchInterval` — and expects the rest to come from the
-  effect's params (often via `sample`).
-- **Validation ecosystem.** Dedicated contract adapters: `@farfetched/{runtypes,io-ts,superstruct,
-typed-contracts,zod}`. effector-refetch ships `zodContract`, `standardSchemaContract` (covers any
-  Standard-Schema lib) and `createContract` — enough for most, but fewer ready-made adapters.
-- **Declarative HTTP for writes.** farfetched has `createJsonMutation`; effector-refetch has
-  `createJsonQuery` only (for mutations you bring your own effect via `createRequestFx`).
-- **More operators.** `timeout`, `keepFresh` (refetch when sources change) and the standalone
-  `applyBarrier` operator have no direct effector-refetch equivalent yet.
-- **Official integrations.** `@farfetched/atomic-router` (router) and `@farfetched/dev-tools`, plus
-  a richer Fetch helper and a deeper docs site.
+- **Maturity & ecosystem.** Years in production, a larger community, more accumulated recipes and
+  edge-case fixes. effector-refetch is young (0.x) by comparison.
+- **Sourced parameters everywhere.** In farfetched almost _every_ field of _every_ operator can be a
+  `Store`/source. effector-refetch sources the declarative-HTTP fields (`url` / `query` / `body` /
+  `headers` in `createJsonQuery` / `createJsonMutation`) plus a curated config set — `enabled`,
+  `concurrency`, `retry.times`, `cache.staleAfter`, `refetchInterval`, `timeout` — and expects the
+  rest to come from the effect's params (often via `sample`). Closer than it was, but still narrower.
+- **A couple of named validation adapters.** farfetched ships dedicated
+  `@farfetched/{runtypes,io-ts,superstruct,typed-contracts,zod}`. effector-refetch now matches
+  `runtypesContract`, `ioTsContract`, `zodContract`, plus `standardSchemaContract` (covers any
+  Standard-Schema lib — valibot, arktype, zod 4, …) and `createContract`. The remaining named gaps
+  are **superstruct** and **typed-contracts** (both reachable via Standard Schema where supported).
 
 ## Where effector-refetch is different (and often nicer)
 
 - **Effect-first.** The unit of work is your real `Effect` (incl. `attach` factories) — visible in
   devtools, composable, testable on its own. `query.__.effect` is exactly what you passed.
-- **Friendly config.** `retry` / `cache` / `concurrency` are inline options on `createQuery`
-  **and** standalone operators — sugar over the same machinery.
+- **Friendly config.** `retry` / `cache` / `concurrency` / `timeout` are inline options on
+  `createQuery` **and** standalone operators (`retry()`, `cache()`, `concurrency()`, `timeout()`,
+  `keepFresh()`, `applyBarrier()`) — sugar over the same machinery.
 - **Real cancellation.** `createRequestFx` gives an `AbortSignal`; `TAKE_LATEST`/`cancel` actually
   abort the in-flight request, not just discard its result.
+- **Declarative HTTP for reads _and_ writes.** `createJsonQuery` + `createJsonMutation`, both over a
+  reusable request effect (`createJsonRequestFx`) you can drop into any `createQuery`.
+- **`@@trigger` both ways.** Every query/mutation _is_ a `@@trigger` (`fired` = `finished.done`), so
+  it drives farfetched's `keepFresh({ triggers })` — and our `keepFresh` accepts any `@@trigger`
+  (withease web-API triggers, farfetched-compatible triggers) or a plain `Event` in return.
 - **Built-in pagination.** `createInfiniteQuery` (bidirectional `fetchNext`/`fetchPrevious`,
   windowing) — farfetched has no built-in equivalent.
 - **Built-in offline mode.** Both libraries have a `createBarrier` mutex (e.g. 401 → refresh →
   replay); effector-refetch adds a ready-made `createNetworkBarrier` that pauses queries while the
   browser is offline.
+- **Router, structurally.** `attachToRoute({ route, query })` starts/resets a query on route
+  open/close — without importing atomic-router (any `{ opened, closed }` shape works).
 - **Tooling.** Visual devtools panels for **React, Vue and Solid**, an introspection event stream,
   an `llms.txt` + a Claude Code agent skill.
 - **Bindings & Suspense.** `useUnit(query)` plus `useQuery` helpers for React / Vue / Solid, and
@@ -50,29 +55,33 @@ typed-contracts,zod}`. effector-refetch ships `zodContract`, `standardSchemaCont
 
 ## Side by side
 
-|                      | farfetched                                | effector-refetch                                                   |
-| -------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| unit of work         | internal event-based executor             | your real `Effect` — first-class                                   |
-| API style            | operators                                 | inline options **and** operators                                   |
-| sourced config       | sourced **everything**                    | curated fields (`enabled`/`concurrency`/`retry`/`staleAfter`/poll) |
-| validation           | runtypes / io-ts / zod / contracts        | zod / Standard Schema / `createContract`                           |
-| declarative HTTP     | `createJsonQuery` + `createJsonMutation`  | `createJsonQuery` (+ bring-your-own effect)                        |
-| pagination           | —                                         | `createInfiniteQuery` (bidirectional)                              |
-| cancellation         | abort + discard                           | real `AbortSignal` via `createRequestFx`                           |
-| barrier / mutex      | `createBarrier` + `applyBarrier` operator | `createBarrier` (the `barrier` option, `perform`)                  |
-| offline mode         | build it on a barrier                     | built-in `createNetworkBarrier`                                    |
-| devtools             | `@farfetched/dev-tools`                   | visual panels (React/Vue/Solid) + introspection stream             |
-| bindings             | `@farfetched/solid` + `useUnit`           | react / vue / solid + `useQuery` + `useSuspenseQuery`              |
-| SSR                  | `fork` / `allSettled`                     | `fork` / `allSettled`                                              |
-| maturity / ecosystem | **larger, battle-tested**                 | young, actively developed                                          |
+|                      | farfetched                                       | effector-refetch                                                            |
+| -------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| unit of work         | internal event-based executor                    | your real `Effect` — first-class                                            |
+| API style            | operators                                        | inline options **and** operators                                            |
+| operators            | `retry`/`cache`/`concurrency`/`timeout`/`keepFresh`/`barrier` | same set — inline **and** standalone                            |
+| sourced config       | sourced **everything**                           | HTTP fields (`url`/`query`/`body`/`headers`) + curated config               |
+| validation           | runtypes / io-ts / superstruct / typed-contracts / zod | runtypes / io-ts / zod / Standard Schema / `createContract`           |
+| declarative HTTP     | `createJsonQuery` + `createJsonMutation`         | `createJsonQuery` + `createJsonMutation` (over `createJsonRequestFx`)        |
+| pagination           | —                                                | `createInfiniteQuery` (bidirectional)                                       |
+| cancellation         | abort + discard                                  | real `AbortSignal` via `createRequestFx`                                     |
+| barrier / mutex      | `createBarrier` + `applyBarrier` operator        | `createBarrier` + `applyBarrier` operator                                   |
+| offline mode         | build it on a barrier                            | built-in `createNetworkBarrier`                                             |
+| `@@trigger` protocol | implements + consumes (`keepFresh` triggers)     | implements (every query/mutation) + consumes (`keepFresh` triggers)         |
+| router               | `@farfetched/atomic-router`                      | `attachToRoute` (structural — no router import)                             |
+| devtools             | `@farfetched/dev-tools`                          | visual panels (React/Vue/Solid) + introspection stream                      |
+| bindings             | `@farfetched/solid` + `useUnit`                  | react / vue / solid + `useQuery` + `useSuspenseQuery`                        |
+| SSR                  | `fork` / `allSettled`                            | `fork` / `allSettled`                                                       |
+| maturity / ecosystem | **larger, battle-tested**                        | young, actively developed                                                   |
 
 ## Which should you use?
 
 - **Use farfetched** if you want the most mature option today, lean heavily on sourced-everything
-  config, or need its validation adapters / declarative mutations.
+  config, or need the superstruct / typed-contracts validation adapters specifically.
 - **Use effector-refetch** if you prefer wrapping your own effects, want inline config, real
-  cancellation, built-in pagination, the barrier/offline primitives, cross-framework devtools, or
-  a small core on an actively-maintained project.
+  cancellation, built-in pagination, declarative reads **and** writes, the barrier/offline
+  primitives, structural router integration, cross-framework devtools, or a small core on an
+  actively-maintained project.
 
 Already on farfetched and curious? The [migration guide](/guide/migration) + the
 `npx effector-refetch-codemod` tool handle most of the mechanical changes.

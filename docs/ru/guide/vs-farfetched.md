@@ -13,36 +13,42 @@
 
 Учтите это перед переходом:
 
-- **Зрелость.** Годы в проде, больше сообщество, больше накопленных рецептов и фиксов краевых
-  случаев. effector-refetch пока молодой (0.x).
-- **Sourced-параметры везде.** В farfetched почти любое поле (url, headers, body, params) может
-  быть `Store`/source. effector-refetch делает sourced только выборочный набор — `enabled`,
-  `concurrency`, `retry.times`, `cache.staleAfter`, `refetchInterval`, — а остальное ожидает из
-  параметров эффекта (обычно через `sample`).
-- **Экосистема валидации.** Отдельные адаптеры контрактов: `@farfetched/{runtypes,io-ts,superstruct,
-typed-contracts,zod}`. effector-refetch даёт `zodContract`, `standardSchemaContract` (покрывает
-  любую Standard-Schema библиотеку) и `createContract` — достаточно для большинства, но готовых
-  адаптеров меньше.
-- **Декларативный HTTP для записей.** У farfetched есть `createJsonMutation`; у effector-refetch
-  только `createJsonQuery` (для мутаций приносите свой эффект через `createRequestFx`).
-- **Больше операторов.** `timeout`, `keepFresh` (рефетч при изменении источников) и отдельный
-  оператор `applyBarrier` пока не имеют прямого аналога в effector-refetch.
-- **Официальные интеграции.** `@farfetched/atomic-router` (роутер) и `@farfetched/dev-tools`, плюс
-  более богатый Fetch-хелпер и более глубокий сайт доки.
+- **Зрелость и экосистема.** Годы в проде, больше сообщество, больше накопленных рецептов и фиксов
+  краевых случаев. effector-refetch пока молодой (0.x).
+- **Sourced-параметры везде.** В farfetched почти _любое_ поле _любого_ оператора может быть
+  `Store`/source. effector-refetch делает sourced поля декларативного HTTP (`url` / `query` / `body`
+  / `headers` в `createJsonQuery` / `createJsonMutation`) плюс выборочный конфиг — `enabled`,
+  `concurrency`, `retry.times`, `cache.staleAfter`, `refetchInterval`, `timeout`, — а остальное
+  ожидает из параметров эффекта (обычно через `sample`). Ближе, чем было, но всё ещё уже.
+- **Пара именованных адаптеров валидации.** farfetched даёт отдельные
+  `@farfetched/{runtypes,io-ts,superstruct,typed-contracts,zod}`. effector-refetch теперь покрывает
+  `runtypesContract`, `ioTsContract`, `zodContract`, плюс `standardSchemaContract` (любая
+  Standard-Schema библиотека — valibot, arktype, zod 4, …) и `createContract`. Остаются именно
+  **superstruct** и **typed-contracts** (достижимы через Standard Schema там, где он поддержан).
 
 ## Чем effector-refetch отличается (и часто удобнее)
 
 - **Effect-first.** Единица работы — ваш реальный `Effect` (в т.ч. `attach`-фабрики): виден в
   devtools, композируется, тестируется отдельно. `query.__.effect` — ровно то, что вы передали.
-- **Дружелюбный конфиг.** `retry` / `cache` / `concurrency` — inline-опции `createQuery` **и**
-  standalone-операторы (сахар над тем же движком).
+- **Дружелюбный конфиг.** `retry` / `cache` / `concurrency` / `timeout` — inline-опции `createQuery`
+  **и** standalone-операторы (`retry()`, `cache()`, `concurrency()`, `timeout()`, `keepFresh()`,
+  `applyBarrier()`) — сахар над тем же движком.
 - **Реальная отмена.** `createRequestFx` даёт `AbortSignal`; `TAKE_LATEST`/`cancel` реально
   прерывают запрос в полёте, а не просто отбрасывают результат.
+- **Декларативный HTTP для чтений _и_ записей.** `createJsonQuery` + `createJsonMutation`, оба поверх
+  переиспользуемого request-эффекта (`createJsonRequestFx`), который можно вставить в любой
+  `createQuery`.
+- **`@@trigger` в обе стороны.** Каждый query/mutation _является_ `@@trigger` (`fired` =
+  `finished.done`), поэтому драйвит `keepFresh({ triggers })` самого farfetched — а наш `keepFresh`
+  в ответ принимает любой `@@trigger` (web-API триггеры withease, совместимые с farfetched) или
+  обычный `Event`.
 - **Пагинация из коробки.** `createInfiniteQuery` (двунаправленные `fetchNext`/`fetchPrevious`,
   окно страниц) — у farfetched встроенного аналога нет.
 - **Офлайн из коробки.** У обеих библиотек есть мьютекс `createBarrier` (например 401 → обновить
   токен → повторить); effector-refetch добавляет готовый `createNetworkBarrier`, который ставит
   запросы на паузу, пока браузер офлайн.
+- **Роутер структурно.** `attachToRoute({ route, query })` стартует/сбрасывает запрос на
+  открытии/закрытии маршрута — без импорта atomic-router (подойдёт любой объект `{ opened, closed }`).
 - **Тулинг.** Визуальные devtools-панели для **React, Vue и Solid**, поток интроспекции,
   `llms.txt` и скилл для Claude Code.
 - **Биндинги и Suspense.** `useUnit(query)` плюс хелперы `useQuery` для React / Vue / Solid и
@@ -51,29 +57,33 @@ typed-contracts,zod}`. effector-refetch даёт `zodContract`, `standardSchemaC
 
 ## Бок о бок
 
-|                       | farfetched                                | effector-refetch                                                 |
-| --------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
-| единица работы        | внутренний event-исполнитель              | ваш реальный `Effect` — first-class                              |
-| стиль API             | операторы                                 | inline-опции **и** операторы                                     |
-| sourced-конфиг        | sourced **всё**                           | выборочно (`enabled`/`concurrency`/`retry`/`staleAfter`/поллинг) |
-| валидация             | runtypes / io-ts / zod / contracts        | zod / Standard Schema / `createContract`                         |
-| декларативный HTTP    | `createJsonQuery` + `createJsonMutation`  | `createJsonQuery` (+ свой эффект)                                |
-| пагинация             | —                                         | `createInfiniteQuery` (двунаправленная)                          |
-| отмена                | abort + discard                           | реальный `AbortSignal` через `createRequestFx`                   |
-| barrier / мьютекс     | `createBarrier` + оператор `applyBarrier` | `createBarrier` (опция `barrier`, `perform`)                     |
-| офлайн-режим          | собирается на барьере                     | встроенный `createNetworkBarrier`                                |
-| devtools              | `@farfetched/dev-tools`                   | визуальные панели (React/Vue/Solid) + поток интроспекции         |
-| биндинги              | `@farfetched/solid` + `useUnit`           | react / vue / solid + `useQuery` + `useSuspenseQuery`            |
-| SSR                   | `fork` / `allSettled`                     | `fork` / `allSettled`                                            |
-| зрелость / экосистема | **больше, проверена в бою**               | молодой, активно развивается                                     |
+|                       | farfetched                                       | effector-refetch                                                       |
+| --------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| единица работы        | внутренний event-исполнитель                     | ваш реальный `Effect` — first-class                                    |
+| стиль API             | операторы                                        | inline-опции **и** операторы                                           |
+| операторы             | `retry`/`cache`/`concurrency`/`timeout`/`keepFresh`/`barrier` | тот же набор — inline **и** standalone                     |
+| sourced-конфиг        | sourced **всё**                                  | поля HTTP (`url`/`query`/`body`/`headers`) + выборочный конфиг          |
+| валидация             | runtypes / io-ts / superstruct / typed-contracts / zod | runtypes / io-ts / zod / Standard Schema / `createContract`      |
+| декларативный HTTP    | `createJsonQuery` + `createJsonMutation`         | `createJsonQuery` + `createJsonMutation` (поверх `createJsonRequestFx`) |
+| пагинация             | —                                                | `createInfiniteQuery` (двунаправленная)                                |
+| отмена                | abort + discard                                  | реальный `AbortSignal` через `createRequestFx`                         |
+| barrier / мьютекс     | `createBarrier` + оператор `applyBarrier`        | `createBarrier` + оператор `applyBarrier`                              |
+| офлайн-режим          | собирается на барьере                            | встроенный `createNetworkBarrier`                                      |
+| протокол `@@trigger`  | реализует + потребляет (`keepFresh` triggers)    | реализует (каждый query/mutation) + потребляет (`keepFresh` triggers)  |
+| роутер                | `@farfetched/atomic-router`                      | `attachToRoute` (структурно — без импорта роутера)                     |
+| devtools              | `@farfetched/dev-tools`                          | визуальные панели (React/Vue/Solid) + поток интроспекции               |
+| биндинги              | `@farfetched/solid` + `useUnit`                  | react / vue / solid + `useQuery` + `useSuspenseQuery`                  |
+| SSR                   | `fork` / `allSettled`                            | `fork` / `allSettled`                                                  |
+| зрелость / экосистема | **больше, проверена в бою**                      | молодой, активно развивается                                           |
 
 ## Что выбрать?
 
 - **Берите farfetched**, если нужен самый зрелый вариант сегодня, вы активно полагаетесь на
-  sourced-everything или нужны его адаптеры валидации / декларативные мутации.
+  sourced-everything или нужны именно адаптеры superstruct / typed-contracts.
 - **Берите effector-refetch**, если предпочитаете оборачивать свои эффекты, хотите inline-конфиг,
-  реальную отмену, встроенную пагинацию, примитивы barrier/offline, кросс-фреймворковые devtools
-  или маленькое ядро на активно поддерживаемом проекте.
+  реальную отмену, встроенную пагинацию, декларативные чтения **и** записи, примитивы
+  barrier/offline, структурную интеграцию с роутером, кросс-фреймворковые devtools или маленькое
+  ядро на активно поддерживаемом проекте.
 
 Уже на farfetched и интересно? [Гайд по миграции](/ru/guide/migration) и инструмент
 `npx effector-refetch-codemod` берут на себя большую часть механических изменений.

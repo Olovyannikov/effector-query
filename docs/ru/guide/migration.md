@@ -24,24 +24,30 @@ npx effector-refetch-codemod "src/**/*.ts" --dry   # только предпро
 | -------------------------------------- | --------------------------------------------------------------------- |
 | `createQuery({ handler })`             | `createQuery({ effect })` (или `{ handler }`)                         |
 | `createJsonQuery({ ... })`             | `createJsonQuery({ request, response })`                              |
+| `createJsonMutation({ ... })`          | `createJsonMutation({ request, response })`                           |
 | `retry(query, { times, delay })`       | `retry(query, …)` **или** inline `createQuery({ retry })`             |
 | `cache(query, { ... })`                | `cache(query, …)` **или** inline `createQuery({ cache })`             |
 | `concurrency(query, { strategy })`     | `concurrency(query, …)` **или** inline `createQuery({ concurrency })` |
+| `timeout(query, ms)`                   | `timeout(query, ms)` **или** inline `createQuery({ timeout })`        |
+| `keepFresh(query, { triggers })`       | `keepFresh(query, { source, triggers })`                             |
 | `connectQuery({ source, fn, target })` | идентично                                                             |
 | `createMutation`                       | `createMutation` (+ алиас `mutate`)                                   |
-| контракты                              | `zodContract` / `standardSchemaContract` / `createContract`           |
+| `createBarrier` / `applyBarrier`       | `createBarrier` / `applyBarrier` (или inline `createQuery({ barrier })`) |
+| `@farfetched/atomic-router`            | `attachToRoute({ route, query })` (структурно)                       |
+| потребители / источники `@@trigger`    | каждый query/mutation реализует `@@trigger`; `keepFresh` его потребляет |
+| контракты                              | `zodContract` / `runtypesContract` / `ioTsContract` / `standardSchemaContract` / `createContract` |
 | `$data / $error / $status / $pending`  | те же имена                                                           |
 
 Заметные отличия:
 
 - Query оборачивает **реальный эффект** (`query.__.effect`), видимый в devtools.
 - Отмена реальная для эффектов из `createRequestFx` (AbortSignal), а не только discard.
-- Sourced-конфиг доступен inline (`Store` для `concurrency` / `retry.times` / `cache.staleAfter` / `enabled`).
+- Sourced-конфиг доступен inline (`Store` для `concurrency` / `retry.times` / `cache.staleAfter` / `enabled` / `timeout`), а `createJsonQuery`/`createJsonMutation` делают sourced `url` / `query` / `body` / `headers`.
 - `useUnit(query)` работает напрямую в React и Vue через `@@unitShape`.
 
-Чего пока нет (в сравнении с farfetched): полная sourced-поверхность на каждом поле,
-`createJsonMutation` и ещё несколько адаптеров валидации. См.
-[roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md).
+Чего пока нет (в сравнении с farfetched): полная sourced-поверхность на _каждом_ поле (мы делаем
+sourced поля декларативного HTTP + выборочный конфиг) и именно адаптеры superstruct / typed-contracts.
+См. [roadmap](https://github.com/Olovyannikov/effector-refetch/blob/main/ROADMAP.md).
 
 ## Внутри 0.x
 
