@@ -43,7 +43,7 @@ feed.fetchPrevious(); // prepend; gated by $hasPreviousPage
 
 Exposes `$hasPreviousPage` alongside `$hasNextPage`.
 
-## Parallel queries — `combineQueries`
+## `combineQueries` — parallel queries
 
 Aggregate several independent queries into combined stores (the effector-flavored `useQueries`):
 

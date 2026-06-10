@@ -29,23 +29,37 @@ const enSidebar = {
   ],
   '/api/': [
     {
-      text: 'Queries & mutations',
+      text: 'Queries',
       items: [
-        { text: 'Queries', link: '/api/queries' },
-        { text: 'Mutations & invalidation', link: '/api/mutations' },
+        { text: 'createQuery', link: '/api/queries' },
+        { text: 'Operators (retry / cache / concurrency)', link: '/api/queries#operators' },
+        { text: 'connectQuery', link: '/api/queries#connectquery' },
+        { text: 'createInfiniteQuery', link: '/api/pagination#createinfinitequery' },
+        { text: 'combineQueries', link: '/api/pagination#combinequeries-parallel-queries' },
       ],
     },
     {
-      text: 'HTTP & data',
+      text: 'Mutations',
       items: [
-        { text: 'HTTP & validation', link: '/api/http' },
-        { text: 'Pagination', link: '/api/pagination' },
+        { text: 'createMutation', link: '/api/mutations#createmutation' },
+        { text: 'invalidate', link: '/api/mutations#invalidate' },
+        { text: 'update / optimisticUpdate', link: '/api/mutations#update' },
+      ],
+    },
+    {
+      text: 'HTTP & validation',
+      items: [
+        { text: 'createRequestFx', link: '/api/http#createrequestfx' },
+        { text: 'createJsonQuery', link: '/api/http#createjsonquery' },
+        { text: 'createJsonMutation', link: '/api/http#createjsonmutation' },
+        { text: 'Validation (contracts)', link: '/api/http#validation-contracts' },
       ],
     },
     {
       text: 'Bindings & tooling',
       items: [
-        { text: 'Framework bindings', link: '/api/bindings' },
+        { text: 'useQuery (React / Vue / Solid)', link: '/api/bindings' },
+        { text: 'useSuspenseQuery', link: '/api/bindings#suspense-react' },
         { text: 'Devtools', link: '/api/devtools' },
         { text: 'Introspection', link: '/api/introspection' },
         { text: 'API reference (generated)', link: '/api/reference' },
@@ -107,23 +121,37 @@ const ruSidebar = {
   ],
   '/ru/api/': [
     {
-      text: 'Запросы и мутации',
+      text: 'Запросы',
       items: [
-        { text: 'Запросы', link: '/ru/api/queries' },
-        { text: 'Мутации и инвалидация', link: '/ru/api/mutations' },
+        { text: 'createQuery', link: '/ru/api/queries' },
+        { text: 'Операторы (retry / cache / concurrency)', link: '/ru/api/queries' },
+        { text: 'connectQuery', link: '/ru/api/queries#connectquery' },
+        { text: 'createInfiniteQuery', link: '/ru/api/pagination#createinfinitequery' },
+        { text: 'combineQueries', link: '/ru/api/pagination#combinequeries-параллельные-запросы' },
       ],
     },
     {
-      text: 'HTTP и данные',
+      text: 'Мутации',
       items: [
-        { text: 'HTTP и валидация', link: '/ru/api/http' },
-        { text: 'Пагинация', link: '/ru/api/pagination' },
+        { text: 'createMutation', link: '/ru/api/mutations#createmutation' },
+        { text: 'invalidate', link: '/ru/api/mutations#invalidate' },
+        { text: 'update / optimisticUpdate', link: '/ru/api/mutations#update' },
+      ],
+    },
+    {
+      text: 'HTTP и валидация',
+      items: [
+        { text: 'createRequestFx', link: '/ru/api/http#createrequestfx' },
+        { text: 'createJsonQuery', link: '/ru/api/http#createjsonquery' },
+        { text: 'createJsonMutation', link: '/ru/api/http#createjsonmutation' },
+        { text: 'Валидация (контракты)', link: '/ru/api/http' },
       ],
     },
     {
       text: 'Биндинги и инструменты',
       items: [
-        { text: 'Биндинги', link: '/ru/api/bindings' },
+        { text: 'useQuery (React / Vue / Solid)', link: '/ru/api/bindings' },
+        { text: 'useSuspenseQuery', link: '/ru/api/bindings#suspense-react' },
         { text: 'Devtools', link: '/ru/api/devtools' },
         { text: 'Интроспекция', link: '/ru/api/introspection' },
       ],

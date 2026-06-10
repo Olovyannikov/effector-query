@@ -43,7 +43,7 @@ feed.fetchPrevious(); // prepend; гейт по $hasPreviousPage
 
 Появляется `$hasPreviousPage` рядом с `$hasNextPage`.
 
-## Параллельные запросы — `combineQueries`
+## `combineQueries` — параллельные запросы
 
 Агрегирует несколько независимых запросов в общие сторы (эффектор-овский `useQueries`):
 
