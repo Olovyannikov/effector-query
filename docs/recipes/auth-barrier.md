@@ -48,10 +48,13 @@ barrier.$locked;       // Store<boolean>
 With `perform`, locking auto-runs the effect and unlocks when it settles (success **or**
 failure — no deadlock). Without it, drive `lock`/`unlock` yourself.
 
-Gate a single query without a factory:
+Gate a single query without a factory — via the config option, or the `applyBarrier` operator
+on an already-created query/mutation (pass `null` to detach):
 
 ```ts
 const q = createQuery({ effect: fx, barrier: authBarrier });
+// or, after creation:
+applyBarrier(existingQuery, authBarrier);
 ```
 
 ::: warning Client-side

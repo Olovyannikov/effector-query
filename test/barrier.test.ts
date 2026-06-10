@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { allSettled, createEffect, createStore, fork, sample } from 'effector';
-import { createBarrier, createQuery, createQueryFactory } from '../src';
+import { applyBarrier, createBarrier, createQuery, createQueryFactory } from '../src';
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -57,6 +57,37 @@ describe('createBarrier', () => {
     await tick();
     await tick();
     expect(calls).toBe(1); // released
+  });
+
+  it('applyBarrier gates a query created without one (and detaches with null)', async () => {
+    let calls = 0;
+    const fx = createEffect(async (p: number) => {
+      calls++;
+      return p;
+    });
+    const query = createQuery({ effect: fx });
+    const barrier = createBarrier();
+    applyBarrier(query, barrier);
+
+    barrier.lock();
+    query.start(1);
+    await tick();
+    await tick();
+    expect(calls).toBe(0); // blocked by the attached barrier
+
+    barrier.unlock();
+    await tick();
+    await tick();
+    expect(calls).toBe(1);
+
+    // detach → no longer gated even while locked
+    applyBarrier(query, null);
+    barrier.lock();
+    query.start(2);
+    await tick();
+    await tick();
+    expect(calls).toBe(2);
+    barrier.unlock();
   });
 
   it('perform runs once on lock and unlocks on settle', async () => {

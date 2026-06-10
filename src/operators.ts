@@ -1,6 +1,7 @@
 import { is, merge, sample, type Store } from 'effector';
 import { inMemoryCache } from './cache';
 import { stableStringify } from './utils';
+import type { Barrier } from './barrier';
 import type { CacheConfig, ConcurrencyStrategy, DelayFn, Query, RetryConfig } from './types';
 
 type AnyQuery = Query<any, any, any, any>;
@@ -94,5 +95,19 @@ export function keepFresh<Q extends AnyQuery>(
     fn: ({ params }: Snapshot) => params,
     target: query.refetch,
   });
+  return query;
+}
+
+/**
+ * Gate a query/mutation on a barrier after it's been created — runs wait while
+ * the barrier is locked (e.g. a 401 → token-refresh flow). The same effect as
+ * the `barrier` config option, but composable onto an existing unit. Pass `null`
+ * to detach.
+ *
+ *   const auth = createBarrier({ perform: refreshTokenFx });
+ *   applyBarrier(userQuery, auth);
+ */
+export function applyBarrier<Q extends AnyQuery>(query: Q, barrier: Barrier | null): Q {
+  query.__.setBarrier(barrier);
   return query;
 }

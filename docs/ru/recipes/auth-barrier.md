@@ -48,10 +48,13 @@ barrier.$locked;       // Store<boolean>
 С `perform` блокировка автоматически запускает эффект и разблокируется по его завершении
 (успех **или** ошибка — без дедлока). Без него — управляйте `lock`/`unlock` сами.
 
-Gate одного запроса без фабрики:
+Gate одного запроса без фабрики — через опцию конфига или оператор `applyBarrier` на уже
+созданном query/mutation (`null` — отвязать):
 
 ```ts
 const q = createQuery({ effect: fx, barrier: authBarrier });
+// или после создания:
+applyBarrier(existingQuery, authBarrier);
 ```
 
 ::: warning Клиентский механизм

@@ -101,6 +101,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const dedupeKey = (params: Params): string | null =>
     cacheRef && cacheRef.dedupe ? cacheRef.key(params) : null;
   let validateRef: ((result: unknown, params: Params) => string[] | null) | null = null;
+  let barrierRef = config.barrier ?? null;
 
   const swrOf = () => !!cacheRef && cacheRef.swr;
   const stratOf = (v: ConcurrencyStrategy | null): ConcurrencyStrategy => v ?? strategyConst;
@@ -165,7 +166,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     name: ns ? `${ns}.runFx` : undefined,
     handler: async ({ runId, params, timeoutMs }) => {
       // wait while the environment is paused (e.g. during a token refresh)
-      if (config.barrier) await config.barrier.__.wait();
+      if (barrierRef) await barrierRef.__.wait();
       const key = dedupeKey(params);
       if (key) inflightKeys.add(key);
       const controller = isAbortable ? new AbortController() : null;
@@ -720,6 +721,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       },
       setTimeout: (ms) => {
         timeoutConst = ms;
+      },
+      setBarrier: (b) => {
+        barrierRef = b;
       },
     },
 

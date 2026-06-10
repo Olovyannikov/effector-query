@@ -159,6 +159,7 @@ export interface QueryEngine<Params, Error> {
   /** Validation check: return error messages (invalid) or null (ok). */
   setValidate: (fn: ((result: unknown, params: Params) => string[] | null) | null) => void;
   setTimeout: (ms: number) => void;
+  setBarrier: (barrier: Barrier | null) => void;
   purgeFx: Effect<void, void, any>;
 }
 
