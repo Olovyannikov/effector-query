@@ -19,12 +19,15 @@ Be aware of these before switching:
   can be a `Store`/source. effector-refetch only sources a curated set — `enabled`, `concurrency`,
   `retry.times`, `cache.staleAfter`, `refetchInterval` — and expects the rest to come from the
   effect's params (often via `sample`).
-- **Validation ecosystem.** Dedicated contract adapters (runtypes, io-ts, zod, typed-contracts).
-  effector-refetch ships `zodContract`, `standardSchemaContract` (covers any Standard-Schema lib)
-  and `createContract` — enough for most, but fewer ready-made adapters.
+- **Validation ecosystem.** Dedicated contract adapters: `@farfetched/{runtypes,io-ts,superstruct,
+typed-contracts,zod}`. effector-refetch ships `zodContract`, `standardSchemaContract` (covers any
+  Standard-Schema lib) and `createContract` — enough for most, but fewer ready-made adapters.
 - **Declarative HTTP for writes.** farfetched has `createJsonMutation`; effector-refetch has
   `createJsonQuery` only (for mutations you bring your own effect via `createRequestFx`).
-- **Extras.** `@farfetched/atoms`, a richer Fetch helper, and a deeper docs site.
+- **More operators.** `timeout`, `keepFresh` (refetch when sources change) and the standalone
+  `applyBarrier` operator have no direct effector-refetch equivalent yet.
+- **Official integrations.** `@farfetched/atomic-router` (router) and `@farfetched/dev-tools`, plus
+  a richer Fetch helper and a deeper docs site.
 
 ## Where effector-refetch is different (and often nicer)
 
@@ -36,8 +39,9 @@ Be aware of these before switching:
   abort the in-flight request, not just discard its result.
 - **Built-in pagination.** `createInfiniteQuery` (bidirectional `fetchNext`/`fetchPrevious`,
   windowing) — farfetched has no built-in equivalent.
-- **Environment control.** `createBarrier` (mutex — e.g. 401 → refresh → replay) and
-  `createNetworkBarrier` (pause while offline) are first-class.
+- **Built-in offline mode.** Both libraries have a `createBarrier` mutex (e.g. 401 → refresh →
+  replay); effector-refetch adds a ready-made `createNetworkBarrier` that pauses queries while the
+  browser is offline.
 - **Tooling.** Visual devtools panels for **React, Vue and Solid**, an introspection event stream,
   an `llms.txt` + a Claude Code agent skill.
 - **Bindings & Suspense.** `useUnit(query)` plus `useQuery` helpers for React / Vue / Solid, and
@@ -46,20 +50,21 @@ Be aware of these before switching:
 
 ## Side by side
 
-|                      | farfetched                               | effector-refetch                                                   |
-| -------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
-| unit of work         | internal event-based executor            | your real `Effect` — first-class                                   |
-| API style            | operators                                | inline options **and** operators                                   |
-| sourced config       | sourced **everything**                   | curated fields (`enabled`/`concurrency`/`retry`/`staleAfter`/poll) |
-| validation           | runtypes / io-ts / zod / contracts       | zod / Standard Schema / `createContract`                           |
-| declarative HTTP     | `createJsonQuery` + `createJsonMutation` | `createJsonQuery` (+ bring-your-own effect)                        |
-| pagination           | —                                        | `createInfiniteQuery` (bidirectional)                              |
-| cancellation         | abort + discard                          | real `AbortSignal` via `createRequestFx`                           |
-| mutex / offline      | —                                        | `createBarrier` / `createNetworkBarrier`                           |
-| devtools             | effector inspector                       | visual panels (React/Vue/Solid) + introspection stream             |
-| bindings             | react / solid                            | react / vue / solid + `useQuery` + `useSuspenseQuery`              |
-| SSR                  | `fork` / `allSettled`                    | `fork` / `allSettled`                                              |
-| maturity / ecosystem | **larger, battle-tested**                | young, actively developed                                          |
+|                      | farfetched                                | effector-refetch                                                   |
+| -------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| unit of work         | internal event-based executor             | your real `Effect` — first-class                                   |
+| API style            | operators                                 | inline options **and** operators                                   |
+| sourced config       | sourced **everything**                    | curated fields (`enabled`/`concurrency`/`retry`/`staleAfter`/poll) |
+| validation           | runtypes / io-ts / zod / contracts        | zod / Standard Schema / `createContract`                           |
+| declarative HTTP     | `createJsonQuery` + `createJsonMutation`  | `createJsonQuery` (+ bring-your-own effect)                        |
+| pagination           | —                                         | `createInfiniteQuery` (bidirectional)                              |
+| cancellation         | abort + discard                           | real `AbortSignal` via `createRequestFx`                           |
+| barrier / mutex      | `createBarrier` + `applyBarrier` operator | `createBarrier` (the `barrier` option, `perform`)                  |
+| offline mode         | build it on a barrier                     | built-in `createNetworkBarrier`                                    |
+| devtools             | `@farfetched/dev-tools`                   | visual panels (React/Vue/Solid) + introspection stream             |
+| bindings             | `@farfetched/solid` + `useUnit`           | react / vue / solid + `useQuery` + `useSuspenseQuery`              |
+| SSR                  | `fork` / `allSettled`                     | `fork` / `allSettled`                                              |
+| maturity / ecosystem | **larger, battle-tested**                 | young, actively developed                                          |
 
 ## Which should you use?
 

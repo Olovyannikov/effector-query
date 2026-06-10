@@ -19,12 +19,16 @@
   быть `Store`/source. effector-refetch делает sourced только выборочный набор — `enabled`,
   `concurrency`, `retry.times`, `cache.staleAfter`, `refetchInterval`, — а остальное ожидает из
   параметров эффекта (обычно через `sample`).
-- **Экосистема валидации.** Отдельные адаптеры контрактов (runtypes, io-ts, zod, typed-contracts).
-  effector-refetch даёт `zodContract`, `standardSchemaContract` (покрывает любую Standard-Schema
-  библиотеку) и `createContract` — достаточно для большинства, но готовых адаптеров меньше.
+- **Экосистема валидации.** Отдельные адаптеры контрактов: `@farfetched/{runtypes,io-ts,superstruct,
+typed-contracts,zod}`. effector-refetch даёт `zodContract`, `standardSchemaContract` (покрывает
+  любую Standard-Schema библиотеку) и `createContract` — достаточно для большинства, но готовых
+  адаптеров меньше.
 - **Декларативный HTTP для записей.** У farfetched есть `createJsonMutation`; у effector-refetch
   только `createJsonQuery` (для мутаций приносите свой эффект через `createRequestFx`).
-- **Дополнительно.** `@farfetched/atoms`, более богатый Fetch-хелпер и более глубокий сайт доки.
+- **Больше операторов.** `timeout`, `keepFresh` (рефетч при изменении источников) и отдельный
+  оператор `applyBarrier` пока не имеют прямого аналога в effector-refetch.
+- **Официальные интеграции.** `@farfetched/atomic-router` (роутер) и `@farfetched/dev-tools`, плюс
+  более богатый Fetch-хелпер и более глубокий сайт доки.
 
 ## Чем effector-refetch отличается (и часто удобнее)
 
@@ -36,8 +40,9 @@
   прерывают запрос в полёте, а не просто отбрасывают результат.
 - **Пагинация из коробки.** `createInfiniteQuery` (двунаправленные `fetchNext`/`fetchPrevious`,
   окно страниц) — у farfetched встроенного аналога нет.
-- **Контроль окружения.** `createBarrier` (мьютекс — например 401 → обновить токен → повторить) и
-  `createNetworkBarrier` (пауза офлайн) — first-class.
+- **Офлайн из коробки.** У обеих библиотек есть мьютекс `createBarrier` (например 401 → обновить
+  токен → повторить); effector-refetch добавляет готовый `createNetworkBarrier`, который ставит
+  запросы на паузу, пока браузер офлайн.
 - **Тулинг.** Визуальные devtools-панели для **React, Vue и Solid**, поток интроспекции,
   `llms.txt` и скилл для Claude Code.
 - **Биндинги и Suspense.** `useUnit(query)` плюс хелперы `useQuery` для React / Vue / Solid и
@@ -46,20 +51,21 @@
 
 ## Бок о бок
 
-|                       | farfetched                               | effector-refetch                                                 |
-| --------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
-| единица работы        | внутренний event-исполнитель             | ваш реальный `Effect` — first-class                              |
-| стиль API             | операторы                                | inline-опции **и** операторы                                     |
-| sourced-конфиг        | sourced **всё**                          | выборочно (`enabled`/`concurrency`/`retry`/`staleAfter`/поллинг) |
-| валидация             | runtypes / io-ts / zod / contracts       | zod / Standard Schema / `createContract`                         |
-| декларативный HTTP    | `createJsonQuery` + `createJsonMutation` | `createJsonQuery` (+ свой эффект)                                |
-| пагинация             | —                                        | `createInfiniteQuery` (двунаправленная)                          |
-| отмена                | abort + discard                          | реальный `AbortSignal` через `createRequestFx`                   |
-| мьютекс / офлайн      | —                                        | `createBarrier` / `createNetworkBarrier`                         |
-| devtools              | инспектор effector                       | визуальные панели (React/Vue/Solid) + поток интроспекции         |
-| биндинги              | react / solid                            | react / vue / solid + `useQuery` + `useSuspenseQuery`            |
-| SSR                   | `fork` / `allSettled`                    | `fork` / `allSettled`                                            |
-| зрелость / экосистема | **больше, проверена в бою**              | молодой, активно развивается                                     |
+|                       | farfetched                                | effector-refetch                                                 |
+| --------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
+| единица работы        | внутренний event-исполнитель              | ваш реальный `Effect` — first-class                              |
+| стиль API             | операторы                                 | inline-опции **и** операторы                                     |
+| sourced-конфиг        | sourced **всё**                           | выборочно (`enabled`/`concurrency`/`retry`/`staleAfter`/поллинг) |
+| валидация             | runtypes / io-ts / zod / contracts        | zod / Standard Schema / `createContract`                         |
+| декларативный HTTP    | `createJsonQuery` + `createJsonMutation`  | `createJsonQuery` (+ свой эффект)                                |
+| пагинация             | —                                         | `createInfiniteQuery` (двунаправленная)                          |
+| отмена                | abort + discard                           | реальный `AbortSignal` через `createRequestFx`                   |
+| barrier / мьютекс     | `createBarrier` + оператор `applyBarrier` | `createBarrier` (опция `barrier`, `perform`)                     |
+| офлайн-режим          | собирается на барьере                     | встроенный `createNetworkBarrier`                                |
+| devtools              | `@farfetched/dev-tools`                   | визуальные панели (React/Vue/Solid) + поток интроспекции         |
+| биндинги              | `@farfetched/solid` + `useUnit`           | react / vue / solid + `useQuery` + `useSuspenseQuery`            |
+| SSR                   | `fork` / `allSettled`                     | `fork` / `allSettled`                                            |
+| зрелость / экосистема | **больше, проверена в бою**               | молодой, активно развивается                                     |
 
 ## Что выбрать?
 

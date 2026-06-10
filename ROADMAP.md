@@ -148,6 +148,33 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
   registry instead of a god-object.
 - Hook-first configuration — config lives on the query unit, framework-agnostic.
 
+## Compared to farfetched — parity gaps to close
+
+Things farfetched ships that effector-refetch does not yet (tracked from the honest
+[comparison](docs/guide/vs-farfetched.md)):
+
+- [ ] **Sourced parameters for declarative HTTP** — `url` / `headers` / `body` / `query` as
+      `Store`/source in `createJsonQuery` (and broader sourced config), matching farfetched's
+      "everything can be a source".
+- [ ] **`createJsonMutation`** — declarative HTTP for writes (we only have `createJsonQuery`).
+- [ ] **More validation adapters** — `runtypes`, `io-ts`, `superstruct`, `typed-contracts` (today:
+      zod, Standard Schema, `createContract`).
+- [ ] **Router integration** — an `@farfetched/atomic-router`-style helper (start/reset queries on
+      route enter/leave).
+- [ ] **`timeout`** — abort a run after N ms (option + standalone operator).
+- [ ] **`keepFresh`** — auto-refetch a query when its sources change.
+- [ ] **`applyBarrier` operator** — attach a barrier to an existing query/mutation, not only via
+      the `barrier` config option.
+- [ ] **Richer Fetch/request builder** — a declarative request helper (method/url/query/headers/
+      body mappers) beyond the manual `createRequestFx`.
+- [ ] **`@@trigger` protocol** — interop so effector-refetch queries plug into farfetched-style
+      trigger APIs (and vice-versa).
+
+Already ahead of farfetched (no action needed): effect-first unit, real `AbortSignal`
+cancellation, built-in bidirectional `createInfiniteQuery`, `createNetworkBarrier` (offline),
+TanStack-style visual devtools panels for React/Vue/Solid (farfetched has `@farfetched/dev-tools`
+too, different shape), `useSuspenseQuery`, and the migration codemod.
+
 ## Engineering guardrails
 
 - Every feature lands with tests driven by `fork`/`allSettled` (no real timers/network in unit tests).

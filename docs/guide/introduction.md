@@ -39,8 +39,11 @@ That's the difference from a "black box" data layer: you keep effector's mental 
 - **Mutations & invalidation** — `createMutation`, `invalidate`, `update`, optimistic updates.
 - **Validation** — schema contracts (zod / Standard Schema) turn bad responses into errors.
 - **Declarative HTTP** — `createJsonQuery` over the global `fetch`.
-- **Pagination** — `createInfiniteQuery`.
-- **Bindings** — `useUnit(query)` in React and Vue.
+- **Pagination** — `createInfiniteQuery` (bidirectional `fetchNext`/`fetchPrevious`).
+- **Auto-refetch & polling** — `refetchInterval`, window-focus / reconnect helpers.
+- **Barrier & offline** — `createBarrier` (401 → refresh → replay) and `createNetworkBarrier`.
+- **Bindings** — `useUnit(query)` / `useQuery` for React, Vue and Solid, plus `useSuspenseQuery`.
+- **Devtools** — visual panels for React, Vue and Solid + an introspection stream.
 
 ## Philosophy
 

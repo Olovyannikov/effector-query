@@ -30,12 +30,34 @@ features:
     title: Batteries included
     details: Mutations, invalidation, optimistic updates, validation contracts, createJsonQuery, pagination, SWR, cache GC and dedupe.
   - icon: 🧩
-    title: React & Vue
-    details: useUnit(query) works directly via @@unitShape — plus thin useQuery helpers. Solid is on the way.
+    title: React, Vue & Solid
+    details: useUnit(query) works directly via @@unitShape — plus thin useQuery helpers for all three, and useSuspenseQuery for React.
   - icon: 🔍
     title: Observable
     details: A lifecycle event stream and attachQueryLogger make every run inspectable for devtools and logging.
 ---
+
+## Install
+
+::: code-group
+
+```bash [pnpm]
+pnpm add effector-refetch effector
+```
+
+```bash [npm]
+npm install effector-refetch effector
+```
+
+```bash [yarn]
+yarn add effector-refetch effector
+```
+
+:::
+
+Framework bindings are optional peers — add the ones you use: `effector-react` + `react`,
+`effector-vue` + `vue`, or `effector-solid` + `solid-js`. Full walkthrough in
+[Getting started](/guide/getting-started).
 
 ## A 30-second taste
 
@@ -61,7 +83,7 @@ addTodo.mutate('Buy milk'); // → todos refetches automatically
 In a component, read it with one hook:
 
 ```tsx
-const { data, pending } = useUnit(todos); // React or Vue
+const { data, pending } = useUnit(todos); // React / Vue / Solid
 ```
 
 ## Why not just use effects directly?
