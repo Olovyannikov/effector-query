@@ -162,7 +162,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
 - [ ] **Router integration** — an `@farfetched/atomic-router`-style helper (start/reset queries on
       route enter/leave).
 - [x] **`timeout`** — per-attempt deadline (`createQuery({ timeout })` option + standalone `timeout(query, ms)` operator); aborts the in-flight request and fails the run (retryable). Sourced `Store<number>` via the inline option.
-- [ ] **`keepFresh`** — auto-refetch a query when its sources change.
+- [x] **`keepFresh`** — `keepFresh(query, { source })` refetches a query (with its last params) when a source `Store` changes; no-op until it has run / while disabled.
 - [ ] **`applyBarrier` operator** — attach a barrier to an existing query/mutation, not only via
       the `barrier` config option.
 - [ ] **Richer Fetch/request builder** — a declarative request helper (method/url/query/headers/

@@ -57,6 +57,21 @@ offline.stop(); // detach the online/offline listeners on teardown
 A run started while offline sits in `pending` (the effect body isn't entered) until the network
 returns. Browser-only — on the server the barrier stays open (online).
 
+## Refetch on source change — `keepFresh`
+
+Keep a query fresh relative to external state (filters, locale, viewer): `keepFresh` refetches it
+with its **last params** whenever a `source` store changes.
+
+```ts
+import { keepFresh } from 'effector-refetch';
+
+keepFresh(productsQuery, { source: $filters }); // or source: [$filters, $locale]
+```
+
+No-op until the query has run (`status !== 'initial'`) and while it's disabled. Distinct from
+`refetchInterval` (time-based) — this is dependency-based. (If the source value should actually
+change the request, thread it through the params instead — `connectQuery` / `sample` into `start`.)
+
 ## Compose with patronum
 
 A query's triggers are plain effector events, so you can drive them with any

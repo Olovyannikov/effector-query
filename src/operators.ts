@@ -1,4 +1,4 @@
-import { is, sample, type Store } from 'effector';
+import { is, merge, sample, type Store } from 'effector';
 import { inMemoryCache } from './cache';
 import { stableStringify } from './utils';
 import type { CacheConfig, ConcurrencyStrategy, DelayFn, Query, RetryConfig } from './types';
@@ -69,5 +69,30 @@ export function cache<Q extends AnyQuery>(query: Q, opts: boolean | CacheConfig<
  */
 export function timeout<Q extends AnyQuery>(query: Q, ms: number | Store<number>): Q {
   query.__.setTimeout(is.store(ms) ? ms.getState() : ms);
+  return query;
+}
+
+/**
+ * Refetch the query (with its last params) whenever a `source` store changes —
+ * keeps the data fresh relative to external state (filters, locale, viewer, …):
+ *
+ *   keepFresh(productsQuery, { source: $filters });
+ *
+ * No-op until the query has run (`status !== 'initial'`) and while disabled.
+ */
+export function keepFresh<Q extends AnyQuery>(
+  query: Q,
+  config: { source: Store<unknown> | ReadonlyArray<Store<unknown>> },
+): Q {
+  const sources = Array.isArray(config.source) ? config.source : [config.source as Store<unknown>];
+  const clock = sources.length === 1 ? sources[0] : merge(sources);
+  type Snapshot = { params: unknown; status: string; enabled: boolean };
+  sample({
+    clock,
+    source: { params: query.$params, status: query.$status, enabled: query.$enabled },
+    filter: ({ status, enabled, params }: Snapshot) => status !== 'initial' && enabled && params != null,
+    fn: ({ params }: Snapshot) => params,
+    target: query.refetch,
+  });
   return query;
 }

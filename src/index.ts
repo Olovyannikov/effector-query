@@ -27,7 +27,7 @@ export {
 } from './infinite-query';
 export { combineQueries, type CombinedQueries } from './combine-queries';
 export { connectQuery } from './connect-query';
-export { concurrency, retry, cache, timeout } from './operators';
+export { concurrency, retry, cache, timeout, keepFresh } from './operators';
 export {
   refetchOnWindowFocus,
   refetchOnReconnect,
