@@ -29,6 +29,7 @@ const query = createQuery({
 - **`cache`** — `true` or a config (see [caching](#caching)).
 - **`enabled`** — `Store<boolean>` gate; while `false`, `start`/`refresh` are skipped.
 - **`refetchInterval`** — poll every N ms (`number` or `Store<number>`, 0 = off). See [Auto-refetch & polling](/recipes/auto-refetch).
+- **`timeout`** — per-attempt deadline in ms (`number` or `Store<number>`, 0 = off): if a run exceeds it, the in-flight request is aborted and the run **fails** (retryable, so it composes with `retry`). Distinct from `refetchInterval` (how _often_ to poll) — `timeout` is how _long_ one attempt may take.
 - **`structuralSharing`** — preserve referential identity of unchanged parts of the result (fewer re-renders).
 - **`placeholderData`** — a value or `(prev) => …` shown while there's no real data; `$isPlaceholderData` is `true` until the first real result. Unlike `initialData`, it's not treated as cached.
 - **`mapData` / `mapError`** — normalize result / error before the stores.
@@ -50,12 +51,13 @@ Share these across many queries with a [factory](/recipes/defaults).
 options are sugar over them. Apply them directly, even after creation:
 
 ```ts
-import { createQuery, concurrency, retry, cache } from 'effector-refetch';
+import { createQuery, concurrency, retry, cache, timeout } from 'effector-refetch';
 
 const search = createQuery({ effect: searchFx });
 concurrency(search, { strategy: 'TAKE_LATEST' });
 retry(search, { times: 3, delay: exponentialDelay(200) });
 cache(search, { staleAfter: 30_000, purge: loggedOut });
+timeout(search, 5000); // abort + fail a run that takes over 5s
 ```
 
 ## Caching

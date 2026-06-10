@@ -161,7 +161,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
       zod, Standard Schema, `createContract`).
 - [ ] **Router integration** — an `@farfetched/atomic-router`-style helper (start/reset queries on
       route enter/leave).
-- [ ] **`timeout`** — abort a run after N ms (option + standalone operator).
+- [x] **`timeout`** — per-attempt deadline (`createQuery({ timeout })` option + standalone `timeout(query, ms)` operator); aborts the in-flight request and fails the run (retryable). Sourced `Store<number>` via the inline option.
 - [ ] **`keepFresh`** — auto-refetch a query when its sources change.
 - [ ] **`applyBarrier` operator** — attach a barrier to an existing query/mutation, not only via
       the `barrier` config option.

@@ -22,11 +22,14 @@ import type {
   SourcedConfig,
 } from './types';
 import { ValidationError } from './validation';
+import { RequestError } from './request';
 import { replaceEqualDeep } from './utils';
 
 interface Run<P> {
   runId: number;
   params: P;
+  /** Per-run deadline in ms (0 = off); resolved fork-correctly at tag time. */
+  timeoutMs: number;
 }
 interface ExecDone<P, R> extends Run<P> {
   result: R;
@@ -73,6 +76,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     sourced.strategy ?? createStore<ConcurrencyStrategy | null>(null);
   const $retryTimesSrc: Store<number | null> = sourced.retryTimes ?? createStore<number | null>(null);
   const $staleAfterSrc: Store<number | null> = sourced.staleAfter ?? createStore<number | null>(null);
+  const $timeoutSrc: Store<number | null> = sourced.timeout ?? createStore<number | null>(null);
   const $intervalMs: Store<number> = is.store(config.refetchInterval)
     ? (config.refetchInterval as Store<number>)
     : createStore(typeof config.refetchInterval === 'number' ? config.refetchInterval : 0);
@@ -80,6 +84,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   let strategyConst: ConcurrencyStrategy = 'TAKE_LATEST';
   let retryTimesConst = 0;
   let staleAfterConst = Infinity;
+  let timeoutConst = 0;
   let retryRef: {
     delay: ResolvedRetry<Error>['delay'];
     filter: ResolvedRetry<Error>['filter'];
@@ -101,6 +106,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const stratOf = (v: ConcurrencyStrategy | null): ConcurrencyStrategy => v ?? strategyConst;
   const timesOf = (v: number | null): number => v ?? retryTimesConst;
   const staleOf = (v: number | null): number => v ?? staleAfterConst;
+  const timeoutOf = (v: number | null): number => v ?? timeoutConst;
   const isCurrent = (strategy: ConcurrencyStrategy, lastId: number, runId: number) =>
     strategy === 'TAKE_EVERY' ? true : runId === lastId;
 
@@ -157,17 +163,31 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
 
   const runFx = createEffect<Run<Params>, ExecDone<Params, Result>, Error>({
     name: ns ? `${ns}.runFx` : undefined,
-    handler: async ({ runId, params }) => {
+    handler: async ({ runId, params, timeoutMs }) => {
       // wait while the environment is paused (e.g. during a token refresh)
       if (config.barrier) await config.barrier.__.wait();
       const key = dedupeKey(params);
       if (key) inflightKeys.add(key);
       const controller = isAbortable ? new AbortController() : null;
       if (controller) controllers.add(controller);
+      let timer: ReturnType<typeof setTimeout> | undefined;
       try {
-        const result = await callEffect(params, controller?.signal ?? new AbortController().signal);
-        return { runId, params, result };
+        const exec = callEffect(params, controller?.signal ?? new AbortController().signal);
+        if (!timeoutMs || timeoutMs <= 0) {
+          return { runId, params, timeoutMs, result: await exec };
+        }
+        // race the request against a deadline; on timeout, abort it (abortable
+        // effects actually stop) and reject — the normal fail/retry path handles it
+        const timedOut = new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            controller?.abort();
+            reject(new RequestError(`Request timed out after ${timeoutMs}ms`, { reason: 'timeout' }));
+          }, timeoutMs);
+        });
+        const result = (await Promise.race([exec, timedOut])) as Result;
+        return { runId, params, timeoutMs, result };
       } finally {
+        if (timer) clearTimeout(timer);
         if (key) inflightKeys.delete(key);
         if (controller) controllers.delete(controller);
       }
@@ -214,7 +234,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const toExec = createEvent<{ params: Params }>(evName('toExec'));
   const cacheHit = createEvent<{ params: Params; result: Result }>(evName('cacheHit'));
   // current-run success, before validation (carries runId for the retry path)
-  const rawDone = createEvent<{ runId: number; params: Params; result: Result }>(evName('rawDone'));
+  const rawDone = createEvent<{ runId: number; params: Params; result: Result; timeoutMs: number }>(
+    evName('rawDone'),
+  );
   // validated success — drives $data, cache write, finished.done
   const acceptedDone = createEvent<{ params: Params; result: Result }>(evName('acceptedDone'));
   // SWR: a stale cache entry served immediately while a background refetch runs
@@ -332,8 +354,12 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   // tag with a fresh runId, reset attempts, then execute the real effect
   const tagged = sample({
     clock: toRun,
-    source: $runId,
-    fn: (id, r): Run<Params> => ({ runId: id + 1, params: r.params }),
+    source: { id: $runId, timeout: $timeoutSrc },
+    fn: ({ id, timeout }, r): Run<Params> => ({
+      runId: id + 1,
+      params: r.params,
+      timeoutMs: timeoutOf(timeout),
+    }),
   });
   $runId.on(tagged, (_id, t) => t.runId);
   $attempts.on(tagged, () => 0);
@@ -354,7 +380,12 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     clock: runFx.done,
     source: { lastId: $runId, strat: $strategySrc },
     filter: ({ lastId, strat }, { result }) => isCurrent(stratOf(strat), lastId, result.runId),
-    fn: (_s, { result }) => ({ runId: result.runId, params: result.params, result: result.result }),
+    fn: (_s, { result }) => ({
+      runId: result.runId,
+      params: result.params,
+      result: result.result,
+      timeoutMs: result.timeoutMs,
+    }),
     target: rawDone,
   });
   sample({
@@ -383,7 +414,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const finalFail = createEvent<{ params: Params; error: Error }>(evName('finalFail'));
   const intermediateFail = createEvent<{ params: Params; error: Error }>(evName('intermediateFail'));
   // unified failure stream: transport failures + validation failures
-  const failed = createEvent<{ runId: number; params: Params; error: Error }>(evName('failed'));
+  const failed = createEvent<{ runId: number; params: Params; error: Error; timeoutMs: number }>(
+    evName('failed'),
+  );
 
   // validation gate: a current-run success must pass the contract / validate fn,
   // otherwise it becomes a (retryable) ValidationError failure.
@@ -396,17 +429,23 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   sample({
     clock: rawDone,
     filter: ({ params, result }) => !!validateRef && validateRef(result, params) !== null,
-    fn: ({ runId, params, result }) => ({
+    fn: ({ runId, params, result, timeoutMs }) => ({
       runId,
       params,
       error: new ValidationError(validateRef!(result, params) ?? [], result) as unknown as Error,
+      timeoutMs,
     }),
     target: failed,
   });
   // transport failures into the same stream
   sample({
     clock: runFx.fail,
-    fn: ({ params, error }) => ({ runId: params.runId, params: params.params, error }),
+    fn: ({ params, error }) => ({
+      runId: params.runId,
+      params: params.params,
+      error,
+      timeoutMs: params.timeoutMs,
+    }),
     target: failed,
   });
 
@@ -416,7 +455,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     source: failSource,
     filter: ({ lastId, attempts, timesSrc, strat }, { runId, error }) =>
       willRetry(stratOf(strat), lastId, attempts, timesOf(timesSrc), runId, error),
-    fn: (_s, { runId, params, error }) => ({ runId, params, error }),
+    fn: (_s, { runId, params, error, timeoutMs }) => ({ runId, params, error, timeoutMs }),
     target: scheduleRetry,
   });
   sample({
@@ -444,7 +483,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     source: $attempts,
     fn: (attempt, s): { ms: number; payload: unknown } => ({
       ms: (retryRef?.delay ?? (() => 0))(attempt),
-      payload: { runId: s.runId, params: s.params } as Run<Params>,
+      payload: { runId: s.runId, params: s.params, timeoutMs: s.timeoutMs } as Run<Params>,
     }),
     target: sleepFx,
   });
@@ -678,6 +717,9 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
       },
       setValidate: (fn) => {
         validateRef = fn;
+      },
+      setTimeout: (ms) => {
+        timeoutConst = ms;
       },
     },
 

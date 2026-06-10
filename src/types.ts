@@ -93,6 +93,8 @@ export interface CreateQueryConfig<Params, Result, Error, Mapped = Result> {
   concurrency?: ConcurrencyStrategy | Store<ConcurrencyStrategy>;
   /** Poll: refetch every N ms after each settle, while enabled and started. `Store<number>` is reactive. 0 = off. */
   refetchInterval?: number | Store<number>;
+  /** Per-attempt deadline in ms: abort the in-flight request and fail (retryable) if it exceeds it. `Store<number>` is reactive. 0 = off. */
+  timeout?: number | Store<number>;
   /** Preserve referential identity of unchanged parts of the result (fewer re-renders). */
   structuralSharing?: boolean;
   /** Gate execution on a barrier — the effect waits while the barrier is locked (e.g. token refresh). */
@@ -109,6 +111,7 @@ export interface SourcedConfig {
   strategy?: Store<ConcurrencyStrategy>;
   retryTimes?: Store<number>;
   staleAfter?: Store<number>;
+  timeout?: Store<number>;
 }
 
 /** Same as CreateQueryConfig but with a plain async handler instead of an Effect. */
@@ -155,6 +158,7 @@ export interface QueryEngine<Params, Error> {
   setCache: (cfg: ResolvedCache<Params> | null) => void;
   /** Validation check: return error messages (invalid) or null (ok). */
   setValidate: (fn: ((result: unknown, params: Params) => string[] | null) | null) => void;
+  setTimeout: (ms: number) => void;
   purgeFx: Effect<void, void, any>;
 }
 
@@ -216,7 +220,7 @@ export interface Query<Params, Result, Error, Mapped = Result> {
   /** Escape hatch — "based on real effects" — plus engine seams used by operators. */
   __: {
     effect: QueryEffect<Params, Result, Error>;
-    runFx: Effect<{ runId: number; params: Params }, any, Error>;
+    runFx: Effect<{ runId: number; params: Params; timeoutMs: number }, any, Error>;
     inspect: QueryInspect<Params, Mapped, Error>;
     /** Imperative write to `$data` (see `setQueryData`). */
     setData: EventCallable<Mapped | null>;
@@ -284,7 +288,7 @@ export interface Mutation<Params, Result, Error, Mapped = Result> {
 
   __: {
     effect: QueryEffect<Params, Result, Error>;
-    runFx: Effect<{ runId: number; params: Params }, any, Error>;
+    runFx: Effect<{ runId: number; params: Params; timeoutMs: number }, any, Error>;
   };
 
   '@@unitShape': () => MutationUnitShape<Params, Mapped, Error>;

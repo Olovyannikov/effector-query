@@ -59,3 +59,15 @@ export function cache<Q extends AnyQuery>(query: Q, opts: boolean | CacheConfig<
   }
   return query;
 }
+
+/**
+ * Set a per-attempt deadline (ms): the in-flight request is aborted and the run
+ * fails (retryable) if it exceeds `ms`. `timeout(query, 5000)`. `0` disables it.
+ *
+ * `createQuery({ timeout })` is sugar over this; a `Store<number>` (reactive,
+ * fork-correct) is only available through the inline option.
+ */
+export function timeout<Q extends AnyQuery>(query: Q, ms: number | Store<number>): Q {
+  query.__.setTimeout(is.store(ms) ? ms.getState() : ms);
+  return query;
+}

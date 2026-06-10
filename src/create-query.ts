@@ -23,12 +23,14 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
   const c = config.concurrency;
   const r = config.retry;
   const ca = config.cache;
+  const to = config.timeout;
 
   // collect reactive (sourced) stores from inline options
   const sourced: SourcedConfig = {};
   if (is.store(c)) sourced.strategy = c;
   if (r != null && typeof r === 'object' && is.store(r.times)) sourced.retryTimes = r.times;
   if (ca != null && typeof ca === 'object' && is.store(ca.staleAfter)) sourced.staleAfter = ca.staleAfter;
+  if (is.store(to)) sourced.timeout = to;
 
   const query = createBaseQuery<Params, Result, Error, Mapped>(config, sourced);
 
@@ -36,6 +38,7 @@ export function createQuery<Params, Result, Error = unknown, Mapped = Result>(
   if (!is.store(c)) concurrency(query, { strategy: c ?? 'TAKE_LATEST' });
   if (r != null) retry(query, r);
   if (ca) cache(query, ca);
+  if (typeof to === 'number') query.__.setTimeout(to);
 
   // validation: contract + custom validate
   const { contract, validate } = config;
