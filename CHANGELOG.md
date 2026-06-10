@@ -1,5 +1,30 @@
 # effector-refetch
 
+## 0.10.0
+
+### Minor Changes
+
+- 183c26f: `attachToRoute({ route, query, mapParams?, resetOnClose? })` — router integration: start a query
+  when a route opens (with its params) and reset it when the route closes. Structural (atomic-router
+  isn't imported — any object with `opened`/`closed` works) and pure `sample`, so it's
+  scope-correct for SSR. Documented in the Router recipe with an atomic-router example.
+- ed78de3: `createJsonRequestFx(request)` — exposes the declarative request **effect** (url / query / body /
+  headers, sourced `Store` fields, abort-aware, normalized `RequestError`) that powers
+  `createJsonQuery`/`createJsonMutation`. Use it anywhere an effect is expected — `createQuery`,
+  `createMutation`, `createInfiniteQuery`, `connectQuery` — instead of hand-writing `createRequestFx`.
+  Also adds a consolidated **Operators** docs page + a runnable `examples/operators.ts`.
+- 8e21728: `@@trigger` protocol. Every query and mutation now implements
+  [`@@trigger`](https://withease.effector.dev/protocols/trigger.html) — `query['@@trigger']()`
+  returns `{ fired, setup, teardown }` where `fired` is `finished.done` — so a unit can drive
+  farfetched's `keepFresh({ triggers })` (and any protocol consumer). It's scoped/fork-correct:
+  `fired` mirrors the unit's own (scoped) success, and `setup`/`teardown` are protocol placeholders
+  that don't gate firing.
+
+  `keepFresh` now accepts `triggers` in addition to `source`: `keepFresh(query, { triggers: [mutation, tabFocused] })`
+  refetches whenever any `@@trigger` (our queries/mutations, withease web-API triggers,
+  farfetched-compatible triggers) or a plain effector `Event` fires. `isTrigger` and the `Trigger`
+  type are exported.
+
 ## 0.9.0
 
 ### Minor Changes
