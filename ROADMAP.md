@@ -163,8 +163,7 @@ Things farfetched ships that effector-refetch does not yet (tracked from the hon
 - [x] **`timeout`** — per-attempt deadline (`createQuery({ timeout })` option + standalone `timeout(query, ms)` operator); aborts the in-flight request and fails the run (retryable). Sourced `Store<number>` via the inline option.
 - [x] **`keepFresh`** — `keepFresh(query, { source })` refetches a query (with its last params) when a source `Store` changes; no-op until it has run / while disabled.
 - [x] **`applyBarrier` operator** — `applyBarrier(query, barrier)` attaches (or `null` detaches) a barrier on an existing query/mutation, not only via the `barrier` config option.
-- [ ] **Richer Fetch/request builder** — a declarative request helper (method/url/query/headers/
-      body mappers) beyond the manual `createRequestFx`.
+- [x] **Richer Fetch/request builder** — `createJsonRequestFx(request)` exposes the declarative request **effect** (url/query/body/headers + sourced fields) behind `createJsonQuery`/`createJsonMutation`, reusable in `createQuery`/`createInfiniteQuery`/etc.
 - [ ] **`@@trigger` protocol** — interop so effector-refetch queries plug into farfetched-style
       trigger APIs (and vice-versa).
 

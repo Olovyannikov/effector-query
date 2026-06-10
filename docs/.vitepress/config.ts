@@ -32,7 +32,7 @@ const enSidebar = {
       text: 'Queries',
       items: [
         { text: 'createQuery', link: '/api/queries' },
-        { text: 'Operators (retry / cache / concurrency)', link: '/api/queries#operators' },
+        { text: 'Operators (retry / cache / concurrency / timeout / keepFresh)', link: '/api/operators' },
         { text: 'connectQuery', link: '/api/queries#connectquery' },
         { text: 'createInfiniteQuery', link: '/api/pagination#createinfinitequery' },
         { text: 'combineQueries', link: '/api/pagination#combinequeries-parallel-queries' },
@@ -52,6 +52,7 @@ const enSidebar = {
         { text: 'createRequestFx', link: '/api/http#createrequestfx' },
         { text: 'createJsonQuery', link: '/api/http#createjsonquery' },
         { text: 'createJsonMutation', link: '/api/http#createjsonmutation' },
+        { text: 'createJsonRequestFx', link: '/api/http#createjsonrequestfx' },
         { text: 'Validation (contracts)', link: '/api/http#validation-contracts' },
       ],
     },
@@ -124,7 +125,7 @@ const ruSidebar = {
       text: 'Запросы',
       items: [
         { text: 'createQuery', link: '/ru/api/queries' },
-        { text: 'Операторы (retry / cache / concurrency)', link: '/ru/api/queries' },
+        { text: 'Операторы (retry / cache / concurrency / timeout / keepFresh)', link: '/ru/api/operators' },
         { text: 'connectQuery', link: '/ru/api/queries#connectquery' },
         { text: 'createInfiniteQuery', link: '/ru/api/pagination#createinfinitequery' },
         { text: 'combineQueries', link: '/ru/api/pagination#combinequeries-параллельные-запросы' },
@@ -144,6 +145,7 @@ const ruSidebar = {
         { text: 'createRequestFx', link: '/ru/api/http#createrequestfx' },
         { text: 'createJsonQuery', link: '/ru/api/http#createjsonquery' },
         { text: 'createJsonMutation', link: '/ru/api/http#createjsonmutation' },
+        { text: 'createJsonRequestFx', link: '/ru/api/http#createjsonrequestfx' },
         { text: 'Валидация (контракты)', link: '/ru/api/http' },
       ],
     },

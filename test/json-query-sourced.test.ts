@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { allSettled, createStore, fork } from 'effector';
-import { createJsonQuery } from '../src';
+import { createJsonQuery, createJsonRequestFx, createQuery } from '../src';
 
 const calls: Array<{ url: string; headers: Record<string, string> }> = [];
 const originalFetch = globalThis.fetch;
@@ -68,5 +68,19 @@ describe('createJsonQuery — sourced fields', () => {
     await allSettled(q.start, { scope, params: undefined });
 
     expect(calls[0].headers).toMatchObject({ 'x-env': 'staging' });
+  });
+
+  it('createJsonRequestFx builds a reusable declarative effect', async () => {
+    stub();
+    const getItemFx = createJsonRequestFx<{ id: number }, { ok: boolean }>({
+      url: ({ id }) => `https://api.test/items/${id}`,
+      query: ({ id }) => ({ ref: id }),
+    });
+    const q = createQuery({ effect: getItemFx });
+
+    const scope = fork();
+    await allSettled(q.start, { scope, params: { id: 5 } });
+
+    expect(calls[0].url).toBe('https://api.test/items/5?ref=5');
   });
 });

@@ -10,6 +10,7 @@ export { getQueryData, setQueryData } from './cache-access';
 export {
   createJsonQuery,
   createJsonMutation,
+  createJsonRequestFx,
   HTTP_METHODS,
   type HttpMethod,
   type JsonRequest,

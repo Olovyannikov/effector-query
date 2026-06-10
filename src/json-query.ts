@@ -174,6 +174,24 @@ function buildRequestEffect<Params, Response>(
 }
 
 /**
+ * Declarative request **effect** over the global `fetch` — the reusable building
+ * block behind `createJsonQuery` / `createJsonMutation`. Same `request` shape
+ * (sourced fields included), abort-aware, normalized `RequestError`; returns an
+ * effect you can pass anywhere (`createQuery` / `createMutation` /
+ * `createInfiniteQuery` / `connectQuery`) instead of hand-writing `createRequestFx`.
+ *
+ *   const getUserFx = createJsonRequestFx<{ id: number }, User>({
+ *     url: ({ id }) => `/api/users/${id}`,
+ *   });
+ */
+export function createJsonRequestFx<Params = void, Response = unknown>(
+  request: JsonRequest<Params>,
+  options: { name?: string } = {},
+): AbortableEffect<Params, Response, RequestError> {
+  return buildRequestEffect<Params, Response>(request, request.method ?? 'GET', options.name);
+}
+
+/**
  * Declarative JSON query over the global `fetch` (no HTTP-client dependency).
  * Builds an abort-aware request effect + a validated query in one call. Each
  * request field may be sourced from a `Store` (fork-correct):

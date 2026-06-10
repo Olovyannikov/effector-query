@@ -85,6 +85,27 @@ invalidate({ on: createUser, refetch: usersQuery }); // refetch the list on succ
 createUser.mutate({ name: 'Ada' });
 ```
 
+## createJsonRequestFx
+
+The reusable building block behind both: a declarative request **effect** (same `request` shape,
+sourced fields, abort-aware, normalized `RequestError`) you can pass anywhere an effect is expected
+— `createQuery` / `createMutation` / `createInfiniteQuery` / `connectQuery` — instead of
+hand-writing `createRequestFx`.
+
+```ts
+import { createJsonRequestFx, createInfiniteQuery } from 'effector-refetch';
+
+const fetchPageFx = createJsonRequestFx<{ params: { tag: string }; pageParam: number }, Page>({
+  url: ({ params, pageParam }) => `/api/feed?tag=${params.tag}&cursor=${pageParam}`,
+});
+
+const feed = createInfiniteQuery({
+  effect: fetchPageFx,
+  initialPageParam: 0,
+  getNextPageParam: ({ lastPage }) => lastPage.nextCursor,
+});
+```
+
 ## Validation (contracts)
 
 Validate a response against a schema; a failure becomes a **retryable** `ValidationError`:
