@@ -19,8 +19,9 @@ pnpm add effector-refetch effector
 Optional framework bindings — install the peers you use:
 
 ```bash
-pnpm add effector-react react   # effector-refetch/react + /devtools
-pnpm add effector-vue vue       # effector-refetch/vue
+pnpm add effector-react react   # effector-refetch/react  + /devtools
+pnpm add effector-vue vue       # effector-refetch/vue    + /devtools/vue
+pnpm add effector-solid solid-js # effector-refetch/solid + /devtools/solid
 ```
 
 ```ts
@@ -305,7 +306,7 @@ export const createUser = createJsonQuery<NewUser, User>({
 ## Framework bindings
 
 A query implements effector's `@@unitShape` protocol, so you can pass it straight
-to `useUnit` from **effector-react** or **effector-vue** — no wrapper needed:
+to `useUnit` from **effector-react**, **effector-vue** or **effector-solid** — no wrapper needed:
 
 ```tsx
 // React
@@ -345,18 +346,31 @@ const { data, isPending, isDone, start } = useQuery(userQuery);
 </script>
 ```
 
-React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, for
-SSR. Bindings require the optional `react`+`effector-react` / `vue`+`effector-vue` peers.
-(Solid binding is on the roadmap.)
+```tsx
+// Solid — effector-refetch/solid (returns accessors — call them)
+import { useQuery } from 'effector-refetch/solid';
+const { data, isPending, start } = useQuery(userQuery); // data(), isPending()
+```
 
-### Devtools labelling
+React works with `<Provider value={scope}>`, Vue with the `EffectorScopePlugin`, Solid with
+effector-solid's `<Provider>` — all for SSR. Bindings require the matching optional peers.
 
-Pass `name` to label the public units in the effector inspector:
+For React Suspense there's `useSuspenseQuery` (auto-starts, suspends while loading, throws to
+the nearest Error Boundary): `import { useSuspenseQuery } from 'effector-refetch/react'`.
+
+### Devtools
+
+Pass `name` (or `debug: true`) to label every unit — public **and** internal seams — in the
+effector inspector:
 
 ```ts
 const todos = createQuery({ effect: fetchTodosFx, name: 'todos' });
-// units appear as todos.start, todos.$data, todos.$status, todos.runFx, …
+// units appear as todos.start, todos.$data, todos.runFx, todos.lookupFx, todos.scheduleRetry, …
 ```
+
+There's also a **visual, TanStack-style devtools panel** for each framework —
+`EffectorQueryDevtools` from `effector-refetch/devtools` (React), `…/devtools/vue` and
+`…/devtools/solid` — with live status, params, data, error and a per-query event log.
 
 ### Introspection / logging
 
@@ -377,13 +391,17 @@ stop(); // unsubscribe
 ## AI agents (Claude Code skill)
 
 Ships a [Claude Code skill](./skills/) so agents know the effect-first API and fork-correct
-idioms. Drop it into your project:
+idioms. Install it with the [`skills` CLI](https://github.com/vercel-labs/skills) (works with
+Claude Code and 70+ agents), or copy it manually:
 
 ```bash
+npx skills add Olovyannikov/effector-refetch        # recommended
+# or:
 cp -R node_modules/effector-refetch/skills/effector-refetch .claude/skills/
 ```
 
-See [`skills/README.md`](./skills/README.md) for personal/global install and other agent tools.
+The docs site also serves [`llms.txt` / `llms-full.txt`](https://olovyannikov.github.io/effector-refetch/guide/llms)
+for pasting into a model's context. See [`skills/README.md`](./skills/README.md) for details.
 
 ## Development
 
@@ -394,7 +412,7 @@ pnpm install
 pnpm typecheck   # tsc --noEmit
 pnpm lint        # eslint + eslint-plugin-effector (typed rules)
 pnpm test        # vitest (node + happy-dom for React/Vue)
-pnpm build       # vite library build -> dist/{index,react,vue,devtools}.{mjs,cjs} + d.ts
+pnpm build       # vite library build -> dist/{index,react,vue,solid,devtools,devtools-vue,devtools-solid}.{mjs,cjs} + d.ts
 ```
 
 ## SSR / tests
@@ -411,21 +429,20 @@ expect(scope.getState(originQuery.$data)).toBeTruthy();
 
 ## vs. farfetched
 
-[farfetched](https://ff.effector.dev) is the most complete data-fetching tool for effector and the obvious reference point. It is **open-source and not archived** — but its cadence has slowed: it is still **pre-1.0**, the original "1.0 by end of 2024" target has slipped well past, the last release was **0.15.0 (Jan 2026)**, and the issue backlog keeps growing. effector-refetch exists to be the **maintained, effect-first** option with a smaller, friendlier surface and a committed road to 1.0 — not to claim farfetched is dead.
+[farfetched](https://ff.effector.dev) is the mature reference point — effect-refetch is the
+younger, effect-first alternative. The difference in one line: farfetched models a query as its
+own event-based `RemoteOperation`; effector-refetch wraps **your real `Effect`** with friendly
+inline config. farfetched is still ahead on maturity, sourced-everything config, validation
+adapters and `createJsonMutation`; effector-refetch adds real `AbortSignal` cancellation, built-in
+pagination, barrier/offline, cross-framework visual devtools and `useSuspenseQuery`.
 
-|                             | farfetched                                                           | effector-refetch                                                    |
-| --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| unit of work                | internal event-based Executor; query is a self-contained abstraction | your real `Effect` is first-class; query wraps it                   |
-| primary input               | `handler` (wrapped internally); `effect` is one path                 | `effect` is the main input; `handler` is sugar                      |
-| retry / cache / concurrency | separate operators `retry()/cache()/concurrency()`                   | inline options on `createQuery` (default concurrency `TAKE_LATEST`) |
-| connectQuery                | yes                                                                  | yes (compatible shape)                                              |
-| validation                  | `contract`, `validate`, sourced params                               | `mapData` / `mapError` (contracts on the roadmap)                   |
-| ready-made                  | `createJsonQuery`, storage adapters w/ GC, dedupe, mutations         | bring your own effect (factories on the roadmap)                    |
-| SSR / tests                 | fork-friendly                                                        | fork-friendly                                                       |
-| status                      | pre-1.0, slowed cadence                                              | pre-1.0, actively building toward 1.0                               |
-
-**Honest trade-off.** _Today_ farfetched ships more batteries — contracts, `createJsonQuery`, sourced configuration, request dedupe, cache adapters with GC, mutations. effector-refetch is currently simpler and closer to bare effector ("I already have an effect, wrap it"). We treat farfetched's extra surface as our [roadmap](./ROADMAP.md), not as a reason to depend on a stalling library. If you need those batteries _right now_, farfetched still has them; if you want an effect-first API on a project that intends to be maintained, use this.
+See the **[honest, up-to-date comparison](https://olovyannikov.github.io/effector-refetch/guide/vs-farfetched)**
+(with a where-farfetched-is-ahead section) and the [migration guide](https://olovyannikov.github.io/effector-refetch/guide/migration)
+— `npx effector-refetch-codemod` automates most of the switch.
 
 ## Status
 
-Pre-1.0, actively developed. Core (`createQuery`, `connectQuery`, retry/cache/concurrency, React binding) is implemented and tested (24 tests via `fork`/`allSettled` + jsdom). See the [roadmap](./ROADMAP.md). Run `npm test` and `npm run typecheck`.
+Pre-1.0, actively developed. Implemented and tested (140+ tests via `fork`/`allSettled` + happy-dom):
+queries, mutations, invalidation, optimistic/list updates, retry/cache/concurrency operators,
+validation contracts, `createJsonQuery`, `createInfiniteQuery`, barriers (auth + offline),
+React/Vue/Solid bindings + React Suspense, and visual devtools. See the [roadmap](./ROADMAP.md).
