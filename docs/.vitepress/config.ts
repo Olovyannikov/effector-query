@@ -29,35 +29,61 @@ const enSidebar = {
   ],
   '/api/': [
     {
-      text: 'API',
+      text: 'Queries & mutations',
       items: [
         { text: 'Queries', link: '/api/queries' },
         { text: 'Mutations & invalidation', link: '/api/mutations' },
+      ],
+    },
+    {
+      text: 'HTTP & data',
+      items: [
         { text: 'HTTP & validation', link: '/api/http' },
         { text: 'Pagination', link: '/api/pagination' },
+      ],
+    },
+    {
+      text: 'Bindings & tooling',
+      items: [
         { text: 'Framework bindings', link: '/api/bindings' },
-        { text: 'Introspection', link: '/api/introspection' },
         { text: 'Devtools', link: '/api/devtools' },
+        { text: 'Introspection', link: '/api/introspection' },
         { text: 'API reference (generated)', link: '/api/reference' },
       ],
     },
   ],
   '/recipes/': [
     {
-      text: 'Recipes',
+      text: 'Fetching & caching',
       items: [
         { text: 'SSR & testing', link: '/recipes/ssr-and-testing' },
         { text: 'Auto-refetch & polling', link: '/recipes/auto-refetch' },
-        { text: 'Optimistic updates', link: '/recipes/optimistic' },
-        { text: 'List updates', link: '/recipes/list-updates' },
         { text: 'Selecting slices', link: '/recipes/select' },
         { text: 'Error handling', link: '/recipes/error-handling' },
+      ],
+    },
+    {
+      text: 'Mutations & lists',
+      items: [
+        { text: 'Optimistic updates', link: '/recipes/optimistic' },
+        { text: 'List updates', link: '/recipes/list-updates' },
+      ],
+    },
+    {
+      text: 'Architecture',
+      items: [
         { text: 'Shared defaults (factory)', link: '/recipes/defaults' },
         { text: 'Groups & cache access', link: '/recipes/groups-and-cache' },
+        { text: 'Shared request factory', link: '/recipes/shared-factory' },
         { text: 'Auth & barrier', link: '/recipes/auth-barrier' },
+      ],
+    },
+    {
+      text: 'Integrations',
+      items: [
         { text: 'Streaming (SSE & WS)', link: '/recipes/streaming' },
         { text: 'GraphQL', link: '/recipes/graphql' },
-        { text: 'Shared request factory', link: '/recipes/shared-factory' },
+        { text: 'Router & loaders', link: '/recipes/router' },
         { text: 'Inspector & logging', link: '/recipes/inspector' },
       ],
     },
@@ -81,34 +107,60 @@ const ruSidebar = {
   ],
   '/ru/api/': [
     {
-      text: 'API',
+      text: 'Запросы и мутации',
       items: [
         { text: 'Запросы', link: '/ru/api/queries' },
         { text: 'Мутации и инвалидация', link: '/ru/api/mutations' },
+      ],
+    },
+    {
+      text: 'HTTP и данные',
+      items: [
         { text: 'HTTP и валидация', link: '/ru/api/http' },
         { text: 'Пагинация', link: '/ru/api/pagination' },
+      ],
+    },
+    {
+      text: 'Биндинги и инструменты',
+      items: [
         { text: 'Биндинги', link: '/ru/api/bindings' },
-        { text: 'Интроспекция', link: '/ru/api/introspection' },
         { text: 'Devtools', link: '/ru/api/devtools' },
+        { text: 'Интроспекция', link: '/ru/api/introspection' },
       ],
     },
   ],
   '/ru/recipes/': [
     {
-      text: 'Рецепты',
+      text: 'Загрузка и кэш',
       items: [
         { text: 'SSR и тесты', link: '/ru/recipes/ssr-and-testing' },
         { text: 'Авто-рефетч и поллинг', link: '/ru/recipes/auto-refetch' },
-        { text: 'Оптимистичные апдейты', link: '/ru/recipes/optimistic' },
-        { text: 'Апдейты списков', link: '/ru/recipes/list-updates' },
         { text: 'Выбор срезов (select)', link: '/ru/recipes/select' },
         { text: 'Обработка ошибок', link: '/ru/recipes/error-handling' },
+      ],
+    },
+    {
+      text: 'Мутации и списки',
+      items: [
+        { text: 'Оптимистичные апдейты', link: '/ru/recipes/optimistic' },
+        { text: 'Апдейты списков', link: '/ru/recipes/list-updates' },
+      ],
+    },
+    {
+      text: 'Архитектура',
+      items: [
         { text: 'Общие дефолты (фабрика)', link: '/ru/recipes/defaults' },
         { text: 'Группы и кэш', link: '/ru/recipes/groups-and-cache' },
+        { text: 'Общая фабрика запросов', link: '/ru/recipes/shared-factory' },
         { text: 'Авторизация и barrier', link: '/ru/recipes/auth-barrier' },
+      ],
+    },
+    {
+      text: 'Интеграции',
+      items: [
         { text: 'Стриминг (SSE и WS)', link: '/ru/recipes/streaming' },
         { text: 'GraphQL', link: '/ru/recipes/graphql' },
-        { text: 'Общая фабрика запросов', link: '/ru/recipes/shared-factory' },
+        { text: 'Роутер и loaders', link: '/ru/recipes/router' },
         { text: 'Инспектор и логи', link: '/ru/recipes/inspector' },
       ],
     },
