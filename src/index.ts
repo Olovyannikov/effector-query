@@ -12,6 +12,7 @@ export {
   HTTP_METHODS,
   type HttpMethod,
   type JsonRequest,
+  type Sourced,
   type CreateJsonQueryConfig,
 } from './json-query';
 export {

@@ -42,9 +42,28 @@ export const createUser = createJsonQuery<NewUser, User>({
 });
 ```
 
-`request`: `{ url, method?, query?, body?, headers? }` (each a function of params, except
-`url` which may be a string). Abort-aware, normalized `RequestError`, optional contract,
+`request`: `{ url, method?, query?, body?, headers? }`. Each field is a function of params
+(or, for `url`, a static string). Abort-aware, normalized `RequestError`, optional contract,
 plus all the usual query options.
+
+### Sourced fields (reactive, fork-correct)
+
+Any request field can also be read from a `Store` — handy for an auth token or base URL that
+lives in state. It's wired through `attach`, so each `fork`/SSR scope uses its own value:
+
+```ts
+const userQuery = createJsonQuery<{ id: number }>({
+  request: {
+    // combine a store with params via { source, fn }
+    url: { source: $apiBase, fn: (base, { id }) => `${base}/users/${id}` },
+    // or pass a Store directly
+    headers: { source: $token, fn: (token) => ({ authorization: `Bearer ${token}` }) },
+  },
+});
+```
+
+A field is `(params) => T`, a `Store<T>`, or `{ source: Store, fn: (value, params) => T }`.
+Stores are resolved per scope at request time — no global mutable client.
 
 ## Validation (contracts)
 

@@ -1,8 +1,8 @@
-import { createRequestFx, RequestError } from './request';
+import { attach, createEffect, is, type Store } from 'effector';
+import { createRequestFx, RequestError, normalizeRequestError } from './request';
 import { createQuery } from './create-query';
-import type { CacheConfig, ConcurrencyStrategy, Query, RetryConfig } from './types';
+import type { AbortableEffect, CacheConfig, ConcurrencyStrategy, Query, RetryConfig } from './types';
 import type { Contract } from './validation';
-import type { Store } from 'effector';
 
 export const HTTP_METHODS = {
   GET: 'GET',
@@ -15,12 +15,23 @@ export type HttpMethod = (typeof HTTP_METHODS)[keyof typeof HTTP_METHODS];
 
 type QueryValue = string | number | boolean | null | undefined;
 
+/**
+ * A request field derived from `params`, a reactive `Store` (read fork-correctly
+ * per scope), or `{ source, fn }` to combine a store with params. Stores/`{source}`
+ * are wired through `attach` so SSR/`fork` is honored. (A static value is allowed
+ * for `url` directly.)
+ */
+export type Sourced<T, Params> =
+  | ((params: Params) => T)
+  | Store<T>
+  | { source: Store<any>; fn: (source: any, params: Params) => T };
+
 export interface JsonRequest<Params> {
-  url: string | ((params: Params) => string);
+  url: string | Sourced<string, Params>;
   method?: HttpMethod;
-  query?: (params: Params) => Record<string, QueryValue | QueryValue[]>;
-  body?: (params: Params) => unknown;
-  headers?: (params: Params) => Record<string, string>;
+  query?: Sourced<Record<string, QueryValue | QueryValue[]>, Params>;
+  body?: Sourced<unknown, Params>;
+  headers?: Sourced<Record<string, string>, Params>;
 }
 
 export interface CreateJsonQueryConfig<Params, Response> {
@@ -47,14 +58,32 @@ function buildQueryString(query: Record<string, QueryValue | QueryValue[]>): str
   return sp.toString();
 }
 
+type SourcedObj<P> = { source: Store<unknown>; fn: (source: unknown, params: P) => unknown };
+const isSourcedObj = <P>(v: unknown): v is SourcedObj<P> =>
+  typeof v === 'object' && v != null && 'source' in v && is.store((v as SourcedObj<P>).source);
+
+/** Resolve a request field for one run, given params and the (scoped) source value. */
+function resolveField<T, P>(field: unknown, params: P, srcValue: unknown): T | undefined {
+  if (field == null) return undefined;
+  if (is.store(field)) return srcValue as T;
+  if (isSourcedObj<P>(field)) return field.fn(srcValue, params) as T;
+  if (typeof field === 'function') return (field as (p: P) => T)(params);
+  return field as T; // static value (e.g. a string `url`)
+}
+
+const FIELDS = ['url', 'query', 'body', 'headers'] as const;
+
 /**
  * Declarative JSON query over the global `fetch` (no HTTP-client dependency).
- * Builds an abort-aware request effect + a validated query in one call.
+ * Builds an abort-aware request effect + a validated query in one call. Each
+ * request field may be sourced from a `Store` (fork-correct):
  *
- *   const userQuery = createJsonQuery({
- *     request: { url: ({ id }) => `/api/users/${id}` },
+ *   const usersQuery = createJsonQuery({
+ *     request: {
+ *       url: ({ id }) => `/api/users/${id}`,
+ *       headers: { source: $token, fn: (token) => ({ authorization: `Bearer ${token}` }) },
+ *     },
  *     response: { contract: zodContract(UserSchema) },
- *     cache: true,
  *   });
  */
 export function createJsonQuery<Params = void, Response = unknown>(
@@ -63,44 +92,92 @@ export function createJsonQuery<Params = void, Response = unknown>(
   const { request } = config;
   const method = request.method ?? 'GET';
 
-  const requestFx = createRequestFx<Params, Response>(
-    async (params, { signal }) => {
-      const base = typeof request.url === 'function' ? request.url(params) : request.url;
-      const qs = request.query ? buildQueryString(request.query(params)) : '';
-      const url = qs ? `${base}${base.includes('?') ? '&' : '?'}${qs}` : base;
+  // collect the Store dependencies referenced by the request fields
+  const sources: Record<string, Store<unknown>> = {};
+  for (const name of FIELDS) {
+    const f = request[name] as unknown;
+    if (is.store(f)) sources[name] = f;
+    else if (isSourcedObj(f)) sources[name] = (f as SourcedObj<Params>).source;
+  }
+  const hasSources = Object.keys(sources).length > 0;
 
-      const hasBody = request.body != null && method !== 'GET' && method !== 'DELETE';
-      const headers: Record<string, string> = {
-        ...(hasBody ? { 'content-type': 'application/json' } : {}),
-        ...request.headers?.(params),
-      };
+  // shared per-run logic: build the URL/headers/body and fetch
+  const run = async (
+    params: Params,
+    src: Record<string, unknown>,
+    signal: AbortSignal,
+  ): Promise<Response> => {
+    const base = resolveField(request.url, params, src.url) as string;
+    const qObj = resolveField(request.query, params, src.query) as
+      | Record<string, QueryValue | QueryValue[]>
+      | undefined;
+    const qs = qObj ? buildQueryString(qObj) : '';
+    const url = qs ? `${base}${base.includes('?') ? '&' : '?'}${qs}` : base;
 
-      const res = await fetch(url, {
-        method,
-        headers,
-        body: hasBody ? JSON.stringify(request.body!(params)) : undefined,
-        signal,
-      });
+    const hasBody = request.body != null && method !== 'GET' && method !== 'DELETE';
+    const bodyVal = hasBody ? resolveField(request.body, params, src.body) : undefined;
+    const headers: Record<string, string> = {
+      ...(hasBody ? { 'content-type': 'application/json' } : {}),
+      ...(resolveField(request.headers, params, src.headers) as Record<string, string> | undefined),
+    };
 
-      if (!res.ok) {
-        let data: unknown = null;
-        try {
-          data = await res.json();
-        } catch {
-          /* non-JSON error body */
-        }
-        throw new RequestError(`HTTP ${res.status} ${res.statusText}`.trim(), {
-          status: res.status,
-          data,
-        });
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: hasBody ? JSON.stringify(bodyVal) : undefined,
+      signal,
+    });
+    if (!res.ok) {
+      let data: unknown = null;
+      try {
+        data = await res.json();
+      } catch {
+        /* non-JSON error body */
       }
-      return (await res.json()) as Response;
-    },
-    { name: config.name },
-  );
+      throw new RequestError(`HTTP ${res.status} ${res.statusText}`.trim(), { status: res.status, data });
+    }
+    return (await res.json()) as Response;
+  };
+
+  let effectFx: AbortableEffect<Params, Response, RequestError>;
+  if (!hasSources) {
+    effectFx = createRequestFx<Params, Response>((params, { signal }) => run(params, {}, signal), {
+      name: config.name,
+    });
+  } else {
+    // attach injects the scoped source values at call time → fork-correct
+    const baseFx = createEffect<
+      { params: Params; signal: AbortSignal; src: Record<string, unknown> },
+      Response,
+      RequestError
+    >({
+      name: config.name,
+      handler: async ({ params, signal, src }) => {
+        try {
+          return await run(params, src, signal);
+        } catch (err) {
+          throw normalizeRequestError(err);
+        }
+      },
+    });
+    const attachedFx = attach({
+      source: sources,
+      mapParams: (p: { params: Params; signal: AbortSignal }, src: Record<string, unknown>) => ({
+        params: p.params,
+        signal: p.signal,
+        src,
+      }),
+      effect: baseFx,
+    });
+    effectFx = Object.assign(attachedFx, { __abortable: true as const }) as unknown as AbortableEffect<
+      Params,
+      Response,
+      RequestError
+    >;
+  }
 
   return createQuery<Params, Response, RequestError, Response>({
-    effect: requestFx,
+    effect: effectFx,
     contract: config.response?.contract,
     concurrency: config.concurrency,
     retry: config.retry,

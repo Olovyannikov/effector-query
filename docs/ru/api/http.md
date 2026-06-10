@@ -42,9 +42,29 @@ export const createUser = createJsonQuery<NewUser, User>({
 });
 ```
 
-`request`: `{ url, method?, query?, body?, headers? }` (каждое — функция от параметров, кроме
-`url`, который может быть строкой). Abort-aware, нормализованный `RequestError`,
+`request`: `{ url, method?, query?, body?, headers? }`. Каждое поле — функция от параметров
+(или, для `url`, статическая строка). Abort-aware, нормализованный `RequestError`,
 опциональный контракт и все обычные опции запроса.
+
+### Sourced-поля (реактивные, fork-корректные)
+
+Любое поле запроса можно читать из `Store` — удобно для токена авторизации или base URL, которые
+лежат в состоянии. Это разводится через `attach`, поэтому каждый `fork`/SSR-scope использует своё
+значение:
+
+```ts
+const userQuery = createJsonQuery<{ id: number }>({
+  request: {
+    // комбинируем стор с параметрами через { source, fn }
+    url: { source: $apiBase, fn: (base, { id }) => `${base}/users/${id}` },
+    // или передаём Store напрямую
+    headers: { source: $token, fn: (token) => ({ authorization: `Bearer ${token}` }) },
+  },
+});
+```
+
+Поле — это `(params) => T`, `Store<T>` или `{ source: Store, fn: (value, params) => T }`.
+Сторы резолвятся на момент запроса в рамках scope — без глобального мутабельного клиента.
 
 ## Валидация (контракты)
 

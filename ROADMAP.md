@@ -153,9 +153,9 @@ What's missing, planned as effector-flavored features (post-1.0, order TBD):
 Things farfetched ships that effector-refetch does not yet (tracked from the honest
 [comparison](docs/guide/vs-farfetched.md)):
 
-- [ ] **Sourced parameters for declarative HTTP** — `url` / `headers` / `body` / `query` as
-      `Store`/source in `createJsonQuery` (and broader sourced config), matching farfetched's
-      "everything can be a source".
+- [x] **Sourced parameters for declarative HTTP** — `url` / `headers` / `body` / `query` in
+      `createJsonQuery` accept a `Store` or `{ source, fn }` (alongside `(params) => …`), wired via
+      `attach` so each `fork`/SSR scope reads its own value.
 - [ ] **`createJsonMutation`** — declarative HTTP for writes (we only have `createJsonQuery`).
 - [ ] **More validation adapters** — `runtypes`, `io-ts`, `superstruct`, `typed-contracts` (today:
       zod, Standard Schema, `createContract`).
