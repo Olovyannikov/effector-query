@@ -1,5 +1,46 @@
 # effector-refetch
 
+## 0.9.0
+
+### Minor Changes
+
+- 04fc66c: `applyBarrier(query, barrier)` operator — gate an already-created query/mutation on a barrier
+  (the composable equivalent of the `barrier` config option); pass `null` to detach. Backed by a new
+  `__.setBarrier` engine seam, so the barrier is now swappable at runtime.
+- 2c1b3f9: Cache dehydrate/hydrate for SSR — `dehydrate(adapter)` snapshots a cache adapter into a
+  JSON-serializable array, `hydrate(adapter, snapshot)` restores it (original `storedAt` preserved,
+  so `staleAfter` ages from the server's fetch time). `CacheAdapter` gained an optional `dump()`
+  (implemented by `inMemoryCache`); adapters that can't enumerate return `[]`. Pairs with effector's
+  `serialize`/`fork({ values })` so the client starts warm — no refetch/flicker. New `examples/ssr.ts`
+  and an expanded SSR recipe (cache transfer + client persistence via `localStorageCache` or
+  `effector-storage`).
+- af7479c: `createJsonMutation` — declarative HTTP for writes, the mirror of `createJsonQuery`. Same `request`
+  shape (including sourced `Store`/`{ source, fn }` fields), defaults to `POST`, returns a `Mutation`
+  (no cache/refresh/stale). The request-effect builder is now shared between the two.
+- 2de9fd6: `keepFresh(query, { source })` operator — refetch a query with its last params whenever a `source`
+  store (or array of stores) changes, keeping it fresh relative to external state (filters, locale,
+  viewer). No-op until the query has run (`status !== 'initial'`) and while it's disabled.
+  Dependency-based, complementing the time-based `refetchInterval`.
+- 3de7356: `refetchOnMount` for the `useQuery` bindings (React, Vue, Solid) — `useQuery(query, { refetchOnMount: true | 'always' })`
+  refetches the query with its last params when the component subscribes (`true` only if stale,
+  `'always'` every mount). No-op until the query has run and is enabled. New shared `UseQueryOptions`
+  type re-exported from each binding entry.
+- b98a55b: `createJsonQuery` request fields can be **sourced from a `Store`** — `url` / `query` / `body` /
+  `headers` now accept `(params) => T`, a `Store<T>`, or `{ source: Store, fn: (value, params) => T }`
+  (in addition to the previous function form). Store-backed fields are wired through `attach`, so an
+  auth token / base URL in state is read **fork-correctly** per scope (SSR-safe), with no global
+  mutable client. The non-sourced path is unchanged.
+- c047877: `timeout` — a per-attempt deadline. `createQuery({ timeout: 5000 })` (or the standalone
+  `timeout(query, 5000)` operator, or a reactive `Store<number>` via the inline option) aborts the
+  in-flight request and fails the run with a timeout `RequestError` if it exceeds the deadline. It's
+  retryable, so it composes with `retry`, and it's distinct from `refetchInterval` (poll cadence).
+  Implemented inside `runFx` via `Promise.race` + the run's AbortController, threaded fork-correctly
+  through the run/retry payloads.
+- 85d5e2e: More validation adapters: `runtypesContract` (runtypes) and `ioTsContract` (io-ts, reads the Either
+  structurally — no fp-ts import), alongside the existing `zodContract` / `standardSchemaContract`.
+  Like the others they're structural (the library isn't imported — you pass your validator). Any
+  other library (superstruct, typed-contracts, hand-written guards) is a one-line `createContract`.
+
 ## 0.8.0
 
 ### Minor Changes
