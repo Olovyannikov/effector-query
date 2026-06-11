@@ -132,6 +132,27 @@ describe('validation', () => {
     expect((scope.getState(q.$error) as ValidationError).validationErrors).toEqual(['Invalid value at id']);
   });
 
+  it('@withease/contracts works directly as a contract (no adapter)', async () => {
+    const { obj, num, str } = await import('@withease/contracts');
+    // a withease Contract is { isData, getErrorMessages } — exactly our `contract` shape
+    const User = obj({ id: num, name: str });
+    const q = createQuery({
+      effect: createEffect(async (ok: boolean) => (ok ? { id: 1, name: 'Rick' } : { id: 'x' }) as any),
+      contract: User,
+    });
+    const scope = fork();
+
+    await allSettled(q.start, { scope, params: true });
+    expect(scope.getState(q.$status)).toBe('done');
+    expect(scope.getState(q.$data)).toEqual({ id: 1, name: 'Rick' });
+
+    await allSettled(q.start, { scope, params: false });
+    expect(scope.getState(q.$status)).toBe('fail');
+    const err = scope.getState(q.$error) as ValidationError;
+    expect(err).toBeInstanceOf(ValidationError);
+    expect(err.validationErrors.length).toBeGreaterThan(0);
+  });
+
   it('validation failures are retryable', async () => {
     let calls = 0;
     const fx = createEffect(async () => {

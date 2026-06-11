@@ -47,6 +47,9 @@ importers:
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.35)(@vue/server-renderer@3.5.35(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))
+      '@withease/contracts':
+        specifier: ^1.1.0
+        version: 1.1.0
       atomic-router:
         specifier: ^0.12.0
         version: 0.12.0(effector@23.4.4)(history@5.3.0)
@@ -1520,6 +1523,9 @@ packages:
 
   '@vueuse/shared@12.8.2':
     resolution: {integrity: sha512-dznP38YzxZoNloI0qpEfpkms8knDtaoQ6Y/sfS0L7Yki4zh40LFHEhur0odJC6xTHG5dxWVPiUWBXn+wCG2s5w==}
+
+  '@withease/contracts@1.1.0':
+    resolution: {integrity: sha512-TwM/nMXUFaLTRT5MpJx1654L0PZGV1/hFr1Ykb9aUwdIAi5rnmLALyvSPaESjjzxwLOBQvlINQavFJpXITNaAw==}
 
   abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
@@ -5089,6 +5095,8 @@ snapshots:
       vue: 3.5.35(typescript@5.9.3)
     transitivePeerDependencies:
       - typescript
+
+  '@withease/contracts@1.1.0': {}
 
   abbrev@2.0.0: {}
 

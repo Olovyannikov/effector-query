@@ -131,6 +131,20 @@ createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['neg
 Contracts are **structural** — the schema libraries are not imported; you pass your own
 schema/validator. On failure, `$error` is a `ValidationError` with `.validationErrors`.
 
+::: tip @withease/contracts — no adapter needed
+
+[`@withease/contracts`](https://withease.effector.dev/contracts/) produces objects with the exact
+`{ isData, getErrorMessages }` shape the `contract` option expects, so its combinators are passed
+**directly** — no wrapper:
+
+```ts
+import { obj, str, num, arr } from '@withease/contracts';
+
+createQuery({ effect: getUserFx, contract: obj({ id: num, name: str, tags: arr(str) }) });
+```
+
+:::
+
 ::: tip Any other library
 Anything is one `createContract` away — superstruct, typed-contracts, a hand-written guard:
 

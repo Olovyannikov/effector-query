@@ -272,6 +272,14 @@ createQuery({ effect: getPriceFx, validate: ({ result }) => result >= 0 || ['neg
 Contracts are **structural** — the schema libraries aren't imported, you pass your
 own schema. On failure, `$error` is a `ValidationError` with `.validationErrors`.
 
+[`@withease/contracts`](https://withease.effector.dev/contracts/) needs **no adapter** — its
+combinators already have the `{ isData, getErrorMessages }` shape the `contract` option expects:
+
+```ts
+import { obj, str, num } from '@withease/contracts';
+createQuery({ effect: getUserFx, contract: obj({ id: num, name: str }) });
+```
+
 ## `createInfiniteQuery` — pagination
 
 Cursor/offset pagination that accumulates pages. `start` loads the first page
