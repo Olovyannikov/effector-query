@@ -25,6 +25,8 @@ import { ValidationError } from './validation';
 import { RequestError } from './request';
 import { replaceEqualDeep } from './utils';
 import { makeTrigger } from './trigger';
+import { setupPolling } from './engine/polling';
+import { setupIntrospection } from './engine/introspection';
 
 interface Run<P> {
   runId: number;
@@ -600,66 +602,31 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   });
 
   // ---- polling (refetchInterval) ----
-  // After each settle, if interval > 0 and enabled, wait then refresh with last params.
-  // A token ($pollId) ensures a single live timer (no doubling) and lets reset stop it.
-  const $pollId = createStore(0, nm('$pollId'));
-  const pollSleepFx = createEffect<
-    { ms: number; payload: { id: number; params: Params | null } },
-    { id: number; params: Params | null }
-  >({
-    name: evName('pollSleepFx'),
-    handler: ({ ms, payload }) => new Promise((res) => setTimeout(() => res(payload), ms)),
-  });
-
-  const pollScheduled = sample({
-    clock: [finishedDone, finishedFail],
-    source: { id: $pollId, ms: $intervalMs, en: $enabled, params: $params, status: $status },
-    filter: ({ ms, en, status }) => ms > 0 && en && status !== 'initial',
-    fn: ({ id, ms, params }) => ({ id: id + 1, ms, params }),
-  });
-  $pollId.on(pollScheduled, (_i, s) => s.id);
-  $pollId.on(reset, (i) => i + 1); // invalidate any pending poll
-  sample({
-    clock: pollScheduled,
-    fn: (s) => ({ ms: s.ms, payload: { id: s.id, params: s.params } }),
-    target: pollSleepFx,
-  });
-  sample({
-    clock: pollSleepFx.doneData,
-    source: { id: $pollId, en: $enabled, ms: $intervalMs },
-    filter: ({ id, en, ms }, p) => en && ms > 0 && p.id === id,
-    fn: (_s, p) => p.params as Params,
-    target: refresh,
+  setupPolling<Params>({
+    finishedDone,
+    finishedFail,
+    refresh,
+    reset,
+    $intervalMs,
+    $enabled,
+    $params,
+    $status,
+    nm,
+    evName,
   });
 
   // ---- introspection (devtools / logger) ----
-  const inspectStart = createEvent<{ params: Params }>(evName('inspect.start'));
-  const inspectRun = createEvent<{ params: Params; attempt: number }>(evName('inspect.run'));
-  const inspectCacheHit = createEvent<{ params: Params }>(evName('inspect.cacheHit'));
-  const inspectCacheMiss = createEvent<{ params: Params }>(evName('inspect.cacheMiss'));
-  const inspectRetry = createEvent<{ params: Params; attempt: number; error: Error }>(
-    evName('inspect.retry'),
-  );
-
-  sample({ clock: requested, fn: ({ params }) => ({ params }), target: inspectStart });
-  sample({
-    clock: runFx,
-    source: $attempts,
-    fn: (attempt, run) => ({ params: run.params, attempt }),
-    target: inspectRun,
-  });
-  sample({ clock: cacheHit, fn: ({ params }) => ({ params }), target: inspectCacheHit });
-  sample({
-    clock: lookupFx.doneData,
-    filter: ({ fresh }) => !fresh,
-    fn: ({ params }) => ({ params }),
-    target: inspectCacheMiss,
-  });
-  sample({
-    clock: scheduleRetry,
-    source: $attempts,
-    fn: (attempt, s) => ({ params: s.params, attempt, error: s.error }),
-    target: inspectRetry,
+  const { inspectStart, inspectRun, inspectCacheHit, inspectCacheMiss, inspectRetry } = setupIntrospection<
+    Params,
+    Error
+  >({
+    requested,
+    runFx,
+    cacheHit,
+    lookupDone: lookupFx.doneData,
+    scheduleRetry,
+    $attempts,
+    evName,
   });
 
   const refetch = refresh;
