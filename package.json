@@ -30,39 +30,96 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.mjs",
-      "require": "./dist/react.cjs"
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.mjs"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
     },
     "./vue": {
-      "types": "./dist/vue.d.ts",
-      "import": "./dist/vue.mjs",
-      "require": "./dist/vue.cjs"
+      "import": {
+        "types": "./dist/vue.d.ts",
+        "default": "./dist/vue.mjs"
+      },
+      "require": {
+        "types": "./dist/vue.d.cts",
+        "default": "./dist/vue.cjs"
+      }
     },
     "./solid": {
-      "types": "./dist/solid.d.ts",
-      "import": "./dist/solid.mjs",
-      "require": "./dist/solid.cjs"
+      "import": {
+        "types": "./dist/solid.d.ts",
+        "default": "./dist/solid.mjs"
+      },
+      "require": {
+        "types": "./dist/solid.d.cts",
+        "default": "./dist/solid.cjs"
+      }
     },
     "./devtools": {
-      "types": "./dist/devtools.d.ts",
-      "import": "./dist/devtools.mjs",
-      "require": "./dist/devtools.cjs"
+      "import": {
+        "types": "./dist/devtools.d.ts",
+        "default": "./dist/devtools.mjs"
+      },
+      "require": {
+        "types": "./dist/devtools.d.cts",
+        "default": "./dist/devtools.cjs"
+      }
     },
     "./devtools/vue": {
-      "types": "./dist/devtools-vue.d.ts",
-      "import": "./dist/devtools-vue.mjs",
-      "require": "./dist/devtools-vue.cjs"
+      "import": {
+        "types": "./dist/devtools-vue.d.ts",
+        "default": "./dist/devtools-vue.mjs"
+      },
+      "require": {
+        "types": "./dist/devtools-vue.d.cts",
+        "default": "./dist/devtools-vue.cjs"
+      }
     },
     "./devtools/solid": {
-      "types": "./dist/devtools-solid.d.ts",
-      "import": "./dist/devtools-solid.mjs",
-      "require": "./dist/devtools-solid.cjs"
+      "import": {
+        "types": "./dist/devtools-solid.d.ts",
+        "default": "./dist/devtools-solid.mjs"
+      },
+      "require": {
+        "types": "./dist/devtools-solid.d.cts",
+        "default": "./dist/devtools-solid.cjs"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "vue": [
+        "./dist/vue.d.ts"
+      ],
+      "solid": [
+        "./dist/solid.d.ts"
+      ],
+      "devtools": [
+        "./dist/devtools.d.ts"
+      ],
+      "devtools/vue": [
+        "./dist/devtools-vue.d.ts"
+      ],
+      "devtools/solid": [
+        "./dist/devtools-solid.d.ts"
+      ]
     }
   },
   "files": [
@@ -74,7 +131,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/dual-dts.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -83,6 +140,7 @@
     "test:watch": "vitest",
     "prepublishOnly": "pnpm run build",
     "size": "size-limit",
+    "attw": "pnpm run build && attw --pack .",
     "changeset": "changeset",
     "release": "pnpm run build && node scripts/release.mjs",
     "docs:llms": "node scripts/gen-llms.mjs",
@@ -121,6 +179,7 @@
     }
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.3",
     "@changesets/cli": "^2.31.0",
     "@shikijs/vitepress-twoslash": "^4.2.0",
     "@size-limit/preset-small-lib": "^12.1.0",
@@ -159,5 +218,8 @@
     "vue": "^3.5.35"
   },
   "packageManager": "pnpm@11.5.1",
+  "engines": {
+    "node": ">=18"
+  },
   "license": "MIT"
 }

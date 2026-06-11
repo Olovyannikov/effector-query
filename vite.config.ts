@@ -40,5 +40,7 @@ export default defineConfig({
       ],
     },
   },
-  plugins: [dts({ include: ['src'], rollupTypes: false })],
+  // rollupTypes: bundle each entry's .d.ts into one self-contained file (no
+  // extensionless relative imports), so node16/nodenext type resolution works.
+  plugins: [dts({ include: ['src'], rollupTypes: true })],
 });
