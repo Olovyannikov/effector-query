@@ -4,7 +4,7 @@
 
 A small, friendly query layer for [effector](https://effector.dev), built on **real effects**.
 
-The unit of work is your own `Effect<Params, Result, Error>` (including `attach`-built factory effects) — the query is just a thin reactive shell around it. `retry`, `cache` and `concurrency` are inline options on `createQuery`, not separate operators.
+The unit of work is your own `Effect<Params, Result, Error>` (including `attach`-built factory effects) — the query is just a thin reactive shell around it. `retry`, `cache`, `concurrency` and `timeout` are friendly inline options on `createQuery` (and also available as composable standalone operators).
 
 ## Install
 
@@ -49,22 +49,25 @@ characterQuery.start(1); // origin loads automatically when the character resolv
 
 `createQuery(config)` returns a `Query` object:
 
-| member                         | type                                          | meaning                                        |
-| ------------------------------ | --------------------------------------------- | ---------------------------------------------- |
-| `start`                        | `EventCallable<Params>`                       | run (honoring cache / concurrency / enabled)   |
-| `refresh`                      | `EventCallable<Params>`                       | run, bypassing cache freshness                 |
-| `reset`                        | `EventCallable<void>`                         | reset to initial + invalidate in-flight        |
-| `cancel`                       | `EventCallable<void>`                         | drop in-flight result, keep data               |
-| `$data`                        | `Store<Mapped \| null>`                       | latest result                                  |
-| `$error`                       | `Store<Error \| null>`                        | latest error                                   |
-| `$status`                      | `Store<'initial'\|'pending'\|'done'\|'fail'>` |                                                |
-| `$pending`                     | `Store<boolean>`                              | request (or retry) in flight                   |
-| `$stale`                       | `Store<boolean>`                              | current data is past `staleAfter`              |
-| `$enabled`                     | `Store<boolean>`                              | gate                                           |
-| `$params`                      | `Store<Params \| null>`                       | last params the query ran with                 |
-| `finished.{done,fail,finally}` | `Event<…>`                                    | lifecycle                                      |
-| `aborted`                      | `Event<{ params }>`                           | result discarded (concurrency / cancel / skip) |
-| `__.effect` / `__.runFx`       | `Effect`                                      | escape hatch to the real effects               |
+| member                         | type                                          | meaning                                                                    |
+| ------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------- |
+| `start`                        | `EventCallable<Params>`                       | run (honoring cache / concurrency / enabled)                               |
+| `refresh` / `refetch`          | `EventCallable<Params>`                       | run, bypassing cache freshness (`refetch` alias)                           |
+| `prefetch`                     | `EventCallable<Params>`                       | warm the cache without touching `$data`/`$status`                          |
+| `reset`                        | `EventCallable<void>`                         | reset to initial + invalidate in-flight                                    |
+| `cancel`                       | `EventCallable<void>`                         | drop in-flight result, keep data                                           |
+| `$data`                        | `Store<Mapped \| null>`                       | latest result                                                              |
+| `$error`                       | `Store<Error \| null>`                        | latest error                                                               |
+| `$status`                      | `Store<'initial'\|'pending'\|'done'\|'fail'>` |                                                                            |
+| `$pending`                     | `Store<boolean>`                              | request (or retry) in flight                                               |
+| `$stale`                       | `Store<boolean>`                              | current data is past `staleAfter`                                          |
+| `$enabled`                     | `Store<boolean>`                              | gate                                                                       |
+| `$params`                      | `Store<Params \| null>`                       | last params the query ran with                                             |
+| `$isPlaceholderData`           | `Store<boolean>`                              | `$data` is the placeholder, not a real result                              |
+| `finished.{done,fail,finally}` | `Event<…>`                                    | lifecycle (+ farfetched-compatible `success` / `failure` / `skip` aliases) |
+| `aborted`                      | `Event<{ params }>`                           | result discarded (concurrency / cancel / skip)                             |
+| `@@trigger`                    | protocol                                      | usable as a `@@trigger` (e.g. farfetched `keepFresh`)                      |
+| `__.effect` / `__.runFx`       | `Effect`                                      | escape hatch to the real effects                                           |
 
 ### Options
 
@@ -75,14 +78,20 @@ characterQuery.start(1); // origin loads automatically when the character resolv
   - `swr: true` — serve a stale entry immediately and revalidate in the background (`$stale` flips `true` → `false` on fresh data).
   - `dedupe: true` — coalesce identical in-flight requests (by key) into a single effect run.
   - Adapters: `inMemoryCache({ maxAge?, maxEntries?, onHit?, onMiss?, onExpired?, onEvicted? })` (default, LRU GC + events), `localStorageCache({ version?, maxAge? })` / `sessionStorageCache({ version?, maxAge? })` (bump `version` to invalidate old data — migrations), `voidCache`.
+- **`timeout`** — per-attempt deadline in ms (`number` or `Store<number>`): a slower run is aborted and fails (retryable). How _long_ one attempt may take, vs `refetchInterval`'s how _often_.
+- **`refetchInterval`** — poll every N ms after each settle (`number` or `Store<number>`), while enabled and started; `0` = off.
 - **`enabled`** — `Store<boolean>` gate.
+- **`placeholderData`** — a value or `(prev) => …` shown while there's no real data; `$isPlaceholderData` is `true` until the first real result (unlike `initialData`, not treated as cached).
+- **`structuralSharing`** — preserve referential identity of unchanged parts of the result (fewer re-renders).
+- **`barrier`** — gate execution on a [barrier](#barriers-auth--offline) (e.g. pause during a token refresh).
+- **`contract` / `validate`** — [validate the response](#validation-contracts) before it hits the stores.
 - **`mapData` / `mapError`** — normalize result / error before they hit the stores.
 
 #### Sourced (reactive) config
 
-Inline `concurrency`, `retry.times` and `cache.staleAfter` accept a `Store` instead
-of a constant — the engine reads it reactively and **fork-correctly** (each scope
-sees its own value):
+Inline `concurrency`, `retry.times`, `cache.staleAfter`, `timeout` and `refetchInterval`
+accept a `Store` instead of a constant — the engine reads it reactively and
+**fork-correctly** (each scope sees its own value):
 
 ```ts
 const $retries = createStore(0); // e.g. bump when online
@@ -96,22 +105,25 @@ options; the standalone operators take constants.)
 
 ### Operators
 
-`concurrency` / `retry` / `cache` are standalone, composable operators — the inline
-options above are just sugar that applies them. Use them directly to compose or to
-configure a query built elsewhere:
+`concurrency` / `retry` / `cache` / `timeout` / `keepFresh` / `applyBarrier` are standalone,
+composable operators — the inline options above are just sugar that applies the first four. Use
+them directly to compose or to configure a query built elsewhere:
 
 ```ts
-import { createQuery, concurrency, retry, cache } from 'effector-refetch';
+import { createQuery, concurrency, retry, cache, timeout, keepFresh, applyBarrier } from 'effector-refetch';
 
 const search = createQuery({ effect: searchFx });
 concurrency(search, { strategy: 'TAKE_LATEST' });
 retry(search, { times: 3, delay: exponentialDelay(200) });
 cache(search, { staleAfter: 30_000, purge: loggedOut });
+timeout(search, 5000); // abort + fail a run that takes over 5s
+
+// refetch with the last params when a source store changes or a @@trigger fires
+keepFresh(search, { source: $filters, triggers: [createTodoMutation, tabFocused] });
+applyBarrier(search, authBarrier); // pause runs while the barrier is locked
 ```
 
-All three may be applied after creation; the engine carries the machinery and the
-operators configure it. `createQuery({ retry, cache, concurrency })` === calling the
-operators yourself.
+The engine carries the machinery and the operators configure it. `createQuery({ retry, cache, concurrency, timeout })` === calling the operators yourself.
 
 ### `connectQuery`
 
@@ -201,7 +213,8 @@ mutation + invalidate + optimistic flow.
 ### Composing from a shared factory
 
 Bake `baseURL` + headers/auth into a factory once, then declare endpoints in one
-line each — the FSD `shared/api` pattern:
+line each — the FSD `shared/api` pattern. `createRequestFactory` here is a small helper you
+write on top of `createRequestFx` (shown in full in the example), not a library export:
 
 ```ts
 const createCommonRequestFx = createRequestFactory({
@@ -282,14 +295,16 @@ Exposes `$pages` (= `$data`), `$pageParams`, `$hasNextPage`, `$status`, `$pendin
 so the page fetch inherits concurrency / cancellation. Runnable demo:
 [`examples/infinite-query.ts`](./examples/infinite-query.ts).
 
-## `createJsonQuery` — declarative HTTP
+## `createJsonQuery` / `createJsonMutation` — declarative HTTP
 
 Declare an endpoint over the global `fetch` (no HTTP-client dependency), with
 abort-aware cancellation, normalized `RequestError`, optional contract, and all the
-usual options:
+usual options. Request fields (`url` / `query` / `body` / `headers`) accept a function,
+a `Store`, or `{ source, fn }` — sourced fields are wired through `attach`, so an auth
+token / base URL in state is read **fork-correctly** per scope:
 
 ```ts
-import { createJsonQuery, HTTP_METHODS, zodContract } from 'effector-refetch';
+import { createJsonQuery, createJsonMutation, HTTP_METHODS, zodContract } from 'effector-refetch';
 
 export const getProductsQuery = createJsonQuery({
   request: { url: 'https://api/products', query: ({ search }) => ({ search, limit: 20 }) },
@@ -298,10 +313,14 @@ export const getProductsQuery = createJsonQuery({
   cache: { staleAfter: 30_000 },
 });
 
-export const createUser = createJsonQuery<NewUser, User>({
-  request: { url: 'https://api/users', method: HTTP_METHODS.POST, body: (u) => u },
+// writes get their own helper (defaults to POST, returns a Mutation)
+export const createUser = createJsonMutation<NewUser, User>({
+  request: { url: 'https://api/users', body: (u) => u },
 });
 ```
+
+`createJsonRequestFx(request)` exposes the same declarative request as a reusable
+**effect** you can drop into `createQuery` / `createMutation` / `createInfiniteQuery`.
 
 ## Framework bindings
 
@@ -388,6 +407,37 @@ const stop = attachQueryLogger(todos, { name: 'todos' });
 stop(); // unsubscribe
 ```
 
+## Barriers (auth + offline)
+
+`createBarrier({ perform })` is a mutex: gated queries pause while it's locked, run `perform`
+(e.g. refresh a token on a 401), then resume the queue. Attach it via the `barrier` option or the
+`applyBarrier` operator.
+
+```ts
+import { createQuery, createBarrier, createNetworkBarrier, applyBarrier } from 'effector-refetch';
+
+const auth = createBarrier({ perform: refreshTokenFx });
+const userQuery = createQuery({ effect: getUserFx, barrier: auth });
+
+// ready-made offline barrier: locks while the browser is offline, unlocks on reconnect
+const offline = createNetworkBarrier(); // also exposes $online
+applyBarrier(userQuery, offline);
+```
+
+## More
+
+| API                                                 | what                                                                                            |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `combineQueries([...])`                             | aggregate queries into combined stores (`$data` tuple, `$pending`, `$errors`, …) — `useQueries` |
+| `attachToRoute({ route, query })`                   | start a query when an atomic-router route opens, reset on close (structural — no router import) |
+| `getQueryData` / `setQueryData`                     | imperative cache read / write                                                                   |
+| `dehydrate(adapter)` / `hydrate(adapter, snapshot)` | snapshot & restore the whole cache for SSR (pairs with `serialize` / `fork({ values })`)        |
+| `refetchOnWindowFocus` / `refetchOnReconnect`       | opt-in, tree-shakeable browser refetch triggers                                                 |
+| `keepFresh(query, { source, triggers })`            | refetch on a source store change or a `@@trigger` (another query/mutation, a focus event, …)    |
+| `isTrigger` / `Trigger`                             | the `@@trigger` protocol — every query/mutation implements it                                   |
+
+See the [docs](https://olovyannikov.github.io/effector-refetch/) for each.
+
 ## AI agents (Claude Code skill)
 
 Ships a [Claude Code skill](./skills/) so agents know the effect-first API and fork-correct
@@ -405,15 +455,19 @@ for pasting into a model's context. See [`skills/README.md`](./skills/README.md)
 
 ## Development
 
-Uses **pnpm** and **vite**.
+Uses **pnpm** and **vite**. `pnpm install` also sets up lefthook git hooks (pre-commit lint/format/
+typecheck, commit-msg [Conventional Commits](https://www.conventionalcommits.org), pre-push tests).
 
 ```bash
 pnpm install
-pnpm typecheck   # tsc --noEmit
-pnpm lint        # eslint + eslint-plugin-effector (typed rules)
-pnpm test        # vitest (node + happy-dom for React/Vue)
-pnpm build       # vite library build -> dist/{index,react,vue,solid,devtools,devtools-vue,devtools-solid}.{mjs,cjs} + d.ts
+pnpm typecheck      # tsc --noEmit
+pnpm lint           # eslint + eslint-plugin-effector (typed rules)
+pnpm test:coverage  # vitest (node + happy-dom) with v8 coverage thresholds
+pnpm build          # vite build -> dist/{index,react,vue,solid,devtools,…}.{mjs,cjs} + .d.ts/.d.cts
+pnpm attw           # verify published types resolve (node10 / node16 / bundler)
 ```
+
+See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for the full guide (conventions, CI, release flow).
 
 ## SSR / tests
 
@@ -432,9 +486,12 @@ expect(scope.getState(originQuery.$data)).toBeTruthy();
 [farfetched](https://ff.effector.dev) is the mature reference point — effect-refetch is the
 younger, effect-first alternative. The difference in one line: farfetched models a query as its
 own event-based `RemoteOperation`; effector-refetch wraps **your real `Effect`** with friendly
-inline config. farfetched is still ahead on maturity, sourced-everything config, validation
-adapters and `createJsonMutation`; effector-refetch adds real `AbortSignal` cancellation, built-in
-pagination, barrier/offline, cross-framework visual devtools and `useSuspenseQuery`.
+inline config. farfetched is still ahead on maturity, sourced-everything config and a couple of
+validation adapters (superstruct / typed-contracts); the feature gap is otherwise closed —
+declarative reads **and** writes (`createJsonQuery` / `createJsonMutation`), the `@@trigger`
+protocol, router integration, `timeout` / `keepFresh`. effector-refetch also adds real
+`AbortSignal` cancellation, built-in pagination, barrier/offline, cross-framework visual devtools
+and `useSuspenseQuery`.
 
 See the **[honest, up-to-date comparison](https://olovyannikov.github.io/effector-refetch/guide/vs-farfetched)**
 (with a where-farfetched-is-ahead section) and the [migration guide](https://olovyannikov.github.io/effector-refetch/guide/migration)
@@ -442,7 +499,9 @@ See the **[honest, up-to-date comparison](https://olovyannikov.github.io/effecto
 
 ## Status
 
-Pre-1.0, actively developed. Implemented and tested (140+ tests via `fork`/`allSettled` + happy-dom):
-queries, mutations, invalidation, optimistic/list updates, retry/cache/concurrency operators,
-validation contracts, `createJsonQuery`, `createInfiniteQuery`, barriers (auth + offline),
-React/Vue/Solid bindings + React Suspense, and visual devtools. See the [roadmap](./ROADMAP.md).
+Pre-1.0, actively developed. Implemented and tested (177 tests via `fork`/`allSettled` + happy-dom):
+queries, mutations, invalidation, optimistic/list updates, retry/cache/concurrency/`timeout`/
+`keepFresh`/`applyBarrier` operators, validation contracts, `createJsonQuery`/`createJsonMutation`,
+`createInfiniteQuery` (bidirectional), `combineQueries`, the `@@trigger` protocol, router integration,
+barriers (auth + offline), SSR cache dehydrate/hydrate, React/Vue/Solid bindings + React Suspense,
+and visual devtools. The 1.0 tag awaits community feedback. See the [roadmap](./ROADMAP.md).
