@@ -21,26 +21,42 @@ pnpm install
 
 ## Scripts
 
-| script            | what it does                                         |
-| ----------------- | ---------------------------------------------------- |
-| `pnpm build`      | Build the library (`dist/`) — all entries + `.d.ts`  |
-| `pnpm typecheck`  | `tsc --noEmit`                                       |
-| `pnpm lint`       | ESLint (incl. `eslint-plugin-effector`)              |
-| `pnpm format`     | Prettier write (`format:check` to verify only)       |
-| `pnpm test`       | Run the Vitest suite once (`test:watch` for watch)   |
-| `pnpm size`       | Check bundle budgets (size-limit)                    |
-| `pnpm docs:dev`   | Run this documentation site locally                  |
-| `pnpm docs:build` | Build the docs (also checks for dead links)          |
-| `pnpm changeset`  | Record a changeset for your change (drives releases) |
+| script               | what it does                                            |
+| -------------------- | ------------------------------------------------------- |
+| `pnpm build`         | Build the library (`dist/`) — all entries + `.d.ts`     |
+| `pnpm typecheck`     | `tsc --noEmit`                                          |
+| `pnpm lint`          | ESLint (incl. `eslint-plugin-effector`)                 |
+| `pnpm format`        | Prettier write (`format:check` to verify only)          |
+| `pnpm test`          | Run the Vitest suite once (`test:watch` for watch)      |
+| `pnpm test:coverage` | Run tests with v8 coverage (thresholds enforced)        |
+| `pnpm size`          | Check bundle budgets (size-limit)                       |
+| `pnpm attw`          | Build + check published types (`@arethetypeswrong/cli`) |
+| `pnpm docs:dev`      | Run this documentation site locally                     |
+| `pnpm docs:build`    | Build the docs (also checks for dead links)             |
+| `pnpm changeset`     | Record a changeset for your change (drives releases)    |
 
 ## Making a change
 
 1. Branch off `main`.
 2. Make the change with a test (the suite runs under `fork`/`allSettled` for scope-safety).
-3. Run the gate: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`.
+3. Run the gate: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test:coverage && pnpm build && pnpm attw && pnpm size`.
 4. Add a changeset: `pnpm changeset` (pick `patch`/`minor`/`major` and write a line — it becomes
    the changelog entry).
 5. Open a PR. On merge to `main`, CI opens a "Version Packages" PR; merging that publishes to npm.
+
+## Git hooks
+
+`pnpm install` installs [lefthook](https://lefthook.dev) hooks (via the `prepare` script), which run
+the same checks as CI before they reach the remote:
+
+| hook         | runs                                                                                                  |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| `pre-commit` | Prettier (auto-fixes & re-stages staged files), ESLint, `tsc --noEmit`                                |
+| `commit-msg` | [commitlint](https://commitlint.js.org) — [Conventional Commits](https://www.conventionalcommits.org) |
+| `pre-push`   | `pnpm test:coverage` (the full suite + coverage thresholds)                                           |
+
+Commit messages follow `type(scope): subject` (`feat` / `fix` / `docs` / `style` / `refactor` /
+`perf` / `test` / `build` / `ci` / `chore`). Bypass in a pinch with `git commit --no-verify`.
 
 ## Trying it against an app
 
@@ -67,14 +83,14 @@ Every pull request gets two automatic stands:
 
 Workflows under `.github/workflows/`:
 
-| Workflow              | Trigger         | What it does                                                              |
-| --------------------- | --------------- | ------------------------------------------------------------------------- |
-| `ci.yml`              | push / PR       | typecheck · lint · test · build · size-limit                              |
-| `release.yml`         | push to `main`  | changesets: opens a "Version Packages" PR; on its merge, publishes to npm |
-| `docs.yml`            | push to `main`  | builds the docs and deploys them to GitHub Pages (Actions artifact)       |
-| `pr-preview.yml`      | pull_request    | builds the PR docs and uploads them as a downloadable artifact            |
-| `pkg-pr-new.yml`      | push / PR       | publishes a canary via pkg.pr.new                                         |
-| `release-codemod.yml` | manual dispatch | publishes the `effector-refetch-codemod` package (in `codemod/`) to npm   |
+| Workflow              | Trigger         | What it does                                                                  |
+| --------------------- | --------------- | ----------------------------------------------------------------------------- |
+| `ci.yml`              | push / PR       | typecheck · lint · format:check · test (coverage) · build · attw · size-limit |
+| `release.yml`         | push to `main`  | changesets: opens a "Version Packages" PR; on its merge, publishes to npm     |
+| `docs.yml`            | push to `main`  | builds the docs and deploys them to GitHub Pages (Actions artifact)           |
+| `pr-preview.yml`      | pull_request    | builds the PR docs and uploads them as a downloadable artifact                |
+| `pkg-pr-new.yml`      | push / PR       | publishes a canary via pkg.pr.new                                             |
+| `release-codemod.yml` | manual dispatch | publishes the `effector-refetch-codemod` package (in `codemod/`) to npm       |
 
 ### Required repository setup
 

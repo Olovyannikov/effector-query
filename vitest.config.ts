@@ -19,5 +19,20 @@ export default defineConfig({
     // apply interop so it loads under vitest. solid-js is inlined so the
     // browser-condition resolution above applies to it too.
     server: { deps: { inline: ['effector-vue', 'solid-js', 'effector-solid'] } },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'html', 'json-summary'],
+      include: ['src/**/*.{ts,tsx}'],
+      // Barrel re-exports and the codemod (its own package, tested separately).
+      exclude: ['src/index.ts'],
+      // Floors a few points below current (stmts/lines ~96, fns ~93, branches ~90)
+      // — a regression guard with headroom, not a brittle exact-match gate.
+      thresholds: {
+        lines: 93,
+        functions: 90,
+        statements: 93,
+        branches: 87,
+      },
+    },
   },
 });

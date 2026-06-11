@@ -21,26 +21,42 @@ pnpm install
 
 ## Скрипты
 
-| скрипт            | что делает                                              |
-| ----------------- | ------------------------------------------------------- |
-| `pnpm build`      | Сборка библиотеки (`dist/`) — все точки входа + `.d.ts` |
-| `pnpm typecheck`  | `tsc --noEmit`                                          |
-| `pnpm lint`       | ESLint (вкл. `eslint-plugin-effector`)                  |
-| `pnpm format`     | Prettier (запись; `format:check` — только проверка)     |
-| `pnpm test`       | Прогон тестов Vitest (`test:watch` — в watch-режиме)    |
-| `pnpm size`       | Проверка бюджета бандла (size-limit)                    |
-| `pnpm docs:dev`   | Запуск этой документации локально                       |
-| `pnpm docs:build` | Сборка доки (заодно проверка битых ссылок)              |
-| `pnpm changeset`  | Запись changeset для изменения (управляет релизами)     |
+| скрипт               | что делает                                                    |
+| -------------------- | ------------------------------------------------------------- |
+| `pnpm build`         | Сборка библиотеки (`dist/`) — все точки входа + `.d.ts`       |
+| `pnpm typecheck`     | `tsc --noEmit`                                                |
+| `pnpm lint`          | ESLint (вкл. `eslint-plugin-effector`)                        |
+| `pnpm format`        | Prettier (запись; `format:check` — только проверка)           |
+| `pnpm test`          | Прогон тестов Vitest (`test:watch` — в watch-режиме)          |
+| `pnpm test:coverage` | Тесты с покрытием v8 (пороги обязательны)                     |
+| `pnpm size`          | Проверка бюджета бандла (size-limit)                          |
+| `pnpm attw`          | Сборка + проверка публикуемых типов (`@arethetypeswrong/cli`) |
+| `pnpm docs:dev`      | Запуск этой документации локально                             |
+| `pnpm docs:build`    | Сборка доки (заодно проверка битых ссылок)                    |
+| `pnpm changeset`     | Запись changeset для изменения (управляет релизами)           |
 
 ## Как внести изменение
 
 1. Ветка от `main`.
 2. Изменение с тестом (набор гоняется под `fork`/`allSettled` ради scope-безопасности).
-3. Прогоните гейт: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`.
+3. Прогоните гейт: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test:coverage && pnpm build && pnpm attw && pnpm size`.
 4. Добавьте changeset: `pnpm changeset` (выберите `patch`/`minor`/`major` и напишите строку — она
    попадёт в changelog).
 5. Откройте PR. При мерже в `main` CI открывает PR «Version Packages»; его мерж публикует в npm.
+
+## Git-хуки
+
+`pnpm install` ставит хуки [lefthook](https://lefthook.dev) (через скрипт `prepare`) — они гоняют те
+же проверки, что и CI, ещё до отправки в remote:
+
+| хук          | что запускает                                                                                         |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| `pre-commit` | Prettier (автофикс и ре-стейдж staged-файлов), ESLint, `tsc --noEmit`                                 |
+| `commit-msg` | [commitlint](https://commitlint.js.org) — [Conventional Commits](https://www.conventionalcommits.org) |
+| `pre-push`   | `pnpm test:coverage` (полный набор + пороги покрытия)                                                 |
+
+Сообщения коммитов — `type(scope): subject` (`feat` / `fix` / `docs` / `style` / `refactor` /
+`perf` / `test` / `build` / `ci` / `chore`). Обойти при необходимости — `git commit --no-verify`.
 
 ## Проверка на приложении
 
@@ -67,14 +83,14 @@ npx tsx examples/graphql.ts
 
 Воркфлоу в `.github/workflows/`:
 
-| Воркфлоу              | Триггер       | Что делает                                                                 |
-| --------------------- | ------------- | -------------------------------------------------------------------------- |
-| `ci.yml`              | push / PR     | typecheck · lint · test · build · size-limit                               |
-| `release.yml`         | push в `main` | changesets: открывает PR «Version Packages»; при его мерже публикует в npm |
-| `docs.yml`            | push в `main` | собирает доку и деплоит на GitHub Pages (через Actions-артефакт)           |
-| `pr-preview.yml`      | pull_request  | собирает доку PR и грузит её скачиваемым артефактом                        |
-| `pkg-pr-new.yml`      | push / PR     | публикует канарейку через pkg.pr.new                                       |
-| `release-codemod.yml` | ручной запуск | публикует пакет `effector-refetch-codemod` (из `codemod/`) в npm           |
+| Воркфлоу              | Триггер       | Что делает                                                                    |
+| --------------------- | ------------- | ----------------------------------------------------------------------------- |
+| `ci.yml`              | push / PR     | typecheck · lint · format:check · test (coverage) · build · attw · size-limit |
+| `release.yml`         | push в `main` | changesets: открывает PR «Version Packages»; при его мерже публикует в npm    |
+| `docs.yml`            | push в `main` | собирает доку и деплоит на GitHub Pages (через Actions-артефакт)              |
+| `pr-preview.yml`      | pull_request  | собирает доку PR и грузит её скачиваемым артефактом                           |
+| `pkg-pr-new.yml`      | push / PR     | публикует канарейку через pkg.pr.new                                          |
+| `release-codemod.yml` | ручной запуск | публикует пакет `effector-refetch-codemod` (из `codemod/`) в npm              |
 
 ### Что нужно включить в репозитории один раз
 

@@ -1,0 +1,29 @@
+# Git hooks, managed by lefthook (installed via the `prepare` script on `pnpm install`).
+#
+# pre-commit: fast checks on staged files — format (auto-fixed & re-staged), lint, typecheck.
+# pre-push:   the full test suite with coverage. Heavier gates (build, attw, size) stay in CI.
+#
+# Skip in a pinch with: LEFTHOOK=0 git commit …   (or `git commit --no-verify`).
+
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      glob: '*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}'
+      run: pnpm exec prettier --write {staged_files}
+      stage_fixed: true
+    lint:
+      glob: '*.{ts,tsx}'
+      run: pnpm exec eslint {staged_files}
+    typecheck:
+      run: pnpm typecheck
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+
+pre-push:
+  commands:
+    test:
+      run: pnpm test:coverage
