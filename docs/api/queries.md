@@ -45,6 +45,28 @@ arrives. So when params change, the old data stays visible while the new fetch r
 
 Share these across many queries with a [factory](/recipes/defaults).
 
+## Lifecycle events
+
+```ts
+query.finished.done; //    { params, result } — a run succeeded
+query.finished.fail; //    { params, error }  — a run failed
+query.finished.finally; // { params, status: 'done' | 'fail' }
+query.aborted; //          { params } — cancel / reset / TAKE_LATEST supersede / skip
+```
+
+For **farfetched compatibility**, `finished` also exposes:
+
+```ts
+query.finished.success; // alias of finished.done   (same event)
+query.finished.failure; // alias of finished.fail   (same event)
+query.finished.skip; //    { params } — the `enabled` gate blocked a run
+```
+
+`finished.skip` fires only on the `enabled`-gate skip (the query didn't execute). The broader
+`aborted` event still fires for **every** discarded run — skip, `cancel`, `reset`, and a
+`TAKE_LATEST` supersede — so it stays a superset of `skip`. (Unlike farfetched, `finished.finally`
+fires on `done`/`fail` only, not on skip — observe skips via `finished.skip` / `aborted`.)
+
 ## Operators
 
 `concurrency` / `retry` / `cache` are also standalone, composable operators — the inline

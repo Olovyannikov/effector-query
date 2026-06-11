@@ -45,6 +45,29 @@ const query = createQuery({
 
 Разделите это между многими запросами через [фабрику](/ru/recipes/defaults).
 
+## События жизненного цикла
+
+```ts
+query.finished.done; //    { params, result } — запуск успешен
+query.finished.fail; //    { params, error }  — запуск упал
+query.finished.finally; // { params, status: 'done' | 'fail' }
+query.aborted; //          { params } — cancel / reset / вытеснение TAKE_LATEST / skip
+```
+
+Для **совместимости с farfetched** `finished` также отдаёт:
+
+```ts
+query.finished.success; // алиас finished.done   (то же событие)
+query.finished.failure; // алиас finished.fail   (то же событие)
+query.finished.skip; //    { params } — гейт `enabled` заблокировал запуск
+```
+
+`finished.skip` срабатывает только на skip по гейту `enabled` (запрос не выполнялся). Более широкое
+событие `aborted` по-прежнему срабатывает на **любой** отброшенный запуск — skip, `cancel`, `reset`
+и вытеснение `TAKE_LATEST`, — оставаясь надмножеством `skip`. (В отличие от farfetched,
+`finished.finally` срабатывает только на `done`/`fail`, не на skip — отслеживайте skip через
+`finished.skip` / `aborted`.)
+
 ## Операторы
 
 `concurrency` / `retry` / `cache` — это ещё и отдельные композируемые операторы; inline-опции

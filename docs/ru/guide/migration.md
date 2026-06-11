@@ -36,6 +36,7 @@ npx effector-refetch-codemod "src/**/*.ts" --dry   # только предпро
 | `@farfetched/atomic-router`            | `attachToRoute({ route, query })` (структурно)                                                    |
 | потребители / источники `@@trigger`    | каждый query/mutation реализует `@@trigger`; `keepFresh` его потребляет                           |
 | контракты                              | `zodContract` / `runtypesContract` / `ioTsContract` / `standardSchemaContract` / `createContract` |
+| `finished.{success,failure,skip}`      | те же имена (`success`/`failure` — алиасы `done`/`fail`; `skip` — на гейте `enabled`)             |
 | `$data / $error / $status / $pending`  | те же имена                                                                                       |
 
 Заметные отличия:

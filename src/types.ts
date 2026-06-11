@@ -167,6 +167,16 @@ export interface QueryFinished<Params, Result, Error> {
   done: Event<{ params: Params; result: Result }>;
   fail: Event<{ params: Params; error: Error }>;
   finally: Event<{ params: Params; status: 'done' | 'fail' }>;
+  /** farfetched-compatible alias of `done` (same event, fires on success). */
+  success: Event<{ params: Params; result: Result }>;
+  /** farfetched-compatible alias of `fail` (same event, fires on failure). */
+  failure: Event<{ params: Params; error: Error }>;
+  /**
+   * Fired when a run is skipped by the `enabled` gate (the query didn't execute) —
+   * the farfetched `finished.skip`. Cancel/reset/TAKE_LATEST supersede surface via
+   * the broader `aborted` event, not here.
+   */
+  skip: Event<{ params: Params }>;
 }
 
 /**

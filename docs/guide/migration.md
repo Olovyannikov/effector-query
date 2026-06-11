@@ -36,6 +36,7 @@ effect**, and inline options are available alongside operators.
 | `@farfetched/atomic-router`            | `attachToRoute({ route, query })` (structural)                                                    |
 | `@@trigger` consumers / producers      | every query/mutation implements `@@trigger`; `keepFresh` consumes it                              |
 | contracts                              | `zodContract` / `runtypesContract` / `ioTsContract` / `standardSchemaContract` / `createContract` |
+| `finished.{success,failure,skip}`      | same names (`success`/`failure` alias `done`/`fail`; `skip` on the `enabled` gate)                |
 | `$data / $error / $status / $pending`  | same names                                                                                        |
 
 Notable differences:

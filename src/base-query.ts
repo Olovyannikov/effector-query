@@ -138,6 +138,8 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
   const $params = createStore<Params | null>(null, nm('$params'));
 
   const aborted = createEvent<{ params: Params }>(evName('aborted'));
+  // farfetched-compatible `finished.skip`: the `enabled` gate prevented execution.
+  const skipped = createEvent<{ params: Params }>(evName('finished.skip'));
   const finishedDone = createEvent<{ params: Params; result: Mapped }>(evName('finished.done'));
   const finishedFail = createEvent<{ params: Params; error: Error }>(evName('finished.fail'));
   const finishedFinally = createEvent<{ params: Params; status: 'done' | 'fail' }>(
@@ -212,7 +214,7 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     source: $enabled,
     filter: (enabled) => !enabled,
     fn: (_e, r) => ({ params: r.params }),
-    target: aborted,
+    target: [aborted, skipped],
   });
 
   // concurrency gate (TAKE_FIRST drops while busy) — strategy sourced
@@ -679,7 +681,14 @@ export function createBaseQuery<Params, Result, Error = unknown, Mapped = Result
     $enabled,
     $params,
 
-    finished: { done: finishedDone, fail: finishedFail, finally: finishedFinally },
+    finished: {
+      done: finishedDone,
+      fail: finishedFail,
+      finally: finishedFinally,
+      success: finishedDone,
+      failure: finishedFail,
+      skip: skipped,
+    },
     aborted,
 
     __: {

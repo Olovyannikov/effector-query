@@ -84,3 +84,53 @@ describe('createQuery — basics', () => {
     expect(q.$status.shortName).toBe('query.$status');
   });
 });
+
+describe('createQuery — farfetched-compatible finished', () => {
+  it('success / failure are aliases of done / fail (same events)', () => {
+    const q = createQuery({ effect: createEffect(async () => 1) });
+    expect(q.finished.success).toBe(q.finished.done);
+    expect(q.finished.failure).toBe(q.finished.fail);
+  });
+
+  it('finished.success fires with { params, result } on success', async () => {
+    const fx = createEffect(async (p: number) => p * 2);
+    const q = createQuery({ effect: fx });
+    const scope = fork();
+    const seen: Array<{ params: number; result: number }> = [];
+    q.finished.success.watch((p) => seen.push(p));
+
+    await allSettled(q.start, { scope, params: 21 });
+    expect(seen).toEqual([{ params: 21, result: 42 }]);
+  });
+
+  it('finished.failure fires with { params, error } on failure', async () => {
+    const fx = createEffect(async (_p: number) => {
+      throw new Error('boom');
+    });
+    const q = createQuery({ effect: fx });
+    const scope = fork();
+    const seen: Array<{ params: number; error: Error }> = [];
+    q.finished.failure.watch((p) => seen.push(p as { params: number; error: Error }));
+
+    await allSettled(q.start, { scope, params: 5 });
+    expect(seen.length).toBe(1);
+    expect(seen[0].params).toBe(5);
+    expect(seen[0].error.message).toBe('boom');
+  });
+
+  it('finished.skip fires when the enabled gate blocks a run', async () => {
+    const { createStore } = await import('effector');
+    const fx = createEffect(async (p: number) => p);
+    const q = createQuery({ effect: fx, enabled: createStore(false) });
+    const scope = fork();
+    const skipped: unknown[] = [];
+    const aborted: unknown[] = [];
+    q.finished.skip.watch((p) => skipped.push(p));
+    q.aborted.watch((p) => aborted.push(p));
+
+    await allSettled(q.start, { scope, params: 7 });
+    expect(scope.getState(q.$status)).toBe('initial');
+    expect(skipped).toEqual([{ params: 7 }]);
+    expect(aborted).toEqual([{ params: 7 }]); // aborted stays the broader superset
+  });
+});
